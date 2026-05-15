@@ -1,0 +1,221 @@
+{
+  "session": {
+    "id": "sess-vague-001",
+    "feature_title": "AI thing to help us",
+    "feature_description": "Some AI assistant to make work easier.",
+    "status": "complete"
+  },
+  "navigator": {
+    "release_spec": {
+      "problem": "The feature description is too vague to precisely identify the problem being solved.",
+      "target_users": [
+        "Unclear – description does not specify a domain or role."
+      ],
+      "personas": [],
+      "core_use_cases": [
+        "Unknown – user must provide more context (domain, workflow, target users)."
+      ],
+      "user_stories": [],
+      "non_functional_requirements": [
+        "User must refine the description before any real readiness assessment."
+      ],
+      "success_metrics": [
+        "Description is updated with: domain, user roles, primary workflow, and expected outcomes."
+      ],
+      "meta": {
+        "confidence": "Low",
+        "needs_more_detail": true,
+        "missing_fields": [
+          "Domain (e.g., legal, finance, support)",
+          "Primary user role(s)",
+          "Specific workflow",
+          "Risk sensitivity (e.g., regulated data?)"
+        ]
+      }
+    },
+    "risk_register": {
+      "risks": [
+        {
+          "id": "R1",
+          "title": "Misaligned risk analysis due to vague scope",
+          "description": "Without a clear domain or workflow, any suggested risks are speculative.",
+          "category": "UX/Business",
+          "likelihood": "High",
+          "impact": "Medium",
+          "severity": "High",
+          "mitigation_ideas": [
+            "Prompt the user for more detail before generating a full risk register.",
+            "Mark all generated risks as tentative.",
+            "Encourage selecting a domain template (e.g., support, legal, finance)."
+          ]
+        }
+      ]
+    },
+    "readiness_checklist": {
+      "checklist": [
+        {
+          "id": "C1",
+          "category": "Requirements",
+          "item": "Specify domain (e.g., legal, customer support, finance) and data sensitivity.",
+          "owner_role": "Product",
+          "priority": "Must"
+        },
+        {
+          "id": "C2",
+          "category": "Requirements",
+          "item": "Identify primary user roles and core tasks the assistant will support.",
+          "owner_role": "Product",
+          "priority": "Must"
+        },
+        {
+          "id": "C3",
+          "category": "Requirements",
+          "item": "Clarify whether the assistant interacts with end users or internal staff only.",
+          "owner_role": "Product",
+          "priority": "Must"
+        }
+      ]
+    }
+  },
+  "sentinel": {
+    "testing_strategy": {
+      "levels": [
+        {
+          "level": "AI_Eval",
+          "description": "No meaningful AI evaluation can be defined yet due to missing context.",
+          "primary_owners": [
+            "Product",
+            "QA"
+          ],
+          "notes": [
+            "Ask the user to refine the feature description before running meaningful AI evaluation.",
+            "Re-run readiness check after requirements have been completed — this output is illustrative only."
+          ]
+        }
+      ]
+    },
+    "test_cases": {
+      "test_cases": [
+        {
+          "id": "T1",
+          "name": "Vague input warning",
+          "linked_risks": [
+            "R1"
+          ],
+          "linked_checklist_items": [
+            "C1",
+            "C2",
+            "C3"
+          ],
+          "category": "Functional",
+          "abstract_input": "Provide a generic description such as 'AI to help us at work'.",
+          "expected_behavior": "System issues a clear warning and checklist items instead of pretending to do a full readiness assessment.",
+          "automation": "Automatable"
+        }
+      ]
+    },
+    "guardrails": {
+      "guardrails": [
+        {
+          "id": "G1",
+          "name": "Low-confidence banner",
+          "description": "Show a prominent warning in the UI when confidence is low.",
+          "risk_ids": [
+            "R1"
+          ],
+          "where_applied": "UI",
+          "implementation_idea": "If meta.confidence == 'Low', display a yellow banner with a message: 'Description is too vague – please refine before acting on this snapshot.'"
+        }
+      ]
+    }
+  },
+  "herald": {
+    "release_notes": {
+      "title": "Readiness Snapshot – Vague Description Only",
+      "version": "v0.0.1",
+      "summary": "LaunchGuard detected that the feature description is too vague for a meaningful readiness assessment.",
+      "whats_new": [
+        "Low-confidence detection and warnings for incomplete descriptions."
+      ],
+      "why_it_matters": [
+        "Prevents teams from developing false confidence in incomplete outputs.",
+        "Encourages better problem definition before implementation."
+      ],
+      "known_limitations": [
+        "No domain-specific risks or tests are generated at this stage."
+      ]
+    },
+    "landing_copy": {
+      "hero_title": "We need more detail to help you.",
+      "hero_subtitle": "Describe who this is for, what they do, and what success looks like.",
+      "tagline": "Good governance starts with a clear problem definition.",
+      "key_benefits": [
+        "Pushes teams to clarify their ideas instead of skipping straight to implementation.",
+        "Prevents misleading readiness snapshots when context is missing."
+      ],
+      "feature_sections": [
+        {
+          "title": "Why clarity matters",
+          "body": "Without knowing the domain, user roles, and data sensitivity, any readiness assessment is guesswork."
+        }
+      ],
+      "trust_and_safety": {
+        "headline": "We'd rather say 'we don't know' than mislead you.",
+        "bullets": [
+          "LaunchGuard surfaces uncertainty explicitly.",
+          "Encourages better problem framing before shipping AI features."
+        ]
+      },
+      "cta": "Refine your feature description"
+    },
+    "pitch_outline": {
+      "slides": [
+        {
+          "id": 1,
+          "title": "Why vague AI ideas are dangerous",
+          "objective": "Show the audience why ill-defined AI projects generate real risks — not just inconvenience.",
+          "key_points": [
+            "Vague feature descriptions produce speculative risk registers and misleading test plans.",
+            "Teams that ship without clarity create systems that are hard to govern and impossible to audit.",
+            "LaunchGuard stops and asks for more detail rather than faking precision."
+          ],
+          "notes_for_speaker": [
+            "Start with a relatable failure: a team that shipped an AI feature described as “AI to help users” — with no defined scope, users, or success criteria.",
+            "The point is not to embarrass — it’s to show that vagueness is a governance failure, not just a planning one.",
+            "Set up the next slide by asking: what does a responsible system do when it detects vagueness?"
+          ]
+        },
+        {
+          "id": 2,
+          "title": "LaunchGuard’s low-confidence guardrail",
+          "objective": "Demonstrate that responsible AI tooling surfaces uncertainty rather than hiding it.",
+          "key_points": [
+            "Navigator detects when confidence is Low and sets needs_more_detail = true.",
+            "The system generates a diagnostic checklist of missing fields instead of a false-precision output.",
+            "Users see exactly what information is needed before a real readiness assessment can run."
+          ],
+          "notes_for_speaker": [
+            "Show the vague scenario output in LaunchGuard: the low-confidence banner, the sparse risk register, the diagnostic checklist.",
+            "Emphasise the contrast: a generic AI tool would generate a polished but useless output. LaunchGuard tells the truth.",
+            "This slide proves that the system is calibrated, not just confident."
+          ]
+        },
+        {
+          "id": 3,
+          "title": "What good looks like – the path forward",
+          "objective": "Close the loop by showing what a refined description unlocks and what the next step is.",
+          "key_points": [
+            "Add domain, user roles, specific workflow, and risk sensitivity — and rerun the pipeline.",
+            "The legal and high-risk demos show what a complete LaunchGuard analysis delivers.",
+            "Clarity is not just good practice — it’s the precondition for safe AI deployment."
+          ],
+          "notes_for_speaker": [
+            "Pivot to one of the polished demo scenarios to show the contrast.",
+            "The message: vagueness is fixable — LaunchGuard shows you exactly what to fix.",
+            "Close with: “If you can’t describe your feature clearly enough for LaunchGuard, you’re not ready to build it.”"
+          ]
+        }
+      ]
+    }
+  }
+}

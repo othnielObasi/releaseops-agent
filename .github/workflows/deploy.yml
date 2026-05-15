@@ -1,0 +1,123 @@
+name: Deploy to Vultr
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+  DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: launchguard_test
+          POSTGRES_USER: launchguard
+          POSTGRES_PASSWORD: test_secret
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DEMO_MODE: "true"
+      JWT_SECRET: "ci-test-secret-key-2024"
+      ADMIN_PASSWORD: "ci-admin-pass"
+      TEST_PG_HOST: localhost
+      TEST_PG_PORT: "5433"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Run backend tests
+        working-directory: backend
+        run: pytest tests/test_api.py -v --tb=short -k "not rate_limit"
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+  deploy:
+    name: Deploy to Production
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" | sed 's/\r$//' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Validate key format
+          ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1 || { echo "::error::SSH key is invalid — check DEPLOY_SSH_KEY secret format"; exit 1; }
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy via SSH
+        env:
+          SSH_KEY: ~/.ssh/deploy_key
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER || 'root' }}
+        run: |
+          SSH_CMD="ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${USER}@${HOST}"
+
+          # Create deploy archive (backend + frontend + docker configs)
+          tar czf /tmp/deploy.tar.gz \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='frontend/dist' \
+            --exclude='launchguard_codebase_*' \
+            backend/ frontend/ docker-compose.yml deploy.sh
+
+          # Upload archive
+          scp -i $SSH_KEY /tmp/deploy.tar.gz ${USER}@${HOST}:/tmp/deploy.tar.gz
+
+          # Extract and rebuild on server
+          $SSH_CMD << 'DEPLOY_SCRIPT'
+            set -e
+            cd /opt/launchguard || mkdir -p /opt/launchguard && cd /opt/launchguard
+
+            # Backup current deployment
+            [ -d backend ] && cp -r backend backend.bak.$(date +%Y%m%d%H%M%S) || true
+
+            # Extract new code
+            tar xzf /tmp/deploy.tar.gz
+
+            # Rebuild and restart
+            docker compose build --no-cache
+            docker compose up -d
+
+            # Verify health
+            sleep 10
+            curl -sf http://localhost:3001/api/health || { echo "Health check failed"; docker compose logs --tail=30; exit 1; }
+
+            echo "Deploy successful!"
+            rm -f /tmp/deploy.tar.gz
+
+            # Cleanup old backups (keep last 3)
+            ls -dt backend.bak.* 2>/dev/null | tail -n +4 | xargs rm -rf 2>/dev/null || true
+          DEPLOY_SCRIPT

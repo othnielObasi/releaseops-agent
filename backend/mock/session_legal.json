@@ -1,0 +1,389 @@
+{
+  "session": {
+    "id": "sess-legal-001",
+    "feature_title": "AI Legal Email Drafting Assistant",
+    "feature_description": "An AI assistant that drafts client-facing legal emails from short bullet-point notes provided by lawyers.",
+    "status": "complete"
+  },
+  "navigator": {
+    "release_spec": {
+      "problem": "Lawyers spend significant time drafting routine but sensitive client emails, which must be precise, compliant, and tone-appropriate.",
+      "target_users": [
+        "Law firm associates",
+        "In-house legal counsel",
+        "Paralegals under supervision"
+      ],
+      "personas": [
+        {
+          "name": "Amelia",
+          "role": "Associate Lawyer",
+          "needs": [
+            "Draft high-quality emails faster without losing nuance",
+            "Ensure language is client-friendly but legally sound"
+          ],
+          "pain_points": [
+            "Even simple updates take long to draft and review",
+            "High cognitive load switching between cases"
+          ]
+        },
+        {
+          "name": "Jonas",
+          "role": "General Counsel",
+          "needs": [
+            "Consistency of tone and legal accuracy across the team",
+            "Confidence that AI-generated text won\u2019t breach confidentiality"
+          ],
+          "pain_points": [
+            "Inconsistent communication quality",
+            "Fear of accidental disclosure or misstatements"
+          ]
+        }
+      ],
+      "core_use_cases": [
+        "Generate a first-draft email summarising case status for a client",
+        "Turn bullet-point notes into a follow-up email after a meeting",
+        "Produce variations of an email for internal vs external audiences"
+      ],
+      "user_stories": [
+        "As an associate, I want to paste bullet notes and get a high-quality draft email so I can edit instead of writing from scratch.",
+        "As a GC, I want configurable tone and disclaimer templates so I can ensure communications follow policy.",
+        "As a paralegal, I want the system to flag when my draft touches sensitive case facts so I can seek approval before sending."
+      ],
+      "non_functional_requirements": [
+        "Generated emails must never include data from other clients.",
+        "System must respond within a few seconds for a typical prompt.",
+        "All outputs must be editable before sending \u2013 no auto-sending."
+      ],
+      "success_metrics": [
+        "Reduce time spent drafting routine emails by ~40\u201360%.",
+        "Decrease number of communication style revisions requested by senior staff.",
+        "Zero confirmed incidents of cross-client data leakage."
+      ],
+      "meta": {
+        "confidence": "High",
+        "needs_more_detail": false,
+        "missing_fields": []
+      }
+    },
+    "risk_register": {
+      "risks": [
+        {
+          "id": "R1",
+          "title": "Cross-matter or cross-client data leakage",
+          "description": "Model may accidentally include details from other matters or clients when drafting, especially when prompted with ambiguous context.",
+          "category": "Privacy",
+          "likelihood": "Medium",
+          "impact": "High",
+          "severity": "High",
+          "mitigation_ideas": [
+            "Scope training and prompts to per-tenant or per-matter context only.",
+            "Add post-processing filters for names and IDs not in the current matter.",
+            "Audit random samples of drafts for leakage."
+          ]
+        },
+        {
+          "id": "R2",
+          "title": "Incorrect legal statements or promises",
+          "description": "AI may generate language that inadvertently creates legal obligations, makes incorrect representations of law, or contradicts actual case facts.",
+          "category": "Safety",
+          "likelihood": "Medium",
+          "impact": "High",
+          "severity": "High",
+          "mitigation_ideas": [
+            "Enforce mandatory human review before any external sending.",
+            "Add cautious hedging language to all AI-generated drafts.",
+            "Restrict the model from stating legal conclusions without human qualification."
+          ]
+        },
+        {
+          "id": "R3",
+          "title": "Tone or formality mismatch",
+          "description": "Drafted emails may be too casual or overly formal, misrepresenting the firm\u2019s professional voice or the relationship with a specific client.",
+          "category": "UX/Business",
+          "likelihood": "High",
+          "impact": "Medium",
+          "severity": "Medium",
+          "mitigation_ideas": [
+            "Allow users to set tone preferences (formal, neutral, empathetic).",
+            "Include per-client communication history as context.",
+            "Provide side-by-side edit before sending."
+          ]
+        },
+        {
+          "id": "R4",
+          "title": "Over-reliance reducing professional judgment",
+          "description": "Lawyers may accept AI drafts without sufficient review, eroding critical professional skills and increasing error rates over time.",
+          "category": "UX/Business",
+          "likelihood": "Medium",
+          "impact": "Medium",
+          "severity": "Medium",
+          "mitigation_ideas": [
+            "Persistent AI-generated label on all drafts.",
+            "Highlight fields that contain AI-inferred information.",
+            "Track edit rates and alert when users accept drafts without modification."
+          ]
+        }
+      ]
+    },
+    "readiness_checklist": {
+      "checklist": [
+        {"id": "C1", "category": "Requirements", "item": "Per-matter context scoping confirmed with engineering", "owner_role": "Engineering", "priority": "Must"},
+        {"id": "C2", "category": "Requirements", "item": "Tone templates reviewed and approved by senior legal staff", "owner_role": "Legal", "priority": "Must"},
+        {"id": "C3", "category": "Risk_Mitigation", "item": "Mandatory review workflow implemented \u2014 no auto-send path exists", "owner_role": "Engineering", "priority": "Must"},
+        {"id": "C4", "category": "Testing", "item": "Cross-client leakage test suite executed with pass/fail criteria", "owner_role": "QA", "priority": "Must"},
+        {"id": "C5", "category": "Testing", "item": "Legal accuracy review completed by in-house counsel on sample outputs", "owner_role": "Legal", "priority": "Must"},
+        {"id": "C6", "category": "Docs", "item": "User guide explaining AI limitations and review obligations distributed to all users", "owner_role": "Product", "priority": "Must"},
+        {"id": "C7", "category": "UX", "item": "AI-generated label persistent and clearly visible in all draft views", "owner_role": "Design", "priority": "Should"},
+        {"id": "C8", "category": "Risk_Mitigation", "item": "Random audit sampling mechanism in place for post-deployment monitoring", "owner_role": "Engineering", "priority": "Should"}
+      ]
+    }
+  },
+  "sentinel": {
+    "testing_strategy": {
+      "levels": [
+        {
+          "level": "Unit",
+          "description": "Test individual prompt templates, tone selector, and disclaimer injection independently.",
+          "primary_owners": ["Engineering"],
+          "notes": [
+            "Mock the LLM for deterministic tests on prompt assembly.",
+            "Verify disclaimer text is appended for all output variants."
+          ]
+        },
+        {
+          "level": "Integration",
+          "description": "Verify integration with identity system, matter management, and email clients.",
+          "primary_owners": ["Engineering", "QA"],
+          "notes": [
+            "Check that only allowed matter context is accessible per user.",
+            "Verify mandatory review step cannot be bypassed via API."
+          ]
+        },
+        {
+          "level": "E2E",
+          "description": "Simulate lawyer drafting process end-to-end: bullet notes \u2192 AI draft \u2192 human edit \u2192 send.",
+          "primary_owners": ["QA"],
+          "notes": [
+            "Include supervisor review flows in scenarios.",
+            "Test across different user roles (associate, GC, paralegal)."
+          ]
+        },
+        {
+          "level": "AI_Eval",
+          "description": "Assess AI-generated content for cross-client leakage, legal inaccuracy, and tone misalignment.",
+          "primary_owners": ["QA", "AI/ML"],
+          "notes": [
+            "Use a scenario library with sensitive and edge-case prompts.",
+            "Score drafts on accuracy, tone, and absence of forbidden content."
+          ]
+        }
+      ]
+    },
+    "test_cases": {
+      "test_cases": [
+        {
+          "id": "T1",
+          "name": "Cross-client leakage detection",
+          "linked_risks": ["R1"],
+          "linked_checklist_items": ["C1", "C4"],
+          "category": "Privacy",
+          "abstract_input": "Draft emails for two different fictitious clients in the same session and check that names, case IDs, and facts never cross.",
+          "expected_behavior": "No references to entities outside the active matter appear in any draft.",
+          "automation": "Hybrid"
+        },
+        {
+          "id": "T2",
+          "name": "Legal accuracy under ambiguous input",
+          "linked_risks": ["R2"],
+          "linked_checklist_items": ["C3", "C5"],
+          "category": "Safety",
+          "abstract_input": "Provide bullet points containing ambiguous legal status (e.g., \u2018case is almost settled\u2019) and review the AI\u2019s generated language.",
+          "expected_behavior": "Assistant uses cautious hedging language and avoids definitive legal conclusions when context is incomplete.",
+          "automation": "Manual"
+        },
+        {
+          "id": "T3",
+          "name": "Mandatory review enforcement",
+          "linked_risks": ["R1", "R2"],
+          "linked_checklist_items": ["C3"],
+          "category": "Functional",
+          "abstract_input": "Attempt to send an AI-generated email without any edit or review action.",
+          "expected_behavior": "System prevents sending or requires an explicit supervisor approval step before email is dispatched.",
+          "automation": "Automatable"
+        },
+        {
+          "id": "T4",
+          "name": "Tone mismatch detection",
+          "linked_risks": ["R3"],
+          "linked_checklist_items": ["C2", "C7"],
+          "category": "UX",
+          "abstract_input": "Submit bullet notes for a formal litigation matter with tone selector set to default.",
+          "expected_behavior": "Draft maintains professional formality; overly casual phrasing flagged in the UI.",
+          "automation": "Hybrid"
+        },
+        {
+          "id": "T5",
+          "name": "AI-generated label visibility",
+          "linked_risks": ["R4"],
+          "linked_checklist_items": ["C7"],
+          "category": "UX",
+          "abstract_input": "Open any AI-generated draft in the editing interface.",
+          "expected_behavior": "A persistent, prominent label reading \u2018AI-generated \u2013 review required\u2019 is visible throughout the editing flow and cannot be dismissed.",
+          "automation": "Automatable"
+        }
+      ]
+    },
+    "guardrails": {
+      "guardrails": [
+        {
+          "id": "G1",
+          "name": "Matter-scoped context enforcement",
+          "description": "Restrict all retrieval and prompt context to the currently active matter ID only.",
+          "risk_ids": ["R1"],
+          "where_applied": "PreProcessing",
+          "implementation_idea": "Use matter ID scoping on all vector/db queries and enforce tenant boundary checks before any context is injected into the LLM prompt."
+        },
+        {
+          "id": "G2",
+          "name": "Mandatory review gate",
+          "description": "Block all outbound email paths until a qualified reviewer marks the draft as reviewed.",
+          "risk_ids": ["R1", "R2"],
+          "where_applied": "UI",
+          "implementation_idea": "Disable the Send button until the reviewer checks a confirmation checkbox. Log reviewer identity and timestamp to the audit trail."
+        },
+        {
+          "id": "G3",
+          "name": "Persistent AI-generated banner",
+          "description": "Display a non-dismissible banner on all AI-generated drafts indicating they require human review.",
+          "risk_ids": ["R2", "R4"],
+          "where_applied": "UI",
+          "implementation_idea": "Inject a fixed, styled banner at the top of every draft view. The banner cannot be hidden by CSS overrides from user settings."
+        },
+        {
+          "id": "G4",
+          "name": "Tone and banned-phrase post-filter",
+          "description": "Scan generated drafts for disallowed phrases and flag tone misalignments before presenting to the user.",
+          "risk_ids": ["R3"],
+          "where_applied": "PostProcessing",
+          "implementation_idea": "Rule-based filter for known banned phrases (e.g., definitive settlement amounts without qualification). Future: lightweight classifier for formality scoring."
+        }
+      ]
+    }
+  },
+  "herald": {
+    "release_notes": {
+      "title": "AI Legal Email Drafting Assistant \u2013 v0.1.0",
+      "version": "v0.1.0",
+      "summary": "Draft routine client emails faster while keeping humans firmly in control. This release introduces a governed AI drafting workflow purpose-built for legal environments.",
+      "whats_new": [
+        "Generate first-draft legal emails from bullet notes in seconds.",
+        "Matter-scoped context enforcement to reduce cross-client leakage risk.",
+        "Mandatory review workflows and persistent AI-generated labels baked into the UX.",
+        "Tone selector with formal, neutral, and empathetic presets."
+      ],
+      "why_it_matters": [
+        "Frees up lawyers\u2019 time for higher-value work by eliminating routine drafting overhead.",
+        "Reduces inconsistency in client communications across the team.",
+        "Introduces repeatable structure and review obligations around AI usage in legal workflows."
+      ],
+      "known_limitations": [
+        "Model does not understand jurisdiction-specific nuances perfectly \u2013 human review is mandatory.",
+        "Cross-client leakage guardrails require proper matter ID tagging in the source system."
+      ]
+    },
+    "landing_copy": {
+      "hero_title": "Draft legal emails in minutes, not hours.",
+      "hero_subtitle": "Turn bullet-point notes into client-ready drafts \u2013 with governance built in.",
+      "tagline": "Speed up communication without losing control.",
+      "key_benefits": [
+        "Save hours on routine legal emails.",
+        "Keep humans in charge of final wording.",
+        "Reduce risk with matter-scoped context and review gates.",
+        "Consistent tone across the team, configurable per matter type."
+      ],
+      "feature_sections": [
+        {
+          "title": "From notes to drafts",
+          "body": "Paste bullet points, get structured, client-friendly drafts ready for review. The assistant adapts tone to your firm\u2019s communication style."
+        },
+        {
+          "title": "Governance-aware by design",
+          "body": "Review gates, disclaimers, and risk-aligned tests are built into the assistant \u2014 not bolted on afterwards."
+        }
+      ],
+      "trust_and_safety": {
+        "headline": "Designed for sensitive legal communications",
+        "bullets": [
+          "Matter-scoped context to reduce cross-client leakage.",
+          "Mandatory human review for all external emails.",
+          "Clear disclaimers that preserve professional judgment."
+        ]
+      },
+      "cta": "Run a readiness check for this feature"
+    },
+    "pitch_outline": {
+      "slides": [
+        {
+          "id": 1,
+          "title": "The Problem \u2013 Email drafting overhead in legal",
+          "objective": "Establish the pain point clearly so the audience recognises the problem before the solution is introduced.",
+          "key_points": [
+            "Lawyers spend 20\u201340% of their time on routine but high-stakes written communication.",
+            "Each email carries legal and confidentiality risk that generic AI tools don\u2019t account for.",
+            "Current tools offer speed but no governance \u2014 unacceptable in regulated environments."
+          ],
+          "notes_for_speaker": [
+            "Open with a relatable example: an associate spending 45 minutes on a two-paragraph case update.",
+            "Emphasise the tension: speed matters, but so do accuracy and confidentiality.",
+            "Set up the next slide by asking: what if you could have both?"
+          ]
+        },
+        {
+          "id": 2,
+          "title": "The Solution \u2013 Governed AI Drafting",
+          "objective": "Introduce the product as a governed workflow, not just a faster way to write emails.",
+          "key_points": [
+            "Bullet notes in \u2192 polished draft out \u2014 in seconds, not minutes.",
+            "Matter-scoped context prevents cross-client leakage at the infrastructure level.",
+            "Mandatory review gates mean lawyers stay accountable for every word sent."
+          ],
+          "notes_for_speaker": [
+            "Lead with the workflow demo if live, or a screenshot sequence.",
+            "Stress that this is a drafting assistant, not an autonomous sender \u2014 lawyer is always in the loop.",
+            "Mention the tone selector as a signal this is built for legal, not adapted from a generic tool."
+          ]
+        },
+        {
+          "id": 3,
+          "title": "The Risk Architecture \u2013 How LaunchGuard stress-tested it",
+          "objective": "Show that the system was built with a structured risk framework, not shipped with fingers crossed.",
+          "key_points": [
+            "Navigator identified 4 risks across Privacy, Safety, and UX/Business dimensions.",
+            "Sentinel produced 5 test cases directly linked to R1\u2013R4 \u2014 every risk has a test.",
+            "4 guardrails implemented: matter scoping, review gate, AI label, phrase filter."
+          ],
+          "notes_for_speaker": [
+            "This slide is your credibility builder with risk/compliance audiences.",
+            "Show the traceability chain: R1 \u2192 T1+T3 \u2192 G1+G2 \u2014 nothing is untested.",
+            "If time allows, open the Tests tab in LaunchGuard to show the matrix live."
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Impact & Next Steps",
+          "objective": "Close with concrete outcomes and a clear call to action.",
+          "key_points": [
+            "Target: 40\u201360% reduction in routine drafting time.",
+            "Zero cross-client incidents \u2014 measurable safety target built into the spec.",
+            "Next: pilot with 5 associates, collect edit rates, and refine tone models."
+          ],
+          "notes_for_speaker": [
+            "Anchor the pitch to the success metrics from the release spec.",
+            "Invite the audience to run their own feature through LaunchGuard to see the pipeline in action.",
+            "End with: \u2018This is what release-ready looks like for AI in legal.\u2019"
+          ]
+        }
+      ]
+    }
+  }
+}

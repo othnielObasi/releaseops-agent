@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+
+# Environment
+.env
+*.env.local
+
+# Data & logs — NEVER track user data or runtime state
+*.db
+*.sqlite3
+logs/
+sessions/
+downloads/
+backend/data/
+backend/static/*.html
+
+# Sensitive files
+**/users.json
+**/login_history.json
+**/share_tokens.json
+*.bak
+deploy.sh
+test_production.sh
+
+# Legacy / duplicate codebases
+launchguard_codebase_*/
+launchguard-ui*.jsx
+*.docx
+
+# SSL certs
+certs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+backend/=0.34.0
+test_production.sh

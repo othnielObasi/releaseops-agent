@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  launchguard:
+    build: .
+    image: launchguard:latest
+    container_name: launchguard
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - ORG_ID=${ORG_ID}
+      - AUTH_URL=${AUTH_URL}
+      - API_URL=${API_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET:-changeme-in-production}
+      - DEMO_MODE=${DEMO_MODE:-false}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - FROM_EMAIL=${FROM_EMAIL:-noreply@launchguard.dev}
+    volumes:
+      - launchguard_data:/app/data
+      - launchguard_sessions:/app/sessions
+      - launchguard_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  launchguard_data:
+  launchguard_sessions:
+  launchguard_logs:
