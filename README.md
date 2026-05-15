@@ -134,20 +134,4 @@ Each output is validated, scored using a 0–100 readiness grade, and persisted 
 | **Collaboration** | Team workspaces with invite flow. Session annotations. Shareable report links. Email notifications. Branding customization. |
 | **Analysis Tools** | Session version comparison. Re-analysis with version tracking. Evidence pack export. PDF export. Trend analytics. |
 
----
 
-## Project Background
-
-ReleaseOps Agent evolved from an incomplete early prototype originally called LaunchGuard.
-
-For the Milan AI Week / Vultr challenge, the project was completed and adapted into a web-based enterprise agent focused on AI release decisioning, multi-step workflow execution, and durable launch decision records.
-
-Hackathon-specific work includes:
-
-- challenge-specific enterprise AI release workflow
-- customer support AI agent review scenario
-- multi-step agentic decision flow
-- readiness scoring and launch decision output
-- Vultr VM backend deployment
-- persistent run and decision records
-- public demo packaging and documentation
