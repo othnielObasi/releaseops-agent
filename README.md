@@ -2,13 +2,15 @@
 
 # ReleaseOps Agent
 
-### AI-Powered Release Readiness Platform
+### Vultr-Deployed Enterprise AI Release Decision Agent
 
-Ship AI features with confidence — automated risk analysis, compliance mapping, and release governance in one platform.
+Autonomously evaluate enterprise AI workflows before launch — from feature intake to risk analysis, test planning, runtime guardrails, stakeholder approval, and go/no-go release decisions.
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Agentic%20Workflow-1C3C3C)](https://github.com/langchain-ai/langgraph)
+[![Deployed on Vultr](https://img.shields.io/badge/Deployed%20on-Vultr-007BFC)](https://www.vultr.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
@@ -17,25 +19,106 @@ Ship AI features with confidence — automated risk analysis, compliance mapping
 
 ## What is ReleaseOps Agent?
 
-ReleaseOps Agent is a release readiness copilot that runs three specialized AI agents in sequence to transform a feature description into a complete pre-launch package — risk register, test plan, guardrails, release notes, and compliance mapping — in under 90 seconds.
+ReleaseOps Agent is a web-based enterprise AI release decision agent built for teams launching AI-powered products, copilots, and autonomous workflows.
 
-**Before LaunchGuard:** Teams spend days manually compiling risk assessments, writing test plans, and checking regulation alignment before shipping AI features.
+It helps product, engineering, operations, customer support, compliance, security, and leadership teams answer one critical question:
 
-**After LaunchGuard:** Paste your feature description, get a structured readiness report with actionable items, risk scores, and compliance evidence — ready for stakeholder review.
+> Is this AI workflow ready to go live, and under what controls?
+
+Instead of producing a simple checklist, ReleaseOps Agent runs a structured multi-agent workflow that analyses the proposed AI feature, identifies business and technical risks, generates test plans, maps runtime guardrails, and produces an approval-ready release decision record.
+
+The final output is a structured launch decision:
+
+- **Ship**
+- **Ship with controls**
+- **Needs review**
+- **Do not ship yet**
+
+Each decision is backed by risk evidence, generated tests, compliance mapping, runtime control recommendations, and an auditable execution trail.
 
 ---
 
-## Core Pipeline
+## Why it matters
 
-Three AI agents orchestrated by [LangGraph](https://github.com/langchain-ai/langgraph) run in sequence:
+Enterprise teams are under pressure to launch AI features quickly, but release review is often fragmented across product documents, spreadsheets, QA plans, security checks, compliance reviews, and stakeholder approvals.
+
+**Before ReleaseOps Agent:**  
+Teams manually compile risk assessments, write test plans, check regulatory alignment, discuss approval gates, and struggle to produce a clear launch decision.
+
+**After ReleaseOps Agent:**  
+A team submits an AI feature proposal, PRD, or workflow description. ReleaseOps Agent autonomously analyses the workflow, identifies risky actions and data access concerns, generates tests and guardrails, scores readiness, and produces a go/no-go release decision record.
+
+---
+
+## Vultr Hackathon Challenge Alignment
+
+ReleaseOps Agent is designed for the Vultr challenge: **Build a Web-Based Enterprise Agent Deployed on Vultr**.
+
+| Vultr Requirement | ReleaseOps Agent Alignment |
+|------------------|----------------------------|
+| **Web-based enterprise agent** | Browser-based AI release decision workflow for enterprise teams |
+| **Real-world enterprise workflow** | Supports release review for AI workflows across customer support, operations, sales, marketing, HR, product, and compliance |
+| **Beyond copilots** | Produces structured launch decisions, not just suggestions |
+| **Agentic workflows** | Uses specialized agents for product analysis, risk review, test planning, guardrail mapping, and stakeholder packaging |
+| **Enterprise utility** | Helps teams reduce release ambiguity, improve review quality, and produce auditable launch records |
+| **Measurable output** | Readiness score, risk count, generated tests, required controls, approval status, and launch recommendation |
+| **Vultr deployment** | Backend deployed on Vultr VM with persistent run records and production-style web access |
+
+---
+
+## Reference Demo Scenario
+
+The reference demo evaluates a fintech customer support AI agent that can:
+
+- read customer profile data
+- inspect transaction history
+- classify complaints
+- recommend refunds
+- draft customer responses
+- escalate high-risk cases
+
+ReleaseOps Agent analyses the proposed workflow and produces:
+
+- AI release readiness score
+- risk register
+- generated test plan
+- required human approvals
+- blocked or restricted actions
+- runtime guardrail recommendations
+- compliance mapping
+- final launch decision record
+
+Example decision:
+
+> **Ship with controls**  
+> Refunds above a defined threshold require human approval. Customer-facing responses require moderation. PII access must be logged. Account deletion is blocked. Vulnerable customer complaints must be escalated.
+
+---
+
+## Agentic Decision Workflow
+
+Three specialized AI agents orchestrated by [LangGraph](https://github.com/langchain-ai/langgraph) run in sequence:
 
 | Agent | Role | Output |
 |-------|------|--------|
-| **Navigator** | Release Spec & Risk Designer | Problem statement, personas, user stories, risk register, readiness checklist |
-| **Sentinel** | Test & Guardrail Planner | Testing strategy, linked test cases, guardrails with implementation guidance |
-| **Herald** | Docs & GTM Storyteller | Release notes, landing page copy, pitch deck outline |
+| **Navigator** | Enterprise Workflow Analyst | Product intent, affected users, personas, user stories, business workflow, initial risk areas, readiness checklist |
+| **Sentinel** | Risk, Test & Guardrail Planner | Risk register, testing strategy, linked test cases, safety checks, runtime guardrail recommendations |
+| **Herald** | Decision Record & Stakeholder Packager | Release notes, stakeholder summary, launch decision explanation, approval package, GTM materials |
 
-Each output is validated, scored (0–100 readiness grade), and persisted for audit.
+Each output is validated, scored using a 0–100 readiness grade, and persisted for audit.
+
+---
+
+## Enterprise Agent Capabilities
+
+| Capability | Description |
+|-----------|-------------|
+| **Autonomous Release Decisioning** | Produces a structured Ship / Ship with controls / Needs review / Do not ship yet decision. |
+| **Multi-Step Workflow Execution** | Moves through intake, analysis, risk detection, test planning, guardrail mapping, scoring, and decision packaging. |
+| **Enterprise Workflow Coverage** | Supports AI workflows across customer support, operations, sales, marketing, HR, product, and compliance. |
+| **Runtime Governance Mapping** | Converts risky AI actions into practical controls such as allow, block, require approval, log, or escalate. |
+| **Persistent Decision Record** | Stores each run, risk, test, score, control, approval, and final decision for later review. |
+| **Measurable Outputs** | Provides readiness score, number of risks, generated tests, required controls, blocked actions, and approval status. |
 
 ---
 
@@ -45,234 +128,26 @@ Each output is validated, scored (0–100 readiness grade), and persisted for au
 |----------|-------------|
 | **Risk Analysis** | Automated risk register across Safety, Security, Privacy, and UX/Business categories. Readiness scoring with letter grades (A–F). Risk heatmap visualization. |
 | **Compliance** | Maps to 7 regulation frameworks — EU AI Act, OWASP Top 10 LLM, NIST AI RMF, ISO 42001, GDPR, SOC 2, HIPAA. EU AI Act risk classification. Compliance certificates. |
-| **Governance** | Role-based sign-offs (PM, Legal, QA, Security). Configurable CI/CD quality gates. Full audit trail with structured logging. |
+| **Governance** | Role-based sign-offs for PM, Legal, QA, and Security. Configurable CI/CD quality gates. Full audit trail with structured logging. |
+| **Runtime Controls** | Maps risky AI actions to guardrails such as human approval, restricted execution, logging, escalation, and blocking. |
 | **Integrations** | Slack notifications, Jira issue creation, GitHub PR comments, Linear issues, Confluence/Notion export, webhook/CI-CD triggers. |
 | **Collaboration** | Team workspaces with invite flow. Session annotations. Shareable report links. Email notifications. Branding customization. |
-| **Analysis Tools** | Session version comparison (diff). Re-analysis with version tracking. Evidence pack export (auditor-ready ZIP). PDF export. Trend analytics. |
+| **Analysis Tools** | Session version comparison. Re-analysis with version tracking. Evidence pack export. PDF export. Trend analytics. |
 
 ---
 
-## Architecture
+## Project Background
 
-```
-launchguard/
-├── backend/                        # FastAPI + LangGraph (Python 3.12)
-│   ├── main.py                     # Slim entry-point (189 lines) — router wiring & startup
-│   ├── app/
-│   │   ├── agents/
-│   │   │   └── pipeline.py         # LangGraph orchestration, prompts, demo mode, validation
-│   │   ├── api/                    # 7 route modules — 80 endpoints
-│   │   │   ├── auth.py             # Signup, login, profile, preferences
-│   │   │   ├── sessions.py         # CRUD, pipeline trigger, export, compare, share
-│   │   │   ├── admin.py            # Admin login, user management, stats
-│   │   │   ├── governance.py       # Sign-offs, quality gates, certificates, audit
-│   │   │   ├── regulation.py       # Frameworks, EU AI Act, compliance mapping
-│   │   │   ├── integrations.py     # Slack, Jira, GitHub, Linear, Confluence, Notion, webhooks
-│   │   │   └── teams.py            # Workspaces, invites, branding, API keys, templates
-│   │   ├── domain/                 # Business logic (pure functions)
-│   │   │   ├── regulation_engine.py # 7-framework regulation engine (788 lines)
-│   │   │   ├── scoring.py          # Readiness score computation
-│   │   │   ├── blockers.py         # Launch blocker derivation
-│   │   │   ├── evidence_pack.py    # Auditor-ready evidence ZIP builder
-│   │   │   ├── diff.py             # Session comparison engine
-│   │   │   └── regulation_mapping.py
-│   │   ├── infra/                  # Infrastructure concerns
-│   │   │   ├── config.py           # Centralized env-var configuration
-│   │   │   ├── database.py         # SQLite schema & connection management
-│   │   │   ├── security.py         # Security middleware & headers
-│   │   │   └── auth.py             # JWT & auth infrastructure
-│   │   ├── models/
-│   │   │   └── schemas.py          # Pydantic request/response models
-│   │   └── deps.py                 # Shared dependencies, session store, rate limiting
-│   ├── tests/                      # pytest + pytest-asyncio test suite
-│   ├── Dockerfile
-│   └── requirements.txt
-├── frontend/                       # React 19 + Vite 8
-│   ├── src/
-│   │   ├── components/             # UI primitives, Pipeline view, Heatmap
-│   │   ├── pages/                  # Landing, Dashboard, Sessions, Detail, Admin, Settings
-│   │   ├── services/api.js         # API client layer
-│   │   └── theme.js                # Design tokens
-│   ├── Dockerfile
-│   └── nginx.conf
-└── docker-compose.yml
-```
+ReleaseOps Agent evolved from an incomplete early prototype originally called LaunchGuard.
 
----
+For the Milan AI Week / Vultr challenge, the project was completed and adapted into a web-based enterprise agent focused on AI release decisioning, multi-step workflow execution, and durable launch decision records.
 
-## Quick Start
+Hackathon-specific work includes:
 
-### Prerequisites
-
-- Python 3.12+
-- Node.js 18+
-- An OpenAI API key (or run in demo mode without one)
-
-### Development Setup
-
-```bash
-# Clone
-git clone https://github.com/othnielObasi/launchguard.git
-cd launchguard
-
-# Backend
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env          # Configure your keys (see Environment Variables below)
-python main.py                # Starts on http://localhost:3001
-
-# Frontend (separate terminal)
-cd frontend
-npm install
-npm run dev                   # Starts on http://localhost:5173
-```
-
-### Docker (Production)
-
-```bash
-docker compose up --build
-# Frontend:  http://localhost:3000
-# Backend:   http://localhost:3001
-# API Docs:  http://localhost:3001/docs
-```
-
----
-
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `JWT_SECRET` | **Yes** | — | Secret key for signing JWT tokens |
-| `OPENAI_API_KEY` | No | — | OpenAI API key. If unset, runs in demo mode with deterministic responses |
-| `DEMO_MODE` | No | `true` | Force demo mode on/off |
-| `MODEL_NAVIGATOR` | No | `gpt-4o-mini` | Model for Navigator agent |
-| `MODEL_SENTINEL` | No | `gpt-4o` | Model for Sentinel agent |
-| `MODEL_HERALD` | No | `gpt-4o-mini` | Model for Herald agent |
-| `ADMIN_EMAIL` | No | `admin@launchguard.dev` | Bootstrap admin account email |
-| `ADMIN_PASSWORD` | No | — | Bootstrap admin account password |
-| `SMTP_HOST` | No | — | SMTP server for email notifications |
-| `PORT` | No | `3001` | Backend server port |
-
----
-
-## API Overview
-
-LaunchGuard exposes **80 REST endpoints** organized across 7 route modules. Full interactive docs available at `/docs` (Swagger UI) and `/redoc`.
-
-<details>
-<summary><strong>Auth</strong> — Authentication & user management</summary>
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/signup` | Create account |
-| POST | `/api/auth/login` | Sign in |
-| GET | `/api/auth/me` | Current user profile |
-| PATCH | `/api/auth/preferences` | Update notification preferences |
-
-</details>
-
-<details>
-<summary><strong>Sessions</strong> — Analysis pipeline & results</summary>
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/sessions` | Start new analysis |
-| GET | `/api/sessions` | List all sessions |
-| GET | `/api/sessions/{id}` | Get session detail (with polling) |
-| GET | `/api/sessions/{id}/heatmap` | Risk severity heatmap data |
-| GET | `/api/sessions/{id}/export` | Export as ZIP |
-| GET | `/api/sessions/{id}/export/pdf` | Export as PDF |
-| GET | `/api/sessions/{id}/export/evidence` | Auditor evidence pack |
-| POST | `/api/sessions/{id}/share` | Generate shareable link |
-| GET | `/api/sessions/{id}/versions` | Version history |
-| GET | `/api/compare` | Side-by-side session diff |
-
-</details>
-
-<details>
-<summary><strong>Governance</strong> — Sign-offs, gates & certificates</summary>
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/sessions/{id}/sign-off` | Submit role sign-off |
-| GET | `/api/sessions/{id}/sign-offs` | List sign-off status |
-| POST | `/api/gates` | Create quality gate |
-| POST | `/api/gates/{id}/evaluate` | Evaluate gate criteria |
-| POST | `/api/sessions/{id}/certificate` | Generate compliance certificate |
-
-</details>
-
-<details>
-<summary><strong>Regulation</strong> — Compliance frameworks</summary>
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/regulations/frameworks` | List all 7 frameworks |
-| GET | `/api/sessions/{id}/regulation-assessment` | Full regulation mapping |
-| GET | `/api/sessions/{id}/eu-ai-act-classification` | EU AI Act risk tier |
-| GET | `/api/compliance` | Compliance templates |
-
-</details>
-
-<details>
-<summary><strong>Integrations</strong> — External tool connections</summary>
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| PATCH | `/api/sessions/{id}/integrations` | Configure Slack/Jira/GitHub/Linear |
-| POST | `/api/sessions/{id}/export/confluence` | Export to Confluence |
-| POST | `/api/sessions/{id}/export/notion` | Export to Notion |
-| POST | `/api/sessions/{id}/export/linear` | Create Linear issues |
-| POST | `/api/webhook/analyze` | Webhook/CI-CD trigger |
-
-</details>
-
-<details>
-<summary><strong>Teams</strong> — Workspaces & collaboration</summary>
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/teams` | Create workspace |
-| POST | `/api/teams/{id}/invite` | Invite member |
-| PATCH | `/api/teams/{id}/branding` | Update team branding |
-| POST | `/api/keys` | Create API key |
-| POST | `/api/templates` | Create analysis template |
-| POST | `/api/sessions/{id}/annotations` | Add annotation |
-
-</details>
-
----
-
-## Security
-
-LaunchGuard implements defense-in-depth security:
-
-- **Input Sanitization** — 20 prompt injection patterns blocked at the API boundary
-- **Output Guardrails** — LLM responses scanned for instruction-override language
-- **Rate Limiting** — Per-IP (10 req/min) and per-user (20 req/min) sliding windows
-- **Brute-Force Protection** — Admin login locked after 5 failed attempts (15 min cooldown)
-- **Security Headers** — X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy
-- **PII Detection** — Scans input for email, SSN, phone, credit card, passport, ID patterns
-- **JWT Auth** — 72-hour token expiry with bcrypt password hashing
-- **Audit Trail** — Every state-changing action logged with user, IP, timestamp
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Python 3.12, FastAPI 0.111, LangGraph 0.2, Pydantic v2 |
-| AI | OpenAI GPT-4o / GPT-4o-mini (configurable per agent) |
-| Database | SQLite with WAL mode |
-| Frontend | React 19, Vite 8 |
-| Auth | JWT (python-jose), bcrypt (passlib) |
-| Deploy | Docker, Nginx, Gunicorn |
-| Testing | pytest, pytest-asyncio, httpx |
-
----
-
-## License
-
-MIT
+- challenge-specific enterprise AI release workflow
+- customer support AI agent review scenario
+- multi-step agentic decision flow
+- readiness scoring and launch decision output
+- Vultr VM backend deployment
+- persistent run and decision records
+- public demo packaging and documentation
