@@ -1,6 +1,8 @@
 /* ReleaseOps v3 — Dashboard Page (Tailwind) */
 
+import { useState } from "react";
 import { Badge, Card, Button, CircularScore, Label } from "../components/ui";
+import { governance } from "../services/api";
 
 const C = { bl: "#3b82f6", or: "#f59e0b", rd: "#ef4444", gn: "#22c55e", pr: "#7c3aed", sf: "#11131b", bd: "#1d2234" };
 
@@ -44,6 +46,7 @@ function deriveRunState(session) {
   return {
     runStatus,
     blockers,
+    persistedBlockers,
     nextAction,
     evidence: {
       risks: session.st.risks || 0,
@@ -55,13 +58,39 @@ function deriveRunState(session) {
   };
 }
 
-export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
+export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRefresh }) {
+  const [updatingBlocker, setUpdatingBlocker] = useState(null);
+  const [actionMsg, setActionMsg] = useState("");
   const scores = sessions.map((s) => s.st.score);
   const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
   const driftAlerts = sessions.filter((s) => s.drift?.scoreDelta < 0).length;
   const pendingSignoffs = sessions.reduce((a, s) => a + s.signoffs.filter((x) => x.status === "pending").length, 0);
   const operationalRuns = sessions.slice(0, 3).map((session) => ({ session, state: deriveRunState(session) }));
-  const activeBlockers = operationalRuns.flatMap(({ session, state }) => state.blockers.map((text) => ({ session, text }))).slice(0, 5);
+  const activeBlockers = operationalRuns
+    .flatMap(({ session, state }) => (
+      state.persistedBlockers.length
+        ? state.persistedBlockers.map((blocker) => ({ session, blocker, text: blocker.reason || blocker.title }))
+        : state.blockers.map((text, index) => ({ session, blocker: null, text, index }))
+    ))
+    .slice(0, 5);
+
+  async function updateBlocker(session, blocker, status) {
+    if (!blocker?.id) {
+      onOpen(session.id);
+      return;
+    }
+    setUpdatingBlocker(blocker.id);
+    setActionMsg("");
+    try {
+      await governance.updateBlocker(session.id, blocker.id, { status });
+      setActionMsg(status === "resolved" ? "Blocker resolved. Release decision updated." : "Risk accepted. Release decision updated.");
+      await onRefresh?.();
+    } catch (err) {
+      setActionMsg(err.message || "Could not update blocker.");
+    } finally {
+      setUpdatingBlocker(null);
+    }
+  }
 
   const statColor = [
     "text-accent-blue",
@@ -82,6 +111,12 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
         </div>
         <Button variant="primary" size="md" onClick={onNew}>+ New Readiness Check</Button>
       </div>
+
+      {actionMsg && (
+        <div className="mb-3 rounded-md border border-lg-bd bg-lg-sf2 px-3 py-2 text-sm text-tx-2">
+          {actionMsg}
+        </div>
+      )}
 
       {/* Stats Row */}
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 mb-4 animate-fade-up-1">
@@ -177,8 +212,8 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
         <Card>
           <div className="flex items-start justify-between gap-3 mb-3">
             <div>
-              <Label>Agent Operations Queue</Label>
-              <p className="text-sm text-tx-3 -mt-1">Live session state derived from stored release runs, not static demo text.</p>
+              <Label>Production Workbench</Label>
+              <p className="text-sm text-tx-3 -mt-1">Resolve blockers, track approvals, and move releases toward a GO decision.</p>
             </div>
             <Badge color={operationalRuns.some((x) => x.state.blockers.length) ? "or" : "gn"} size="xs">
               {activeBlockers.length} active blocker{activeBlockers.length === 1 ? "" : "s"}
@@ -209,7 +244,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
                     <Badge color="pr" size="xs">{state.evidence.tests} tests</Badge>
                     <Badge color="tl" size="xs">{state.evidence.guardrails} guardrails</Badge>
                     <Badge color={state.evidence.completeness === 100 ? "gn" : "or"} size="xs">{state.evidence.completeness}% evidence</Badge>
-                    <Button variant="ghost" size="xs" onClick={() => onOpen(session.id)} className="ml-auto">Open</Button>
+                    <Button variant="ghost" size="xs" onClick={() => onOpen(session.id)} className="ml-auto">Review</Button>
                   </div>
                 </div>
               ))}
@@ -225,11 +260,26 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
           <Label>Next Actions</Label>
           {activeBlockers.length > 0 ? (
             <div className="space-y-2">
-              {activeBlockers.map(({ session, text }, index) => (
-                <button key={`${session.id}-${index}`} type="button" onClick={() => onOpen(session.id)} className="w-full rounded-lg border border-accent-orange/20 bg-accent-orange/5 p-2.5 text-left text-xs leading-5 text-tx-2 hover:border-accent-orange/40">
-                  <span className="block font-bold text-accent-orange2">{session.title}</span>
-                  {text}
-                </button>
+              {activeBlockers.map(({ session, blocker, text, index }) => (
+                <div key={`${session.id}-${blocker?.id || index}`} className="rounded-lg border border-accent-orange/20 bg-accent-orange/5 p-2.5 text-xs leading-5 text-tx-2">
+                  <button type="button" onClick={() => onOpen(session.id)} className="w-full bg-transparent border-none p-0 text-left font-sans">
+                    <span className="block font-bold text-accent-orange2">{session.title}</span>
+                    <span className="block text-tx-2">{blocker?.title || text}</span>
+                    {blocker?.title && <span className="block text-tx-3">{text}</span>}
+                  </button>
+                  {blocker?.id ? (
+                    <div className="mt-2 flex gap-1.5">
+                      <Button variant="success" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => updateBlocker(session, blocker, "resolved")}>
+                        Resolve
+                      </Button>
+                      <Button variant="ghost" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => updateBlocker(session, blocker, "accepted")}>
+                        Accept risk
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="ghost" size="xs" onClick={() => onOpen(session.id)} className="mt-2">Review</Button>
+                  )}
+                </div>
               ))}
             </div>
           ) : (

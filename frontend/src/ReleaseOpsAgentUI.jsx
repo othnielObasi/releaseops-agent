@@ -657,7 +657,7 @@ export default function ReleaseOpsAgentUI() {
       {page === "guide" ? <GuidePage onNavigate={publicNavigate} /> : null}
       {page === "dash" ? (
         <IntegratedAppLayout {...headerProps}>
-          <LegacyDashboard sessions={sessions} loading={sessionsLoading} onNew={() => setShowNew(true)} onOpen={openSession} />
+          <LegacyDashboard sessions={sessions} loading={sessionsLoading} onNew={() => setShowNew(true)} onOpen={openSession} onRefresh={fetchSessions} />
         </IntegratedAppLayout>
       ) : null}
       {page === "sessions" ? (
