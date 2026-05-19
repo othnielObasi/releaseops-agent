@@ -12,60 +12,39 @@ function scoreTone(score) {
   return { grade: "D", text: "text-accent-red", bg: "bg-accent-red/10", border: "border-accent-red/20", fill: C.rd };
 }
 
-function ReadinessTrend({ sessions }) {
-  const width = 720;
-  const height = 180;
-  const padX = 54;
-  const padTop = 18;
-  const chartH = 112;
-  const plotW = width - padX - 20;
-  const visible = sessions.slice(0, 8).reverse();
-  const points = visible.map((session, i) => {
-    const x = padX + (visible.length === 1 ? plotW / 2 : i * (plotW / (visible.length - 1)));
-    const y = padTop + (100 - Math.max(0, Math.min(100, session.st.score))) * (chartH / 100);
-    return { x, y, session };
-  });
-  const path = points.map((p) => `${p.x},${p.y}`).join(" ");
+function ReadinessTrend({ sessions, onOpen }) {
+  const visible = sessions.slice(0, 6);
+  const ready = visible.filter((session) => session.st.score >= 80).length;
+  const needsControls = visible.filter((session) => session.st.score >= 60 && session.st.score < 80).length;
+  const blocked = visible.filter((session) => session.st.score < 60).length;
+  const avg = visible.length ? Math.round(visible.reduce((total, session) => total + session.st.score, 0) / visible.length) : 0;
 
   return (
-    <section className="workspace-section mb-4 p-5 animate-fade-up-2">
-      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <section className="workspace-section mb-4 p-4 animate-fade-up-2">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <Label>Readiness Score Trends</Label>
-          <p className="text-sm text-tx-3 -mt-1">Last {visible.length} release reviews, scored from blocked to production-ready.</p>
+          <Label>Release Readiness Snapshot</Label>
+          <p className="text-sm text-tx-3 -mt-1">Latest release reviews grouped by whether they can move toward production.</p>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs font-bold">
-          <span className="rounded-full bg-accent-green/10 px-2.5 py-1 text-accent-green">80+ Ready</span>
-          <span className="rounded-full bg-accent-orange/10 px-2.5 py-1 text-accent-orange">60-79 Needs controls</span>
-          <span className="rounded-full bg-accent-red/10 px-2.5 py-1 text-accent-red">0-59 Blocked</span>
+        <div className="grid grid-cols-4 overflow-hidden rounded-lg border border-lg-bd text-center text-xs font-bold">
+          <div className="border-r border-lg-bd px-3 py-2"><div className="text-lg text-tx">{avg}</div><div className="text-tx-4">avg score</div></div>
+          <div className="border-r border-lg-bd px-3 py-2"><div className="text-lg text-accent-green">{ready}</div><div className="text-tx-4">ready</div></div>
+          <div className="border-r border-lg-bd px-3 py-2"><div className="text-lg text-accent-orange">{needsControls}</div><div className="text-tx-4">needs controls</div></div>
+          <div className="px-3 py-2"><div className="text-lg text-accent-red">{blocked}</div><div className="text-tx-4">blocked</div></div>
         </div>
       </div>
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" role="img" aria-label="Readiness score trend chart">
-        {[100, 80, 60, 40].map((score) => {
-          const y = padTop + (100 - score) * (chartH / 100);
-          return (
-            <g key={score}>
-              <text x="0" y={y + 4} fill={C.tx3} fontSize="12" fontWeight="700">{score}</text>
-              <line x1={padX} y1={y} x2={width - 20} y2={y} stroke={score === 80 ? C.gn : score === 60 ? C.or : C.bd} strokeWidth={score === 80 || score === 60 ? "1.3" : "0.8"} strokeDasharray={score === 80 || score === 60 ? "0" : "5 6"} />
-            </g>
-          );
-        })}
-        {points.length > 1 && <polyline points={path} fill="none" stroke={C.bl} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />}
-        {points.map(({ x, y, session }) => {
+      <div className="mt-4 overflow-hidden rounded-lg border border-lg-bd">
+        {visible.map((session) => {
           const tone = scoreTone(session.st.score);
           return (
-            <g key={session.id}>
-              <circle cx={x} cy={y} r="7" fill={tone.fill} stroke={C.sf} strokeWidth="3" />
-              <text x={x} y={y - 14} textAnchor="middle" fill={tone.fill} fontSize="12" fontWeight="800">{session.st.score}</text>
-            </g>
+            <button key={session.id} type="button" onClick={() => onOpen?.(session.id)} className="workspace-row grid w-full grid-cols-[minmax(0,1fr)_84px_120px] items-center gap-3 bg-transparent px-3 py-2 text-left font-sans">
+              <span className="truncate text-sm font-bold text-tx">{session.title}</span>
+              <span className={`rounded-full border px-2 py-1 text-center text-xs font-extrabold ${tone.border} ${tone.bg} ${tone.text}`}>{session.st.score}/100</span>
+              <span className="text-right text-xs font-semibold text-tx-3">{session.st.risks} risks · {session.st.tests} tests</span>
+            </button>
           );
         })}
-        {points.map(({ x, session }) => (
-          <text key={`${session.id}-label`} x={x} y={height - 18} textAnchor="middle" fill={C.tx3} fontSize="11" fontWeight="700">
-            {session.date.split(",")[0]}
-          </text>
-        ))}
-      </svg>
+      </div>
     </section>
   );
 }
@@ -264,7 +243,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
 
       {/* Score Trends */}
       {sessions.length > 0 ? (
-        <ReadinessTrend sessions={sessions} />
+        <ReadinessTrend sessions={sessions} onOpen={onOpen} />
       ) : (
       <section className="workspace-section mb-4 animate-fade-up-2 p-8 text-center">
         <div className="text-tx-3 text-sm">No sessions yet. Run your first readiness check to see trends.</div>
@@ -343,11 +322,11 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
         <section className="workspace-section p-5">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div>
-              <Label>Production Workbench</Label>
-              <p className="text-sm text-tx-3 -mt-1">Resolve blockers, track approvals, and move releases toward a GO decision.</p>
+              <Label>Blocked Release Decisions</Label>
+              <p className="text-sm text-tx-3 -mt-1">Persisted agent runs that cannot receive a GO decision until controls, approvals, or risk acceptance are handled.</p>
             </div>
             <Badge color={operationalRuns.some((x) => x.state.blockers.length) ? "or" : "gn"} size="xs">
-              {activeBlockers.length} active blocker{activeBlockers.length === 1 ? "" : "s"}
+              {activeBlockers.length} production blocker{activeBlockers.length === 1 ? "" : "s"}
             </Badge>
           </div>
           {operationalRuns.length > 0 ? (
@@ -365,7 +344,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
                   </div>
                   <div className="mt-3 grid grid-cols-4 gap-1.5">
                     {state.stages.map((stage) => (
-                      <div key={stage.label} className={`rounded-md border px-2 py-1.5 text-center text-[10px] font-bold ${stage.done ? "border-accent-green/20 bg-accent-green/10 text-accent-green2" : "border-lg-bd bg-lg-sf3 text-tx-4"}`}>
+                      <div key={stage.label} className={`rounded-md border px-2 py-1.5 text-center text-[10px] font-bold ${stage.done ? "border-accent-green/20 bg-accent-green/10 text-accent-green2" : "border-lg-bd bg-lg-sf3 text-tx-3"}`}>
                         {stage.label}
                       </div>
                     ))}
@@ -388,7 +367,8 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
         </section>
 
         <section className="workspace-section p-5">
-          <Label>Next Actions</Label>
+          <Label>Required Human Decisions</Label>
+          <p className="mb-3 text-sm text-tx-3 -mt-1">Each item is a gate condition blocking production. Resolving or accepting risk writes to the audit trail.</p>
           {activeBlockers.length > 0 ? (
             <div className="overflow-hidden rounded-lg border border-accent-orange/20">
               {activeBlockers.map(({ session, blocker, text, index }) => (
@@ -420,9 +400,9 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
           )}
           <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-lg border border-lg-bd">
             {[
-              ["Stored runs", sessions.length],
-              ["Evidence items", sessions.reduce((total, s) => total + s.st.risks + s.st.tests + s.st.guard, 0)],
-              ["Approvals left", pendingSignoffs],
+              ["Runs tracked", sessions.length],
+              ["Evidence generated", sessions.reduce((total, s) => total + s.st.risks + s.st.tests + s.st.guard, 0)],
+              ["Sign-offs pending", pendingSignoffs],
             ].map(([label, value]) => (
               <div key={label} className="border-r border-lg-bd bg-lg-sf2 p-2.5 text-center last:border-r-0">
                 <div className="text-lg font-extrabold text-tx">{value}</div>
