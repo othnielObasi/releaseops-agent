@@ -4,30 +4,51 @@ import { Badge, Card, Button, CircularScore, Label } from "../components/ui";
 
 const C = { bl: "#3b82f6", or: "#f59e0b", rd: "#ef4444", gn: "#22c55e", pr: "#7c3aed", sf: "#11131b", bd: "#1d2234" };
 
-const AUTONOMOUS_PLAN = [
-  { step: "Intake", state: "Complete", detail: "Classify release type, actors, data, tools, and launch context." },
-  { step: "Plan", state: "Complete", detail: "Select risk frameworks, sign-off policy, tests, and evidence targets." },
-  { step: "Reason", state: "Running", detail: "Navigator, Sentinel, and Herald coordinate the readiness decision." },
-  { step: "Execute", state: "Ready", detail: "Create audit package, webhook payloads, tickets, and reviewer notifications." },
-];
+function deriveRunState(session) {
+  const pendingRoles = (session.signoffs || []).filter((x) => x.status === "pending").map((x) => x.role);
+  const highRisks = session.sb?.[0] || 0;
+  const blockers = [];
 
-const ROADBLOCKS = [
-  "Missing data sensitivity blocks production approval until owner confirms PII/PHI scope.",
-  "High-risk action detected: refund execution requires human approval and logging.",
-  "No named Legal reviewer: release can proceed only as Needs review.",
-];
+  if (session._status === "error") blockers.push("Run failed. Open the session and inspect the analysis error.");
+  if (session._status === "pending" || session._status === "running") blockers.push("Analysis is still running. Evidence is not ready yet.");
+  if (session.tags?.some((tag) => tag.l === "Needs Detail" || tag.l === "Low Confidence")) blockers.push("Input needs more detail before a confident release decision.");
+  if (highRisks > 0) blockers.push(`${highRisks} high-risk item${highRisks === 1 ? "" : "s"} must be controlled or accepted.`);
+  if ((session.st.tests || 0) === 0) blockers.push("No generated test cases yet.");
+  if ((session.st.guard || 0) === 0) blockers.push("No mapped guardrails yet.");
+  if (pendingRoles.length > 0) blockers.push(`Waiting for sign-off: ${pendingRoles.join(", ")}.`);
 
-const SYSTEM_OF_RECORD = [
-  ["Vultr Postgres", "release sessions, scores, approvals, audit events"],
-  ["ReleaseOps API", "agent runs, gate evaluation, integration triggers"],
-  ["Evidence pack", "reports, certificates, tests, guardrails, decision history"],
-];
+  const completeEvidence = ["risks", "tests", "guard"].filter((key) => (session.st[key] || 0) > 0).length;
+  const runStatus = session._status === "complete"
+    ? blockers.length > 0 ? "Needs action" : "Ready"
+    : session._status === "error" ? "Failed" : "Running";
+  const nextAction = blockers[0] || "Package evidence and prepare go-live approval.";
+
+  return {
+    runStatus,
+    blockers,
+    nextAction,
+    evidence: {
+      risks: session.st.risks || 0,
+      tests: session.st.tests || 0,
+      guardrails: session.st.guard || 0,
+      completeness: Math.round((completeEvidence / 3) * 100),
+    },
+    stages: [
+      { label: "Intake", done: Boolean(session.title && session.desc) },
+      { label: "Risk model", done: (session.st.risks || 0) > 0 },
+      { label: "Validation", done: (session.st.tests || 0) > 0 && (session.st.guard || 0) > 0 },
+      { label: "Approval", done: pendingRoles.length === 0 },
+    ],
+  };
+}
 
 export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
   const scores = sessions.map((s) => s.st.score);
   const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
   const driftAlerts = sessions.filter((s) => s.drift?.scoreDelta < 0).length;
   const pendingSignoffs = sessions.reduce((a, s) => a + s.signoffs.filter((x) => x.status === "pending").length, 0);
+  const operationalRuns = sessions.slice(0, 3).map((session) => ({ session, state: deriveRunState(session) }));
+  const activeBlockers = operationalRuns.flatMap(({ session, state }) => state.blockers.map((text) => ({ session, text }))).slice(0, 5);
 
   const statColor = [
     "text-accent-blue",
@@ -138,44 +159,80 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
         </div>
       </div>
 
-      {/* Enterprise Autonomy */}
+      {/* Operational Queue */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-3.5 mt-4 animate-fade-up-3">
         <Card>
           <div className="flex items-start justify-between gap-3 mb-3">
             <div>
-              <Label>Autonomous Agent Run Plan</Label>
-              <p className="text-sm text-tx-3 -mt-1">ReleaseOps plans, reasons, handles blockers, and packages evidence before a go-live decision.</p>
+              <Label>Agent Operations Queue</Label>
+              <p className="text-sm text-tx-3 -mt-1">Live session state derived from stored release runs, not static demo text.</p>
             </div>
-            <Badge color="gn" size="xs">Production workflow</Badge>
+            <Badge color={operationalRuns.some((x) => x.state.blockers.length) ? "or" : "gn"} size="xs">
+              {activeBlockers.length} active blocker{activeBlockers.length === 1 ? "" : "s"}
+            </Badge>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-            {AUTONOMOUS_PLAN.map((item, index) => (
-              <div key={item.step} className="rounded-lg border border-lg-bd bg-lg-sf2 p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-tx-4">0{index + 1}</span>
-                  <Badge color={item.state === "Running" ? "or" : item.state === "Ready" ? "bl" : "gn"} size="xs">{item.state}</Badge>
+          {operationalRuns.length > 0 ? (
+            <div className="space-y-2">
+              {operationalRuns.map(({ session, state }) => (
+                <div key={session.id} className="rounded-lg border border-lg-bd bg-lg-sf2 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-bold text-tx">{session.title}</div>
+                      <div className="mt-1 text-xs leading-5 text-tx-3">{state.nextAction}</div>
+                    </div>
+                    <Badge color={state.runStatus === "Ready" ? "gn" : state.runStatus === "Failed" ? "rd" : state.runStatus === "Running" ? "bl" : "or"} size="xs">
+                      {state.runStatus}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 grid grid-cols-4 gap-1.5">
+                    {state.stages.map((stage) => (
+                      <div key={stage.label} className={`rounded-md border px-2 py-1.5 text-center text-[10px] font-bold ${stage.done ? "border-accent-green/20 bg-accent-green/10 text-accent-green2" : "border-lg-bd bg-lg-sf3 text-tx-4"}`}>
+                        {stage.label}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                    <Badge color="bl" size="xs">{state.evidence.risks} risks</Badge>
+                    <Badge color="pr" size="xs">{state.evidence.tests} tests</Badge>
+                    <Badge color="tl" size="xs">{state.evidence.guardrails} guardrails</Badge>
+                    <Badge color={state.evidence.completeness === 100 ? "gn" : "or"} size="xs">{state.evidence.completeness}% evidence</Badge>
+                    <Button variant="ghost" size="xs" onClick={() => onOpen(session.id)} className="ml-auto">Open</Button>
+                  </div>
                 </div>
-                <div className="mt-2 text-sm font-bold text-tx">{item.step}</div>
-                <div className="mt-1 text-xs leading-5 text-tx-3">{item.detail}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-lg-bd bg-lg-sf2 p-4 text-sm text-tx-3">
+              No runs yet. Create a release check to generate an operations queue.
+            </div>
+          )}
         </Card>
 
         <Card>
-          <Label>Roadblocks & System of Record</Label>
-          <div className="space-y-2">
-            {ROADBLOCKS.map((item) => (
-              <div key={item} className="rounded-lg border border-accent-orange/20 bg-accent-orange/5 p-2.5 text-xs leading-5 text-tx-2">
-                {item}
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 space-y-2">
-            {SYSTEM_OF_RECORD.map(([label, detail]) => (
-              <div key={label} className="flex items-start justify-between gap-3 rounded-lg bg-lg-sf2 p-2.5">
-                <span className="text-xs font-bold text-tx">{label}</span>
-                <span className="text-right text-xs leading-5 text-tx-3">{detail}</span>
+          <Label>Next Actions</Label>
+          {activeBlockers.length > 0 ? (
+            <div className="space-y-2">
+              {activeBlockers.map(({ session, text }, index) => (
+                <button key={`${session.id}-${index}`} type="button" onClick={() => onOpen(session.id)} className="w-full rounded-lg border border-accent-orange/20 bg-accent-orange/5 p-2.5 text-left text-xs leading-5 text-tx-2 hover:border-accent-orange/40">
+                  <span className="block font-bold text-accent-orange2">{session.title}</span>
+                  {text}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-accent-green/20 bg-accent-green/5 p-3 text-sm leading-6 text-tx-2">
+              No active blockers in the latest runs. Evidence packages are ready for review.
+            </div>
+          )}
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {[
+              ["Stored runs", sessions.length],
+              ["Evidence items", sessions.reduce((total, s) => total + s.st.risks + s.st.tests + s.st.guard, 0)],
+              ["Approvals left", pendingSignoffs],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-lg bg-lg-sf2 p-2.5 text-center">
+                <div className="text-lg font-extrabold text-tx">{value}</div>
+                <div className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-tx-4">{label}</div>
               </div>
             ))}
           </div>
