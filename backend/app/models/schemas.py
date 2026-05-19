@@ -6,11 +6,13 @@ from pydantic import BaseModel
 # ── Auth ──────────────────────────────────────────────────────────────────────
 class SignupRequest(BaseModel):
     name: str
-    email: str
+    email: Optional[str] = None
     password: str
 
 class LoginRequest(BaseModel):
-    email: str
+    email: Optional[str] = None
+    name: Optional[str] = None
+    identifier: Optional[str] = None
     password: str
 
 

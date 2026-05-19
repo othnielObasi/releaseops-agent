@@ -31,7 +31,7 @@ def _resolve_session(session_id: str) -> dict:
 
 def _check_owner(session_data: dict, email: str):
     owner = session_data.get("user_email")
-    if owner and owner != email:
+    if not owner or owner != email:
         raise HTTPException(status_code=403, detail="Access denied")
 
 

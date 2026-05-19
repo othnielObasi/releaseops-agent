@@ -273,10 +273,10 @@ def _load_session_data(session_id: str):
 
 
 def _check_owner(session_data: dict, email: str):
-    """Raise 403 if session is owned by a different user."""
+    """Raise 403 unless the authenticated user owns this session."""
     meta = session_data.get("session") or session_data
     owner = meta.get("user_email")
-    if owner and owner != email:
+    if not owner or owner != email:
         raise HTTPException(status_code=403, detail="Access denied")
 
 

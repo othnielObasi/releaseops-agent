@@ -10,7 +10,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/templates/http.conf
 COPY nginx.ssl.conf /etc/nginx/templates/https.conf
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+RUN sed -i 's/\r$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 EXPOSE 80
 EXPOSE 443
 CMD ["/docker-entrypoint.sh"]

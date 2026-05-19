@@ -5,12 +5,10 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Request, Depends, Body
 from fastapi.responses import StreamingResponse, FileResponse
-from fastapi.security import HTTPAuthorizationCredentials
-from jose import jwt as jose_jwt
 
 from app.deps import (
     sessions, logger,
-    verify_token, bearer_scheme, check_rate_limit, check_user_rate_limit,
+    verify_token, check_rate_limit, check_user_rate_limit,
     sanitize_input, detect_pii, get_db, audit,
     load_users_cached, load_share_tokens, save_share_tokens, send_email,
     load_session_state, list_sessions_for_user, persist_session_state,
@@ -18,7 +16,7 @@ from app.deps import (
 )
 from app.models.schemas import SessionCreate, IntegrationConfig
 from app.infra.config import (
-    JWT_SECRET, JWT_ALGORITHM, SESSIONS_DIR, MOCK_DIR, DOWNLOADS_DIR,
+    SESSIONS_DIR, MOCK_DIR, DOWNLOADS_DIR,
 )
 from app.domain.scoring import compute_readiness_score
 from app.domain.blockers import derive_blockers
@@ -117,35 +115,21 @@ async def create_session(
     body: SessionCreate,
     background_tasks: BackgroundTasks,
     request: Request,
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    email: str = Depends(verify_token),
 ):
     client_ip = request.client.host if request.client else "unknown"
     if not check_rate_limit(client_ip):
         raise HTTPException(status_code=429, detail="Too many requests. Please wait a moment before trying again.")
 
-    _uid = None
-    if credentials:
-        try:
-            _uid = jose_jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM]).get("sub")
-        except Exception:
-            pass
-    if _uid and not check_user_rate_limit(_uid):
+    if not check_user_rate_limit(email):
         raise HTTPException(status_code=429, detail="User rate limit exceeded.")
 
     body.feature_title       = sanitize_input(body.feature_title,       "feature_title")
     body.feature_description = sanitize_input(body.feature_description, "feature_description")
 
-    user_email = None
-    if credentials:
-        try:
-            payload = jose_jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-            user_email = payload.get("sub")
-        except Exception:
-            pass
-
     full_input = f"{body.feature_title} {body.feature_description}"
     pii_found = detect_pii(full_input)
-    integration_defaults = get_user_integration_settings(user_email)
+    integration_defaults = get_user_integration_settings(email)
 
     session_id = str(uuid.uuid4())
     sessions[session_id] = {
@@ -155,12 +139,12 @@ async def create_session(
         "feature_description": body.feature_description,
         "status": "pending",
         "navigator": None, "sentinel": None, "herald": None, "error": None,
-        "user_email": user_email,
+        "user_email": email,
         "pii_detected": pii_found,
         "validation_warnings": [],
         "readiness_score": None,
         "parent_session_id": body.parent_session_id,
-        "version": _get_next_version(body.feature_title, user_email),
+        "version": _get_next_version(body.feature_title, email),
         "integrations": integration_defaults,
     }
     persist_session_state(session_id)

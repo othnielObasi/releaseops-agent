@@ -12,6 +12,8 @@ dist/
 # Environment
 .env
 *.env.local
+.vultr-deploy.env
+.vultr/
 
 # Data & logs — NEVER track user data or runtime state
 *.db

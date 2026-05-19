@@ -18,7 +18,10 @@ async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const err = new Error(body.detail || `Request failed: ${res.status}`);
+    const detail = res.status === 502
+      ? "Backend API is unavailable. Start the backend on port 3001, then try again."
+      : body.detail || `Request failed: ${res.status}`;
+    const err = new Error(detail);
     err.status = res.status;
     throw err;
   }
@@ -34,7 +37,10 @@ async function requestBlob(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const err = new Error(body.detail || `Request failed: ${res.status}`);
+    const detail = res.status === 502
+      ? "Backend API is unavailable. Start the backend on port 3001, then try again."
+      : body.detail || `Request failed: ${res.status}`;
+    const err = new Error(detail);
     err.status = res.status;
     throw err;
   }
@@ -52,11 +58,11 @@ function triggerDownload(blob, filename) {
 
 /* ── Auth ── */
 export const auth = {
-  login: (email, password) =>
-    request("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+  login: (identifier, password) =>
+    request("/auth/login", { method: "POST", body: JSON.stringify({ identifier, password }) }),
 
-  signup: (name, email, password) =>
-    request("/auth/signup", { method: "POST", body: JSON.stringify({ name, email, password }) }),
+  signup: (name, password, email) =>
+    request("/auth/signup", { method: "POST", body: JSON.stringify({ name, password, ...(email ? { email } : {}) }) }),
 
   me: () => request("/auth/me"),
 };

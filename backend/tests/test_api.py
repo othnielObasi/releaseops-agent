@@ -41,6 +41,18 @@ class TestAuth:
         assert resp.status_code == 200
         assert "token" in resp.json()
 
+    def test_simple_name_signup_and_login(self):
+        name = f"simple-{uuid.uuid4().hex[:8]}"
+        password = "pass123"
+        resp = client.post("/api/auth/signup", json={"name": name, "password": password})
+        assert resp.status_code == 200
+        assert "token" in resp.json()
+        assert resp.json()["email"].endswith("@local.releaseops")
+
+        login_resp = client.post("/api/auth/login", json={"identifier": name, "password": password})
+        assert login_resp.status_code == 200
+        assert "token" in login_resp.json()
+
     def test_signup_duplicate(self, auth_token):
         email = f"dup_{uuid.uuid4().hex[:6]}@test.com"
         resp = client.post("/api/auth/signup", json={"name": "Dup", "email": email, "password": "pass123"})
@@ -72,6 +84,32 @@ class TestSessions:
         assert resp.status_code == 200
         data = resp.json()
         assert "session_id" in data
+
+    def test_create_session_requires_auth(self):
+        resp = client.post("/api/sessions", json={
+            "feature_title": "Tenant leak check",
+            "feature_description": "Unauthenticated sessions should not be ownerless."
+        })
+        assert resp.status_code == 401
+
+    def test_sessions_do_not_leak_between_users(self, auth_headers):
+        other_name = f"tenant-{uuid.uuid4().hex[:8]}"
+        other_password = "pass123"
+        other_signup = client.post("/api/auth/signup", json={"name": other_name, "password": other_password})
+        assert other_signup.status_code == 200
+        other_headers = {"Authorization": f"Bearer {other_signup.json()['token']}"}
+
+        create_resp = client.post("/api/sessions", headers=auth_headers, json={
+            "feature_title": "Private tenant session",
+            "feature_description": "Only the creating tenant should see this."
+        })
+        assert create_resp.status_code == 200
+        session_id = create_resp.json()["session_id"]
+
+        other_get = client.get(f"/api/sessions/{session_id}", headers=other_headers)
+        assert other_get.status_code == 403
+        other_list = client.get("/api/sessions", headers=other_headers)
+        assert all(item.get("id") != session_id for item in other_list.json())
 
     def test_create_session_injection(self, auth_headers):
         resp = client.post("/api/sessions", headers=auth_headers, json={
@@ -307,6 +345,7 @@ class TestIntegrationDefaults:
 class TestCertificate:
     def test_certificate_requires_complete_session(self, auth_headers):
         """Certificate should return 409 for incomplete/errored sessions."""
+        owner = client.get("/api/auth/me", headers=auth_headers).json()["email"]
         # Inject a session with error status
         sid = str(uuid.uuid4())
         sessions[sid] = {
@@ -317,7 +356,7 @@ class TestCertificate:
             "created_at": "2025-01-01T00:00:00+00:00",
             "completed_at": None,
             "readiness_score": None,
-            "user_email": None,
+            "user_email": owner,
             "navigator": {}, "sentinel": {}, "herald": {},
             "error": "Pipeline failed", "integrations": {},
             "validation_warnings": [], "pii_detected": [],
@@ -330,6 +369,7 @@ class TestCertificate:
 
     def test_certificate_for_complete_session(self, auth_headers):
         """Certificate works for a mocked complete session."""
+        owner = client.get("/api/auth/me", headers=auth_headers).json()["email"]
         sid = str(uuid.uuid4())
         sessions[sid] = {
             "id": sid,
@@ -339,7 +379,7 @@ class TestCertificate:
             "created_at": "2025-01-01T00:00:00+00:00",
             "completed_at": "2025-01-01T00:01:00+00:00",
             "readiness_score": {"score": 85, "grade": "A", "decision": "GO"},
-            "user_email": None,  # allow any user
+            "user_email": owner,
             "navigator": {}, "sentinel": {}, "herald": {},
             "error": None, "integrations": {},
             "validation_warnings": [], "pii_detected": [],

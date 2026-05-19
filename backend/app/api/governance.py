@@ -31,9 +31,9 @@ def _resolve_session(session_id: str) -> dict:
 
 
 def _check_owner(session_data: dict, email: str):
-    """Raise 403 if session is owned by a different user."""
+    """Raise 403 unless the authenticated user owns this session."""
     owner = session_data.get("user_email")
-    if owner and owner != email:
+    if not owner or owner != email:
         raise HTTPException(status_code=403, detail="Access denied")
 
 
@@ -84,8 +84,9 @@ async def submit_sign_off(session_id: str, body: SignOffRequest, email: str = De
 async def list_sign_offs(session_id: str, email: str = Depends(verify_token)):
     """List all sign-offs for a session."""
     s = _resolve_session(session_id)
-    if s:
-        _check_owner(s, email)
+    if not s:
+        raise HTTPException(status_code=404, detail="Session not found")
+    _check_owner(s, email)
     with get_db() as conn:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(
