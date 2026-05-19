@@ -201,7 +201,20 @@
   border-color: #cfc5b6 !important;
 }
 
-.releaseops-light-app .card-glow,
+.releaseops-light-app .card-glow {
+  background-color: transparent !important;
+  border-color: #ded6c8 !important;
+  border-width: 1px 0 0 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.releaseops-light-app .card-glow:hover {
+  background-color: transparent !important;
+  border-color: #ded6c8 !important;
+  box-shadow: none !important;
+}
+
 .releaseops-light-app .glass,
 .releaseops-light-app .glass-strong {
   background-color: #ffffff !important;
@@ -210,16 +223,11 @@
   box-shadow: 0 1px 2px rgba(72, 64, 52, 0.05);
 }
 
-.releaseops-light-app .card-glow:hover {
-  background-color: #fffdf9 !important;
-  border-color: #cfc5b6 !important;
-  box-shadow: 0 2px 8px rgba(72, 64, 52, 0.07);
-}
-
 .releaseops-light-app .workspace-section {
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid #ded6c8;
-  border-radius: 10px;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid #ded6c8;
+  border-radius: 0;
   box-shadow: none;
 }
 
