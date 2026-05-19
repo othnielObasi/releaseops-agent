@@ -128,7 +128,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
               <Button variant="primary" size="sm" disabled={reanalyzing} onClick={async () => {
                 setShowReanalyzeModal(false);
                 setReanalyzing(true);
-                setActionMsg("Re-analysing — running full Navigator → Sentinel → Herald pipeline...");
+                setActionMsg("Re-analysing — running full Release Analysis → Validation Planning → Decision Packaging pipeline...");
                 try {
                   const res = await analysisAPI.run(sessionId, { feature_title: reanalyzeTitle, feature_description: reanalyzeDesc });
                   const newId = res.session_id;
@@ -400,11 +400,16 @@ function TestsTab({ s, st }) {
   const gr = s.guardrails || [];
   const risks = s.risks || [];
 
-  // Build traceability links: risk → tests → guardrails
+  // Build traceability links: risk -> tests -> controls -> release gate
   const traceRows = risks.map((r) => {
     const linkedTests = tc.filter((t) => (t.linked_risks || []).includes(r.id));
     const linkedGuardrails = gr.filter((g) => (g.risk_ids || []).includes(r.id));
-    return { risk: r, tests: linkedTests, guardrails: linkedGuardrails };
+    const releaseGate = r.s === "High"
+      ? "Blocks production until controlled or accepted"
+      : linkedGuardrails.length === 0
+        ? "Needs mapped control before approval"
+        : "Requires review before sign-off";
+    return { risk: r, tests: linkedTests, guardrails: linkedGuardrails, releaseGate };
   });
 
   // Group tests by category for testing strategy
@@ -426,42 +431,57 @@ function TestsTab({ s, st }) {
       {/* Traceability Chain */}
       {traceRows.length > 0 && (
         <Card className="animate-fade-up">
-          <div className="flex justify-between items-center mb-2">
-            <Label>✅ Traceability Chain</Label>
-            <span className="text-xs text-tx-3">Each risk is linked to its test cases and guardrails — click rows to expand details.</span>
+          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <Label>Risk-To-Control Traceability</Label>
+              <p className="text-sm text-tx-3 -mt-1">Evidence chain used to decide whether this release can move forward.</p>
+            </div>
+            <Badge color={traceRows.every((row) => row.tests.length && row.guardrails.length) ? "gn" : "or"} size="xs">
+              {traceRows.filter((row) => row.tests.length && row.guardrails.length).length}/{traceRows.length} covered
+            </Badge>
           </div>
-          <div className="grid grid-cols-[1fr_1fr_1fr] gap-0 text-xs font-bold text-tx-3 uppercase tracking-wider px-2 py-1.5 border-b border-lg-bd">
-            <div>⚠️ Risk Identified</div>
-            <div>✏️ Test Cases</div>
-            <div>🛡 Guardrails</div>
+          <div className="overflow-x-auto border-y border-lg-bd">
+          <div className="min-w-[860px]">
+          <div className="grid grid-cols-[1.15fr_1.1fr_1.1fr_1fr] gap-0 text-xs font-bold text-tx-3 uppercase tracking-wider">
+            {["Risk", "Test Evidence", "Guardrail / Control", "Release Gate"].map((heading) => (
+              <div key={heading} className="border-b border-lg-bd px-3 py-2">{heading}</div>
+            ))}
           </div>
           {traceRows.map((row, i) => (
-            <div key={i} className="grid grid-cols-[1fr_1fr_1fr] gap-0 border-b border-lg-bd items-start">
-              <div className="px-2 py-2.5">
-                <div className="flex items-center gap-1">
+            <div key={i} className="grid grid-cols-[1.15fr_1.1fr_1.1fr_1fr] gap-0 border-b border-lg-bd last:border-b-0 items-start">
+              <div className="px-3 py-3">
+                <div className="flex items-center gap-1.5">
                   <Badge color={row.risk.s === "High" ? "rd" : "or"} size="xs">{row.risk.s}</Badge>
                   <span className="text-sm font-semibold text-tx">{row.risk.id}</span>
                 </div>
-                <div className="text-xs text-tx-2 mt-0.5 leading-snug">{row.risk.n}</div>
+                <div className="mt-1 text-xs leading-5 text-tx-2">{row.risk.n}</div>
               </div>
-              <div className="px-2 py-2.5 border-x border-lg-bd">
+              <div className="min-h-full border-x border-lg-bd px-3 py-3">
                 {row.tests.length > 0 ? row.tests.map((t) => (
-                  <div key={t.id} className="flex items-center gap-1 mb-1">
+                  <div key={t.id} className="mb-2 last:mb-0">
                     <Badge color="tl" size="xs">{t.id}</Badge>
-                    <span className="text-xs text-tx-2 truncate">{t.name}</span>
+                    <div className="mt-1 text-xs font-semibold leading-5 text-tx-2">{t.name}</div>
                   </div>
-                )) : <span className="text-xs text-tx-4 italic">No linked tests</span>}
+                )) : <span className="text-xs font-semibold text-accent-orange2">No linked test evidence</span>}
               </div>
-              <div className="px-2 py-2.5">
+              <div className="min-h-full border-r border-lg-bd px-3 py-3">
                 {row.guardrails.length > 0 ? row.guardrails.map((g) => (
-                  <div key={g.id} className="flex items-center gap-1 mb-1">
+                  <div key={g.id} className="mb-2 last:mb-0">
                     <Badge color="gn" size="xs">{g.id}</Badge>
-                    <span className="text-xs text-tx-2 truncate">{g.name}</span>
+                    <div className="mt-1 text-xs font-semibold leading-5 text-tx-2">{g.name}</div>
+                    {g.where_applied && <div className="mt-0.5 text-[11px] text-tx-3">{g.where_applied}</div>}
                   </div>
-                )) : <span className="text-xs text-tx-4 italic">No linked guardrails</span>}
+                )) : <span className="text-xs font-semibold text-accent-orange2">No mapped control</span>}
+              </div>
+              <div className="px-3 py-3">
+                <div className={`text-xs font-bold leading-5 ${row.tests.length && row.guardrails.length ? "text-accent-green" : "text-accent-orange2"}`}>
+                  {row.releaseGate}
+                </div>
               </div>
             </div>
           ))}
+          </div>
+          </div>
         </Card>
       )}
 

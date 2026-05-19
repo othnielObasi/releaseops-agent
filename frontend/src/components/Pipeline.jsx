@@ -4,15 +4,15 @@ import { useState, useEffect } from "react";
 import { Badge, Spinner } from "./ui";
 
 const LOGS = [
-  ["Parsing feature description...", "Extracting domain context...", "Generating release spec...", "Identifying personas & stories...", "Scoring risks...", "Building checklist...", "Navigator complete → handoff"],
-  ["Analysing spec for edge cases...", "Generating test strategy...", "Creating test cases...", "Defining guardrails...", "Sentinel complete → handoff"],
-  ["Synthesising release notes...", "Generating GTM copy...", "Building pitch deck...", "Herald complete"],
+  ["Parsing release description...", "Extracting domain context...", "Generating release spec...", "Identifying personas and workflows...", "Scoring risks...", "Building checklist...", "Release analysis complete"],
+  ["Analysing edge cases...", "Generating test strategy...", "Creating test cases...", "Defining guardrails...", "Validation planning complete"],
+  ["Synthesising release notes...", "Preparing decision record...", "Building stakeholder summary...", "Decision packaging complete"],
 ];
 
 const AGENTS = [
-  { name: "Navigator", color: "accent-green", hex: "#22c55e" },
-  { name: "Sentinel", color: "accent-purple2", hex: "#c084fc" },
-  { name: "Herald", color: "accent-orange2", hex: "#fb923c" },
+  { name: "Release Analysis", color: "accent-green", hex: "#22c55e" },
+  { name: "Validation Planning", color: "accent-purple2", hex: "#c084fc" },
+  { name: "Decision Packaging", color: "accent-orange2", hex: "#fb923c" },
 ];
 
 export default function Pipeline({ phase, showLogs = false }) {

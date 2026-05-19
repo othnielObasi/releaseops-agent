@@ -13,9 +13,9 @@ export default function GuidePanel({ onClose }) {
       {/* Quick Start */}
       <Label>⚡ Quick Start</Label>
       {[
-        { n: 1, t: "Click + New Check", d: "From anywhere in the app." },
-        { n: 2, t: "Describe your feature", d: "Title + description. Use industry presets." },
-        { n: 3, t: "Watch the pipeline", d: "Navigator → Sentinel → Herald with live logs." },
+        { n: 1, t: "Click + New Release Review", d: "From anywhere in the app." },
+        { n: 2, t: "Describe the AI workflow", d: "Include data access, actions, users, and production context." },
+        { n: 3, t: "Watch the review pipeline", d: "Release Analysis → Validation Planning → Decision Packaging." },
         { n: 4, t: "Explore results", d: "6 tabs: Overview, Spec & Risks, Tests, Docs, Regulation, Governance." },
       ].map((s, i) => (
         <div key={i} className="flex gap-2 mb-2.5">
@@ -30,11 +30,11 @@ export default function GuidePanel({ onClose }) {
       <div className="h-px bg-lg-bd my-3.5" />
 
       {/* Agents */}
-      <Label>🤖 Three Agents</Label>
+      <Label>Review Stages</Label>
       {[
-        { n: "Navigator", c: "border-accent-green text-accent-green", o: ["Release Spec", "Risk Register", "Checklist"] },
-        { n: "Sentinel", c: "border-accent-purple2 text-accent-purple2", o: ["Test Strategy", "Test Cases", "Guardrails"] },
-        { n: "Herald", c: "border-accent-orange2 text-accent-orange2", o: ["Release Notes", "GTM Page", "Pitch Deck"] },
+        { n: "Release Analysis", c: "border-accent-green text-accent-green", o: ["Release spec", "Risk register", "Checklist"] },
+        { n: "Validation Planning", c: "border-accent-purple2 text-accent-purple2", o: ["Test strategy", "Test cases", "Guardrails"] },
+        { n: "Decision Packaging", c: "border-accent-orange2 text-accent-orange2", o: ["Release notes", "Decision record", "Stakeholder summary"] },
       ].map((a, i) => (
         <div key={i} className={`p-2 bg-lg-sf2 rounded-md border-l-[3px] ${a.c.split(" ")[0]} mb-1.5`}>
           <div className={`text-sm font-bold ${a.c.split(" ")[1]}`}>{a.n}</div>

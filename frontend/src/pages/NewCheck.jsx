@@ -1,4 +1,4 @@
-/* ReleaseOps v3 — New Readiness Check Modal (Tailwind) */
+/* ReleaseOps v3 — New Release Review Modal (Tailwind) */
 
 import { useState, useRef, useCallback } from "react";
 import { Button } from "../components/ui";
@@ -6,8 +6,8 @@ import Pipeline from "../components/Pipeline";
 import { sessions as sessionsAPI } from "../services/api";
 
 export default function NewCheck({ onClose, onComplete }) {
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
+  const [title, setTitle] = useState("AI customer support refund assistant");
+  const [desc, setDesc] = useState("A customer support AI agent can inspect customer profile data, review transaction history, classify complaints, recommend refunds, draft customer responses, and escalate high-risk cases. Refunds above 50 GBP require human approval, PII access must be logged, account closure is blocked, vulnerable customer complaints escalate to a human, and customer-facing replies pass moderation.");
   const [running, setRunning] = useState(false);
   const [phase, setPhase] = useState(-1);
   const [error, setError] = useState("");
@@ -73,7 +73,7 @@ export default function NewCheck({ onClose, onComplete }) {
       <div onClick={(e) => e.stopPropagation()} className="glass-strong rounded-xl p-6 w-[520px] max-h-[90vh] overflow-auto animate-fade-up">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
-          <div className="text-base font-bold text-tx">🚀 New Readiness Check</div>
+          <div className="text-base font-bold text-tx">🚀 New Release Review</div>
           {!running && <button onClick={onClose} className="bg-transparent border-none text-tx-3 text-lg cursor-pointer hover:text-tx transition-colors">×</button>}
         </div>
 
@@ -89,8 +89,8 @@ export default function NewCheck({ onClose, onComplete }) {
             <div className="mb-3">
               <label className="text-xs text-tx-3 font-semibold block mb-1">Industry preset</label>
               <select className="input-glass">
+                <option>Finance / Fintech</option>
                 <option>— No preset —</option>
-                <option>FinTech</option>
                 <option>HealthTech</option>
                 <option>LegalTech</option>
                 <option>B2B SaaS</option>
@@ -102,7 +102,7 @@ export default function NewCheck({ onClose, onComplete }) {
               <label className="text-xs text-tx-3 font-semibold block mb-1">Feature title</label>
               <input
                 value={title} onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. AI-powered support reply"
+                placeholder="e.g. AI customer support refund assistant"
                 className="input-glass"
               />
             </div>
@@ -112,7 +112,7 @@ export default function NewCheck({ onClose, onComplete }) {
               <label className="text-xs text-tx-3 font-semibold block mb-1">Description</label>
               <textarea
                 value={desc} onChange={(e) => setDesc(e.target.value)}
-                placeholder="What are you building? Who uses it?"
+                placeholder="What AI workflow is being released? What data and actions can it access?"
                 className="input-glass min-h-[80px] leading-relaxed resize-y"
               />
             </div>
@@ -121,6 +121,7 @@ export default function NewCheck({ onClose, onComplete }) {
             <div className="mb-3.5">
               <label className="text-xs text-tx-3 font-semibold block mb-1">Release type</label>
               <select className="input-glass">
+                <option>Production</option>
                 <option>MVP</option>
                 <option>Feature Update</option>
                 <option>Major Release</option>
@@ -131,7 +132,7 @@ export default function NewCheck({ onClose, onComplete }) {
 
         {/* Run Button */}
         <Button variant="cta" size="lg" onClick={run} disabled={running} className="w-full">
-          {running ? `Processing... ${["Phase 1", "Phase 2", "Phase 3", "Done"][Math.min(phase, 3)]}` : "Run Readiness Check →"}
+          {running ? `Processing... ${["Release Analysis", "Validation Planning", "Decision Packaging", "Done"][Math.min(phase, 3)]}` : "Run Release Review →"}
         </Button>
       </div>
     </div>

@@ -70,7 +70,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
           <h1 className="text-3xl font-extrabold text-tx">Dashboard</h1>
           <p className="text-sm text-tx-3 mt-1">Autonomous AI release review, evidence, blockers, and multi-framework governance.</p>
         </div>
-        <Button variant="primary" size="md" onClick={onNew} className="w-full sm:w-auto">+ New Readiness Check</Button>
+        <Button variant="primary" size="md" onClick={onNew} className="w-full sm:w-auto">+ New Release Review</Button>
       </div>
 
       {/* Stats Row */}
@@ -96,7 +96,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       ) : (
       <section className="workspace-section mb-4 animate-fade-up-2 p-8 text-center">
         <div className="text-tx-3 text-sm">No sessions yet. Run your first readiness check to see trends.</div>
-        <Button variant="primary" size="sm" onClick={onNew} className="mt-3">+ New Readiness Check</Button>
+        <Button variant="primary" size="sm" onClick={onNew} className="mt-3">+ New Release Review</Button>
       </section>
       )}
 
