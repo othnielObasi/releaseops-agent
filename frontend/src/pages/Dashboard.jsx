@@ -1,6 +1,6 @@
 /* ReleaseOps v3 — Dashboard Page (Tailwind) */
 
-import { Badge, Button, Label } from "../components/ui";
+import { Button, Label } from "../components/ui";
 
 const C = { bl: "#2563eb", or: "#b45309", rd: "#b91c1c", gn: "#047857", sf: "#ffffff", bd: "#d8d0c2", tx3: "#6b7280" };
 
@@ -15,7 +15,6 @@ function ReadinessTrend({ sessions, onOpen }) {
   const ready = visible.filter((session) => session.st.score >= 80).length;
   const needsControls = visible.filter((session) => session.st.score >= 60 && session.st.score < 80).length;
   const blocked = visible.filter((session) => session.st.score < 60).length;
-  const avg = visible.length ? Math.round(visible.reduce((total, session) => total + session.st.score, 0) / visible.length) : 0;
 
   return (
     <section className="workspace-section mb-4 p-4 animate-fade-up-2">
@@ -24,8 +23,7 @@ function ReadinessTrend({ sessions, onOpen }) {
           <Label>Release Readiness Snapshot</Label>
           <p className="text-sm text-tx-3 -mt-1">Latest release reviews grouped by whether they can move toward production.</p>
         </div>
-        <div className="grid grid-cols-4 overflow-hidden rounded-lg border border-lg-bd text-center text-xs font-bold">
-          <div className="border-r border-lg-bd px-3 py-2"><div className="text-lg text-tx">{avg}</div><div className="text-tx-4">avg score</div></div>
+        <div className="grid grid-cols-3 overflow-hidden rounded-lg border border-lg-bd text-center text-xs font-bold">
           <div className="border-r border-lg-bd px-3 py-2"><div className="text-lg text-accent-green">{ready}</div><div className="text-tx-4">ready</div></div>
           <div className="border-r border-lg-bd px-3 py-2"><div className="text-lg text-accent-orange">{needsControls}</div><div className="text-tx-4">needs controls</div></div>
           <div className="px-3 py-2"><div className="text-lg text-accent-red">{blocked}</div><div className="text-tx-4">blocked</div></div>
@@ -54,8 +52,6 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
   const pendingSignoffs = sessions.reduce((a, s) => a + s.signoffs.filter((x) => x.status === "pending").length, 0);
   const totalRisks = sessions.reduce((a, s) => a + s.st.risks, 0);
   const controlsRequired = sessions.reduce((a, s) => a + s.st.guard, 0);
-  const evidenceRecords = sessions.reduce((a, s) => a + s.st.risks + s.st.tests + s.st.guard, 0);
-  const latestSaved = sessions[0]?.date?.split(",")[0] || "No runs yet";
 
   const statColor = [
     "text-accent-blue",
@@ -63,7 +59,6 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
     "text-accent-orange",
     controlsRequired > 0 ? "text-accent-purple" : "text-accent-green",
     pendingSignoffs > 0 ? "text-accent-red" : "text-accent-green",
-    "text-accent-teal",
   ];
 
   return (
@@ -78,16 +73,15 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       </div>
 
       {/* Stats Row */}
-      <section className="workspace-section mb-4 grid grid-cols-2 overflow-hidden animate-fade-up-1 sm:grid-cols-3 xl:grid-cols-6">
+      <section className="workspace-section mb-4 grid grid-cols-2 overflow-hidden animate-fade-up-1 sm:grid-cols-3 xl:grid-cols-5">
         {[
           { l: "Sessions", v: sessions.length },
           { l: "Avg Score", v: avg },
           { l: "Total Risks", v: totalRisks },
           { l: "Controls Required", v: controlsRequired },
           { l: "Pending Sign-offs", v: pendingSignoffs },
-          { l: "Evidence Records", v: evidenceRecords },
         ].map((x, i) => (
-          <div key={i} className="border-b border-r border-lg-bd p-3 text-center last:border-r-0 sm:[&:nth-child(3n)]:border-r-0 xl:border-b-0 xl:[&:nth-child(3n)]:border-r xl:[&:nth-child(6n)]:border-r-0">
+          <div key={i} className="border-b border-r border-lg-bd p-3 text-center last:border-r-0 sm:[&:nth-child(3n)]:border-r-0 xl:border-b-0 xl:[&:nth-child(3n)]:border-r xl:[&:nth-child(5n)]:border-r-0">
             <div className={`text-2xl font-extrabold ${statColor[i]}`}>{x.v}</div>
             <div className="text-sm text-tx-3 mt-0.5">{x.l}</div>
           </div>
@@ -103,32 +97,6 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
         <Button variant="primary" size="sm" onClick={onNew} className="mt-3">+ New Release Review</Button>
       </section>
       )}
-
-      {/* Vultr system of record */}
-      <section className="workspace-section mb-4 p-4 animate-fade-up-2">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <Label>Vultr System Of Record</Label>
-            <p className="text-sm text-tx-3 -mt-1">Stored release runs, evidence, and approval state behind the demo.</p>
-          </div>
-          <Badge color="gn" size="xs">health passing</Badge>
-        </div>
-        <div className="mt-4 grid gap-0 overflow-hidden rounded-lg border border-lg-bd text-sm sm:grid-cols-3 lg:grid-cols-6">
-          {[
-            ["Backend", "Vultr VM"],
-            ["Database", "PostgreSQL"],
-            ["Run records", `${sessions.length} persisted`],
-            ["Evidence", `${evidenceRecords} items`],
-            ["Gate data", pendingSignoffs > 0 ? `${pendingSignoffs} pending` : "clear"],
-            ["Last saved", latestSaved],
-          ].map(([label, value], i) => (
-            <div key={label} className="border-b border-r border-lg-bd p-3 last:border-r-0 sm:[&:nth-child(3n)]:border-r-0 lg:border-b-0 lg:[&:nth-child(3n)]:border-r lg:[&:nth-child(6n)]:border-r-0">
-              <div className="text-xs font-bold uppercase tracking-wider text-tx-4">{label}</div>
-              <div className="mt-1 font-extrabold text-tx">{value}</div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Two Columns */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
