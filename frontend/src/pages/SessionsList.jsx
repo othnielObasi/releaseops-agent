@@ -1,85 +1,120 @@
-/* ReleaseOps v3 — Sessions List Page (Tailwind) */
+/* ReleaseOps Reviews Register */
 
-import { useState } from "react";
-import { Badge, Card, Button, CircularScore } from "../components/ui";
+import { useMemo, useState } from "react";
+import { Badge, Button } from "../components/ui";
+
+function scoreTone(score) {
+  if (score >= 80) return { label: "Ready", color: "gn", text: "text-accent-green", bg: "bg-accent-green/10", border: "border-accent-green/20" };
+  if (score >= 60) return { label: "Needs controls", color: "or", text: "text-accent-orange", bg: "bg-accent-orange/10", border: "border-accent-orange/20" };
+  return { label: "Blocked", color: "rd", text: "text-accent-red", bg: "bg-accent-red/10", border: "border-accent-red/20" };
+}
+
+function groupLatestByTitle(sessions) {
+  const groups = new Map();
+  sessions.forEach((session) => {
+    const key = (session.title || "").trim().toLowerCase();
+    const current = groups.get(key);
+    if (!current) {
+      groups.set(key, { latest: session, count: 1 });
+      return;
+    }
+    groups.set(key, { latest: current.latest, count: current.count + 1 });
+  });
+  return [...groups.values()].map((group) => ({ ...group.latest, versionCount: group.count }));
+}
 
 export default function SessionsList({ sessions = [], loading, onOpen, onNew, onCompare }) {
   const [filter, setFilter] = useState("all");
   const [compareMode, setCompareMode] = useState(false);
   const [selected, setSelected] = useState([]);
 
-  const filtered = filter === "all" ? sessions : sessions.filter((s) => s.type === filter);
+  const filteredSessions = filter === "all" ? sessions : sessions.filter((s) => s.type === filter);
+  const rows = useMemo(() => groupLatestByTitle(filteredSessions), [filteredSessions]);
+  const hiddenDuplicates = Math.max(0, filteredSessions.length - rows.length);
 
   const toggleSelect = (id) => {
     if (selected.includes(id)) setSelected(selected.filter((x) => x !== id));
     else if (selected.length < 2) setSelected([...selected, id]);
   };
 
+  const openRow = (id) => {
+    if (compareMode) toggleSelect(id);
+    else onOpen(id);
+  };
+
   return (
-    <div className="max-w-[960px] mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center pt-6 mb-4 animate-fade-up">
+    <div className="mx-auto max-w-6xl">
+      <div className="flex flex-col gap-4 pt-6 mb-5 animate-fade-up lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold text-tx">Release Reviews</h1>
-          <p className="text-sm text-tx-3 mt-1">{sessions.length} reviews</p>
+          <p className="text-sm text-tx-3 mt-1">
+            {rows.length} workflow{rows.length === 1 ? "" : "s"} tracked from {filteredSessions.length} review{filteredSessions.length === 1 ? "" : "s"}.
+          </p>
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex flex-wrap items-center gap-2">
           {compareMode && selected.length === 2 && (
-            <Button variant="primary" size="sm" onClick={() => { onCompare(selected[0], selected[1]); setCompareMode(false); setSelected([]); }}>Compare Selected</Button>
+            <Button variant="primary" size="sm" onClick={() => { onCompare(selected[0], selected[1]); setCompareMode(false); setSelected([]); }}>Compare selected</Button>
           )}
-          <Button variant={compareMode ? "danger" : "ghost"} size="sm" onClick={() => { setCompareMode(!compareMode); setSelected([]); }}>
-            {compareMode ? "Cancel" : "Compare"}
+          <Button variant={compareMode ? "danger" : "default"} size="sm" onClick={() => { setCompareMode(!compareMode); setSelected([]); }}>
+            {compareMode ? "Cancel compare" : "Compare reviews"}
           </Button>
           <Button variant="primary" size="sm" onClick={onNew}>+ New Release Review</Button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-1 mb-3 animate-fade-up-1">
-        {[{ k: "all", l: "All" }, { k: "live", l: "Live" }, { k: "demo", l: "Samples" }].map((f) => (
-          <Button key={f.k} variant={filter === f.k ? "primary" : "ghost"} size="xs" onClick={() => setFilter(f.k)}>{f.l}</Button>
-        ))}
+      <div className="mb-3 flex flex-col gap-3 animate-fade-up-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-1">
+          {[{ k: "all", l: "All" }, { k: "live", l: "Live" }, { k: "demo", l: "Samples" }].map((f) => (
+            <Button key={f.k} variant={filter === f.k ? "primary" : "ghost"} size="xs" onClick={() => setFilter(f.k)}>{f.l}</Button>
+          ))}
+        </div>
+        {hiddenDuplicates > 0 && (
+          <div className="text-xs font-semibold text-tx-4">{hiddenDuplicates} older duplicate review{hiddenDuplicates === 1 ? "" : "s"} grouped by workflow.</div>
+        )}
       </div>
 
-      {/* Table */}
-      <div className="border border-lg-bd rounded-xl overflow-hidden">
-        {/* Header Row */}
-        <div className={`grid ${compareMode ? "grid-cols-[30px_2fr_70px_50px_50px_50px_70px_60px]" : "grid-cols-[2fr_70px_50px_50px_50px_70px_60px]"} px-3.5 py-2 bg-lg-sf2 border-b border-lg-bd`}>
+      <div className="workspace-section overflow-x-auto animate-fade-up-2">
+        <div className={`grid min-w-[860px] ${compareMode ? "grid-cols-[38px_minmax(260px,1.5fr)_110px_90px_90px_105px_100px]" : "grid-cols-[minmax(260px,1.5fr)_110px_90px_90px_105px_100px]"} items-center border-b border-lg-bd bg-lg-sf2 px-4 py-2`}>
           {compareMode && <div />}
-          {["Review", "Score", "Risks", "Tests", "Controls", "Date", "Source"].map((h) => (
+          {["Workflow", "Decision", "Score", "Evidence", "Last review", "Source"].map((h) => (
             <div key={h} className="text-xs font-bold text-tx-3 tracking-wide uppercase">{h}</div>
           ))}
         </div>
 
-        {/* Rows */}
-        {filtered.map((s, i) => (
-          <div
-            key={s.id}
-            onClick={() => compareMode ? toggleSelect(s.id) : onOpen(s.id)}
-            className={`grid ${compareMode ? "grid-cols-[30px_2fr_70px_50px_50px_50px_70px_60px]" : "grid-cols-[2fr_70px_50px_50px_50px_70px_60px]"} px-3.5 py-2.5 cursor-pointer transition-colors duration-150 hover:bg-lg-sf2 ${selected.includes(s.id) ? "bg-accent-purple/8" : ""} ${i < filtered.length - 1 ? "border-b border-lg-bd" : ""}`}
-          >
-            {/* Checkbox */}
-            {compareMode && (
-              <div className="flex items-center">
-                <div className={`w-3.5 h-3.5 rounded-sm border-2 ${selected.includes(s.id) ? "border-accent-purple bg-accent-purple" : "border-lg-bd2 bg-transparent"}`} />
+        {rows.map((s, i) => {
+          const tone = scoreTone(s.st.score);
+          const selectedRow = selected.includes(s.id);
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => openRow(s.id)}
+              className={`grid min-w-[860px] w-full ${compareMode ? "grid-cols-[38px_minmax(260px,1.5fr)_110px_90px_90px_105px_100px]" : "grid-cols-[minmax(260px,1.5fr)_110px_90px_90px_105px_100px]"} items-center gap-0 px-4 py-3 text-left font-sans transition-colors hover:bg-lg-sf2 ${selectedRow ? "bg-accent-purple/8" : "bg-transparent"} ${i < rows.length - 1 ? "border-b border-lg-bd" : ""}`}
+            >
+              {compareMode && (
+                <div>
+                  <div className={`h-4 w-4 rounded-sm border ${selectedRow ? "border-accent-purple bg-accent-purple" : "border-lg-bd2 bg-transparent"}`} />
+                </div>
+              )}
+              <div className="min-w-0 pr-4">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm font-extrabold text-tx">{s.title}</span>
+                  {s.versionCount > 1 && <Badge color="bl" size="xs">{s.versionCount} versions</Badge>}
+                </div>
+                <div className="mt-1 truncate text-xs text-tx-3">{s.desc || "No description provided."}</div>
               </div>
-            )}
-            {/* Session info */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm">{s.icon}</span>
-              <div>
-                <div className="text-sm font-semibold text-tx">{s.title}</div>
-                <div className="text-xs text-tx-3">{s.desc.slice(0, 50)}...</div>
-              </div>
-            </div>
-            <div className="flex items-center"><CircularScore score={s.st.score} size={30} /></div>
-            <div className="flex items-center text-sm font-semibold text-accent-orange">{s.st.risks}</div>
-            <div className="flex items-center text-sm font-semibold text-accent-teal">{s.st.tests}</div>
-            <div className="flex items-center text-sm font-semibold text-accent-purple2">{s.st.guard}</div>
-            <div className="flex items-center text-xs text-tx-3 font-mono">{s.date.split(",")[0]}</div>
-            <div className="flex items-center"><Badge color={s.type === "demo" ? "or" : "bl"} size="xs">{s.type === "demo" ? "sample" : s.type}</Badge></div>
-          </div>
-        ))}
+              <div><Badge color={tone.color} size="xs">{tone.label}</Badge></div>
+              <div className={`text-sm font-extrabold ${tone.text}`}>{s.st.score}/100</div>
+              <div className="text-xs font-semibold text-tx-3">{s.st.risks} risks / {s.st.guard} controls</div>
+              <div className="text-xs text-tx-3 font-mono">{s.date.split(",")[0]}</div>
+              <div><Badge color={s.type === "demo" ? "or" : "bl"} size="xs">{s.type === "demo" ? "sample" : s.type}</Badge></div>
+            </button>
+          );
+        })}
+
+        {!loading && rows.length === 0 && (
+          <div className="p-8 text-center text-sm text-tx-3">No release reviews match this filter.</div>
+        )}
       </div>
     </div>
   );
