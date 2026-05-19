@@ -48,7 +48,7 @@ export default function GuidePanel({ onClose }) {
       <Label>🏛 Regulation Engine</Label>
       <div className="text-xs text-tx-2 leading-relaxed">
         Maps risks to 7 frameworks: EU AI Act, OWASP Top 10 LLM, NIST AI RMF, ISO 42001, GDPR, SOC 2, HIPAA.
-        Auto-classifies EU AI Act risk tier. Compliance templates inject framework-specific checklist items.
+        EU tiering is one lens; the full crosswalk covers security, privacy, management, audit, and sector controls.
       </div>
 
       <div className="h-px bg-lg-bd my-3.5" />

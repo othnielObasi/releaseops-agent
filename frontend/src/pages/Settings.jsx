@@ -90,7 +90,7 @@ export default function Settings() {
   const [gatesList, setGatesList] = useState([]);
   const [gatesLoading, setGatesLoading] = useState(true);
   const [showGateForm, setShowGateForm] = useState(false);
-  const [gateForm, setGateForm] = useState({ name: "", gate_type: "ci_cd", min_score: 65, required_sign_offs: "PM,Legal,QA", required_frameworks: "EU AI Act,OWASP" });
+  const [gateForm, setGateForm] = useState({ name: "", gate_type: "ci_cd", min_score: 65, required_sign_offs: "PM,Legal,QA", required_frameworks: "EU AI Act,OWASP,NIST AI RMF,ISO 42001,GDPR,SOC 2,HIPAA" });
 
   /* ── Fetch helpers ── */
   const loadTeams = () => { setTeamsLoading(true); teamsAPI.list().then(setTeamsList).catch(() => setTeamsList([])).finally(() => setTeamsLoading(false)); };
@@ -185,7 +185,7 @@ export default function Settings() {
       required_frameworks: gateForm.required_frameworks.split(",").map((s) => s.trim()).filter(Boolean),
     });
     setShowGateForm(false);
-    setGateForm({ name: "", gate_type: "ci_cd", min_score: 65, required_sign_offs: "PM,Legal,QA", required_frameworks: "EU AI Act,OWASP" });
+    setGateForm({ name: "", gate_type: "ci_cd", min_score: 65, required_sign_offs: "PM,Legal,QA", required_frameworks: "EU AI Act,OWASP,NIST AI RMF,ISO 42001,GDPR,SOC 2,HIPAA" });
     loadGates();
   };
 

@@ -14,6 +14,29 @@ function normalise(raw) {
   return { sess: raw, nav: raw.navigator || {}, sen: raw.sentinel || {}, her: raw.herald || {}, agentRun: raw.agent_run || {} };
 }
 
+const FRAMEWORK_DEFINITIONS = [
+  { id: "euai", name: "EU AI Act", short: "EU AI", jurisdiction: "EU", categories: ["Safety", "Compliance"] },
+  { id: "owasp", name: "OWASP Top 10 LLM", short: "OWASP", jurisdiction: "Global", categories: ["Security", "Privacy", "Safety"] },
+  { id: "nist", name: "NIST AI RMF", short: "NIST", jurisdiction: "US", categories: ["UX/Business", "Safety", "Reliability"] },
+  { id: "iso42001", name: "ISO 42001", short: "ISO 42001", jurisdiction: "Global", categories: ["Compliance", "Reliability"] },
+  { id: "gdpr", name: "GDPR", short: "GDPR", jurisdiction: "EU", categories: ["Privacy"] },
+  { id: "soc2", name: "SOC 2", short: "SOC 2", jurisdiction: "US", categories: ["Security", "Reliability", "Privacy"] },
+  { id: "hipaa", name: "HIPAA", short: "HIPAA", jurisdiction: "US", categories: ["Privacy", "Compliance"] },
+];
+
+function buildFrameworkCoverage(risks, euTier, owasp, nist) {
+  return FRAMEWORK_DEFINITIONS.map((framework) => {
+    const relatedRisks = risks.filter((risk) => framework.categories.includes(risk.cat));
+    const triggered = relatedRisks.length > 0 || (framework.id === "euai" && euTier !== "Minimal") || (framework.id === "owasp" && owasp.length > 0) || (framework.id === "nist" && nist.length > 0);
+    return {
+      ...framework,
+      status: triggered ? "Mapped" : "Monitored",
+      riskCount: relatedRisks.length,
+      evidenceCount: Math.max(relatedRisks.length, framework.id === "owasp" ? owasp.length : framework.id === "nist" ? nist.length : 0),
+    };
+  });
+}
+
 /**
  * Transform a backend session (list item or detail response)
  * into the shape used by SessionsList, Dashboard, SessionDetail, etc.
@@ -61,6 +84,7 @@ export function transformSession(raw) {
 
   // Derive NIST codes
   const nist = risks.length > 0 ? ["MAP-4", "MEASURE-2", "MANAGE-2"].slice(0, Math.min(3, risks.length)) : [];
+  const frameworkCoverage = buildFrameworkCoverage(risks, euTier, owasp, nist);
 
   return {
     id: sess.id,
@@ -104,6 +128,9 @@ export function transformSession(raw) {
     euTier,
     owasp,
     nist,
+    frameworkCoverage,
+    frameworkCount: frameworkCoverage.length,
+    mappedFrameworkCount: frameworkCoverage.filter((framework) => framework.status === "Mapped").length,
     drift: { active: false },
     // Structured sub-data for detail view
     testCases,

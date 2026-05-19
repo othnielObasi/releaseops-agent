@@ -91,7 +91,8 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
             <div className="text-lg font-bold text-tx flex items-center gap-1.5">
               {s.title}
               <Badge color={s.type === "demo" ? "or" : "bl"} size="xs">{s.type}</Badge>
-              <Badge color={s.euTier === "High-Risk" ? "rd" : s.euTier === "Limited" ? "or" : "gn"} size="xs">EU: {s.euTier}</Badge>
+              <Badge color="pr" size="xs">{s.frameworkCount || 7} frameworks</Badge>
+              <Badge color={s.mappedFrameworkCount > 0 ? "gn" : "or"} size="xs">{s.mappedFrameworkCount || 0} mapped</Badge>
             </div>
             <div className="text-xs text-tx-3 font-mono">{s.date}</div>
           </div>
@@ -177,7 +178,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
             {[
               ["Spec & Risks", `${st.risks} risks mapped to release context`],
               ["Tests & Guardrails", `${st.tests} tests and ${st.guard} guardrails generated`],
-              ["Regulation", `${s.owasp.length + s.nist.length} framework mappings available`],
+              ["Framework crosswalk", `${s.mappedFrameworkCount || 0}/${s.frameworkCount || 7} governance frameworks mapped`],
               ["Governance", "Blockers, sign-offs, gates, and audit events drive GO/NO-GO"],
             ].map(([title, body]) => (
               <div key={title} className="rounded-xl border border-lg-bd bg-lg-sf2 p-3">
@@ -665,22 +666,56 @@ const NIST_LOOKUP = {
 };
 
 function RegulationTab({ s }) {
+  const frameworkCoverage = s.frameworkCoverage || [];
   return (
     <div className="space-y-3.5">
+      <Card className="animate-fade-up">
+        <Label>Multi-Framework Governance Coverage</Label>
+        <div className="grid gap-2 md:grid-cols-4">
+          {[
+            ["Coverage", `${s.mappedFrameworkCount || 0}/${s.frameworkCount || 7}`],
+            ["EU AI Act", s.euTier],
+            ["OWASP refs", s.owasp.length],
+            ["NIST refs", s.nist.length],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-lg border border-lg-bd bg-lg-sf2 p-3 text-center">
+              <div className="text-lg font-extrabold text-tx">{value}</div>
+              <div className="mt-0.5 text-xs font-bold uppercase tracking-wide text-tx-4">{label}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          {frameworkCoverage.map((framework) => (
+            <div key={framework.id} className="rounded-lg border border-lg-bd bg-lg-sf2 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-bold text-tx">{framework.name}</div>
+                  <div className="mt-0.5 text-xs text-tx-3">{framework.jurisdiction} · {framework.riskCount} linked risk{framework.riskCount === 1 ? "" : "s"}</div>
+                </div>
+                <Badge color={framework.status === "Mapped" ? "gn" : "bl"} size="xs">{framework.status}</Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 rounded-lg border border-lg-bd bg-white p-3 text-sm leading-6 text-tx-2">
+          EU AI Act is one classification lens. ReleaseOps also maps security, privacy, operational risk, management controls, and audit requirements across OWASP, NIST, ISO 42001, GDPR, SOC 2, and HIPAA.
+        </div>
+      </Card>
+
       {/* EU AI Act */}
       <Card className="animate-fade-up">
-        <Label>🏛 EU AI Act Classification</Label>
+        <Label>EU AI Act Detail</Label>
         <div className="flex items-center gap-3">
           <div className={`px-5 py-3 rounded-lg text-center border ${s.euTier === "High-Risk" ? "bg-accent-red/8 border-accent-red/20" : s.euTier === "Limited" ? "bg-accent-orange/8 border-accent-orange/20" : "bg-accent-green/8 border-accent-green/20"}`}>
             <div className={`text-lg font-extrabold ${s.euTier === "High-Risk" ? "text-accent-red" : s.euTier === "Limited" ? "text-accent-orange" : "text-accent-green"}`}>{s.euTier}</div>
-            <div className="text-sm text-tx-3 mt-0.5">EU AI Act Risk Tier</div>
+            <div className="text-sm text-tx-3 mt-0.5">Risk tier</div>
           </div>
           <div className="flex-1 text-sm text-tx-2 leading-relaxed">
             {s.euTier === "High-Risk"
-              ? "Full conformity assessment required. Risk management system (Art. 9), data governance (Art. 10), transparency (Art. 13), human oversight (Art. 14), and accuracy/robustness (Art. 15) all apply."
+              ? "EU high-risk controls apply: risk management, data governance, transparency, human oversight, and robustness evidence."
               : s.euTier === "Limited"
-                ? "Transparency obligations apply (Art. 50). Users must be informed they are interacting with AI."
-                : "Standard analysis with best-practice recommendations."}
+                ? "EU transparency obligations apply. Users should be informed when interacting with AI."
+                : "EU-specific classification is minimal, while broader security, privacy, and management controls still apply."}
           </div>
         </div>
       </Card>
@@ -728,9 +763,15 @@ function RegulationTab({ s }) {
               </div>
               <div className="flex gap-1">
                 {r.cat === "Privacy" && <Badge color="pk" size="xs">GDPR</Badge>}
+                {r.cat === "Privacy" && <Badge color="bl" size="xs">HIPAA</Badge>}
+                {r.cat === "Privacy" && <Badge color="gn" size="xs">SOC 2</Badge>}
                 {r.cat === "Security" && <Badge color="rd" size="xs">OWASP</Badge>}
-                {r.cat === "Safety" && <Badge color="or" size="xs">EU AI Act</Badge>}
+                {r.cat === "Security" && <Badge color="gn" size="xs">SOC 2</Badge>}
+                {r.cat === "Safety" && <Badge color="or" size="xs">EU AI</Badge>}
+                {r.cat === "Safety" && <Badge color="bl" size="xs">NIST</Badge>}
+                {r.cat === "Reliability" && <Badge color="pr" size="xs">ISO 42001</Badge>}
                 {r.cat === "UX/Business" && <Badge color="bl" size="xs">NIST</Badge>}
+                {r.cat === "Compliance" && <Badge color="pr" size="xs">ISO 42001</Badge>}
               </div>
             </div>
           ))}

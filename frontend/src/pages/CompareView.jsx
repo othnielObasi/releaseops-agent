@@ -33,8 +33,12 @@ export default function CompareView({ sessions = [], idA, idB, onBack }) {
                 </div>
               ))}
             </div>
-            <Label>EU Tier</Label>
-            <Badge color={s.euTier === "High-Risk" ? "rd" : "or"} size="xs">{s.euTier}</Badge>
+            <Label>Framework Coverage</Label>
+            <div className="flex flex-wrap gap-1">
+              <Badge color="pr" size="xs">{s.frameworkCount || 7} frameworks</Badge>
+              <Badge color="gn" size="xs">{s.mappedFrameworkCount || 0} mapped</Badge>
+              <Badge color={s.euTier === "High-Risk" ? "rd" : s.euTier === "Limited" ? "or" : "gn"} size="xs">EU: {s.euTier}</Badge>
+            </div>
             <Label className="mt-3">Risks</Label>
             {s.risks.map((r, j) => (
               <div key={j} className="text-xs text-tx-2 py-0.5">{r.id}: {r.n} — <span className={r.s === "High" ? "text-accent-red" : "text-accent-orange"}>{r.s}</span></div>

@@ -171,7 +171,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       <div className="flex flex-col gap-3 pt-6 mb-5 animate-fade-up sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold text-tx">Dashboard</h1>
-          <p className="text-sm text-tx-3 mt-1">Autonomous AI release review, evidence, blockers, and go-live governance.</p>
+          <p className="text-sm text-tx-3 mt-1">Autonomous AI release review, evidence, blockers, and multi-framework governance.</p>
         </div>
         <Button variant="primary" size="md" onClick={onNew} className="w-full sm:w-auto">+ New Readiness Check</Button>
       </div>
@@ -182,8 +182,8 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
             <div className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent-purple">Judge briefing</div>
             <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-tx">ReleaseOps Agent decides whether an AI feature is ready to ship.</h2>
             <p className="mt-2 text-sm leading-6 text-tx-2">
-              The system turns a feature description into a persisted agent run: it plans the review, identifies risks,
-              generates tests and guardrails, packages evidence, and blocks production until owners resolve or accept
+              The system turns a feature description into a persisted agent run: it plans the review, maps risks across
+              seven governance frameworks, generates tests and guardrails, and blocks production until owners resolve or accept
               release blockers.
             </p>
           </div>
@@ -226,7 +226,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
             {[
               ["Tenant isolation", "Auth-scoped sessions prevent tenant leakage."],
               ["Persistent runs", "Agent steps, blockers, and events are stored."],
-              ["Governance gates", "Open blockers block GO decisions."],
+              ["Governance gates", "Open blockers and required frameworks block GO decisions."],
               ["Audit trail", "Resolution, acceptance, and decisions are logged."],
               ["Deployable stack", "Vultr VM, API, Postgres, Nginx, Docker Compose."],
             ].map(([title, body]) => (
