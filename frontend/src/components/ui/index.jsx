@@ -39,22 +39,22 @@ export function Card({ children, className = "", onClick }) {
 }
 
 // ── Button ──
-const btnBase = "inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold font-sans transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/40";
+const btnBase = "inline-flex items-center justify-center gap-1.5 rounded-md font-semibold font-sans transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/30";
 
 const btnVariants = {
-  primary: "bg-accent-purple hover:bg-accent-purple/80 text-white shadow-lg shadow-accent-purple/20 hover:shadow-accent-purple/30",
-  cta: "bg-gradient-to-r from-accent-purple to-accent-blue text-white shadow-lg shadow-accent-purple/25 hover:shadow-accent-purple/40 hover:brightness-110",
-  danger: "bg-transparent text-accent-red2 border border-accent-red/25 hover:bg-accent-red/10",
-  success: "bg-accent-green/15 text-accent-green2 border border-accent-green/25 hover:bg-accent-green/25",
-  ghost: "bg-transparent text-tx-2 border border-lg-bd hover:bg-lg-sf2 hover:border-lg-bd2 hover:text-tx",
-  default: "bg-lg-sf2 text-tx-2 border border-lg-bd hover:bg-lg-sf3 hover:text-tx",
+  primary: "border border-slate-950 bg-slate-950 text-white hover:bg-slate-800 hover:border-slate-800",
+  cta: "border border-slate-950 bg-slate-950 text-white hover:bg-slate-800 hover:border-slate-800",
+  danger: "bg-transparent text-accent-red2 border border-accent-red/20 hover:bg-accent-red/5 hover:border-accent-red/30",
+  success: "bg-transparent text-accent-green2 border border-accent-green/20 hover:bg-accent-green/5 hover:border-accent-green/30",
+  ghost: "bg-transparent text-tx-2 border border-transparent hover:bg-lg-sf2 hover:text-tx",
+  default: "bg-transparent text-tx-2 border border-lg-bd hover:bg-lg-sf2 hover:text-tx",
 };
 
 const btnSizes = {
-  xs: "text-xs px-3 py-1.5",
-  sm: "text-sm px-4 py-2",
-  md: "text-base px-5 py-2.5",
-  lg: "text-base px-6 py-3",
+  xs: "text-xs px-2.5 py-1.5",
+  sm: "text-sm px-3.5 py-2",
+  md: "text-sm px-4 py-2.5",
+  lg: "text-sm px-5 py-3",
 };
 
 export function Button({ children, variant = "default", size = "sm", onClick, disabled, className = "" }) {

@@ -30,7 +30,7 @@ export default function SessionsList({ sessions = [], loading, onOpen, onNew, on
           <Button variant={compareMode ? "danger" : "ghost"} size="sm" onClick={() => { setCompareMode(!compareMode); setSelected([]); }}>
             {compareMode ? "Cancel" : "⚡ Compare"}
           </Button>
-          <Button variant="primary" size="sm" onClick={onNew}>+ New Check</Button>
+          <Button variant="primary" size="sm" onClick={onNew}>+ New Release Review</Button>
         </div>
       </div>
 
