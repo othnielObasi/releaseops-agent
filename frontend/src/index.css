@@ -119,3 +119,89 @@
     text-wrap: balance;
   }
 }
+
+.releaseops-light-app {
+  background:
+    radial-gradient(circle at top right, rgba(219, 234, 254, 0.8), transparent 30rem),
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 26rem);
+  color: #0f172a;
+}
+
+.releaseops-light-app .bg-lg-bg,
+.releaseops-light-app .bg-lg-bg2,
+.releaseops-light-app .bg-lg-sf,
+.releaseops-light-app .bg-lg-sf2,
+.releaseops-light-app .bg-lg-sf3,
+.releaseops-light-app .bg-lg-sf\/70,
+.releaseops-light-app .bg-lg-sf\/85,
+.releaseops-light-app .bg-lg-sf2\/80,
+.releaseops-light-app .bg-lg-bg2\/50 {
+  background-color: #ffffff !important;
+}
+
+.releaseops-light-app .bg-lg-sf2,
+.releaseops-light-app .bg-lg-bg2,
+.releaseops-light-app .bg-lg-sf2\/80,
+.releaseops-light-app .bg-lg-bg2\/50 {
+  background-color: #f8fafc !important;
+}
+
+.releaseops-light-app .bg-lg-sf3 {
+  background-color: #f1f5f9 !important;
+}
+
+.releaseops-light-app .text-tx {
+  color: #0f172a !important;
+}
+
+.releaseops-light-app .text-tx-2 {
+  color: #334155 !important;
+}
+
+.releaseops-light-app .text-tx-3 {
+  color: #64748b !important;
+}
+
+.releaseops-light-app .text-tx-4 {
+  color: #94a3b8 !important;
+}
+
+.releaseops-light-app .border-lg-bd,
+.releaseops-light-app .border-lg-bd\/60 {
+  border-color: #e2e8f0 !important;
+}
+
+.releaseops-light-app .border-lg-bd2 {
+  border-color: #cbd5e1 !important;
+}
+
+.releaseops-light-app .card-glow,
+.releaseops-light-app .glass,
+.releaseops-light-app .glass-strong {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 16px 50px rgba(15, 23, 42, 0.06);
+}
+
+.releaseops-light-app .card-glow:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 18px 56px rgba(15, 23, 42, 0.09);
+}
+
+.releaseops-light-app .input-glass {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.releaseops-light-app .input-glass::placeholder {
+  color: #94a3b8 !important;
+}
+
+.releaseops-light-app .border-gradient {
+  background: #ffffff;
+}
+
+.releaseops-light-app .shadow-\[-6px_0_24px_rgba\(0\,0\,0\,\.4\)\] {
+  box-shadow: -10px 0 40px rgba(15, 23, 42, 0.1) !important;
+}

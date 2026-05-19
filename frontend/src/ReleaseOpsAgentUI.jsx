@@ -476,19 +476,19 @@ function GateSettings() {
 
 function AuthModal({ mode, form, error, loading, onClose, onSubmit, onFormChange, onModeChange }) {
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" onClick={onClose}>
-      <form onSubmit={onSubmit} onClick={(event) => event.stopPropagation()} className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-7 shadow-2xl">
-        <h2 className="text-xl font-semibold text-white">{mode === "signup" ? "Create account" : "Welcome back"}</h2>
-        <p className="mt-1 text-sm text-slate-400">{mode === "signup" ? "Choose a name and password to keep your workspace private." : "Sign in with your name and password."}</p>
-        {error ? <div className="mt-4 rounded-xl border border-red-900/60 bg-red-950/40 px-3 py-2 text-sm text-red-200">{error}</div> : null}
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm" onClick={onClose}>
+      <form onSubmit={onSubmit} onClick={(event) => event.stopPropagation()} className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-7 shadow-2xl shadow-slate-200/80">
+        <h2 className="text-xl font-semibold text-slate-950">{mode === "signup" ? "Create account" : "Welcome back"}</h2>
+        <p className="mt-1 text-sm text-slate-600">{mode === "signup" ? "Choose a name and password to keep your workspace private." : "Sign in with your name and password."}</p>
+        {error ? <div className="mt-4 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
         <div className="mt-5 space-y-3">
-          <input type="text" required placeholder="Name" value={form.name} onChange={(event) => onFormChange({ ...form, name: event.target.value })} className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-violet-500" />
-          <input type="password" required minLength={6} placeholder="Password (min 6 chars)" value={form.password} onChange={(event) => onFormChange({ ...form, password: event.target.value })} className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-violet-500" />
+          <input type="text" required placeholder="Name" value={form.name} onChange={(event) => onFormChange({ ...form, name: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-violet-500" />
+          <input type="password" required minLength={6} placeholder="Password (min 6 chars)" value={form.password} onChange={(event) => onFormChange({ ...form, password: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-violet-500" />
         </div>
         <button type="submit" disabled={loading} className="mt-5 w-full rounded-full bg-violet-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60">
           {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
         </button>
-        <button type="button" onClick={() => onModeChange(mode === "signup" ? "login" : "signup")} className="mt-4 w-full text-center text-sm font-semibold text-violet-300 hover:text-violet-200">
+        <button type="button" onClick={() => onModeChange(mode === "signup" ? "login" : "signup")} className="mt-4 w-full text-center text-sm font-semibold text-violet-700 hover:text-violet-600">
           {mode === "signup" ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
         </button>
       </form>
@@ -505,26 +505,26 @@ function IntegratedAppHeader({ page, user, isAdmin, showGuide, onNavigate, onNew
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 px-6 py-4 text-white backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/90 px-6 py-4 text-slate-950 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <button type="button" onClick={() => onNavigate("dash")} className="text-left">
-          <Logo dark />
+          <Logo />
         </button>
         <nav className="hidden items-center gap-2 lg:flex">
           {navItems.map(([label, key]) => {
             const active = page === key || (key === "sessions" && (page === "detail" || page === "compare"));
             return (
-              <button key={key} type="button" onClick={() => onNavigate(key)} className={cn("rounded-xl px-4 py-2 text-sm font-semibold transition", active ? "bg-white text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white")}>
+              <button key={key} type="button" onClick={() => onNavigate(key)} className={cn("rounded-xl px-4 py-2 text-sm font-semibold transition", active ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950")}>
                 {label}
               </button>
             );
           })}
           <button type="button" onClick={onNewCheck} className="ml-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-bold text-white hover:bg-violet-700">+ New Check</button>
-          <button type="button" onClick={onToggleGuide} className={cn("rounded-xl border px-4 py-2 text-sm font-semibold", showGuide ? "border-violet-500 bg-violet-600 text-white" : "border-slate-700 text-slate-300 hover:bg-slate-800")}>Guide</button>
+          <button type="button" onClick={onToggleGuide} className={cn("rounded-xl border px-4 py-2 text-sm font-semibold", showGuide ? "border-violet-500 bg-violet-600 text-white" : "border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-950")}>Guide</button>
         </nav>
         <div className="flex items-center gap-2">
-          <span className="hidden rounded-xl bg-slate-800 px-3 py-2 text-sm text-white md:inline-flex">{user?.name || user?.email || "User"}</span>
-          <button type="button" onClick={onLogout} className="rounded-xl border border-red-900/70 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-950/40">Sign out</button>
+          <span className="hidden rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-700 md:inline-flex">{user?.name || user?.email || "User"}</span>
+          <button type="button" onClick={onLogout} className="rounded-xl border border-red-100 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">Sign out</button>
         </div>
       </div>
     </header>
@@ -533,7 +533,7 @@ function IntegratedAppHeader({ page, user, isAdmin, showGuide, onNavigate, onNew
 
 function IntegratedAppLayout({ children, ...headerProps }) {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="releaseops-light-app min-h-screen bg-white text-slate-950">
       <IntegratedAppHeader {...headerProps} />
       <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">{children}</div>
     </main>
@@ -685,8 +685,8 @@ export default function ReleaseOpsAgentUI() {
           <LegacySettings />
         </IntegratedAppLayout>
       ) : null}
-      {showNew ? <LegacyNewCheck onClose={() => setShowNew(false)} onComplete={(id) => { setShowNew(false); fetchSessions().then(() => openSession(id)); }} /> : null}
-      {showGuide ? <LegacyGuidePanel onClose={() => setShowGuide(false)} /> : null}
+      {showNew ? <div className="releaseops-light-app"><LegacyNewCheck onClose={() => setShowNew(false)} onComplete={(id) => { setShowNew(false); fetchSessions().then(() => openSession(id)); }} /></div> : null}
+      {showGuide ? <div className="releaseops-light-app"><LegacyGuidePanel onClose={() => setShowGuide(false)} /></div> : null}
       {authMode ? <AuthModal mode={authMode} form={authForm} error={authError} loading={authLoading} onClose={() => setAuthMode(null)} onSubmit={handleAuth} onFormChange={setAuthForm} onModeChange={(mode) => { setAuthMode(mode); setAuthError(""); }} /> : null}
     </div>
   );
