@@ -850,6 +850,26 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
     } catch { /* silent */ } finally { setSigningRole(null); }
   }
 
+  async function handleApproveAll() {
+    setSigningRole("all:approved");
+    try {
+      const pendingRoles = ROLES.filter((role) => {
+        const so = (signoffs || []).find((x) => x.role === role);
+        return so?.status !== "approved";
+      });
+      await Promise.all(pendingRoles.map((role) => governance.signoff(sessionId, { role, status: "approved" })));
+      const fresh = await governance.signoffs(sessionId);
+      setSignoffs(fresh?.sign_offs || (Array.isArray(fresh) ? fresh : []));
+      const freshDecision = await governance.decision(sessionId).catch(() => null);
+      if (freshDecision) setDecision(freshDecision);
+      onRefreshGovernance?.();
+    } catch (err) {
+      setIntegrationMsg(err.message || "Failed to approve remaining roles.");
+    } finally {
+      setSigningRole(null);
+    }
+  }
+
   async function handleEvaluate(gateId) {
     try {
       const res = await gatesAPI.evaluate(gateId, sessionId);
@@ -936,7 +956,14 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
             <Label>Approval Matrix</Label>
             <p className="-mt-2 mb-3 text-sm text-tx-3">Each production release requires accountable approval from product, quality, legal/compliance, and security.</p>
           </div>
-          <Badge color={approvalReady ? "gn" : rejectedRoles.length ? "rd" : "or"} size="sm">{approvedRoles.length}/{ROLES.length} approved</Badge>
+          <div className="flex items-center gap-2">
+            {!approvalReady && (
+              <Button variant="primary" size="xs" onClick={handleApproveAll} disabled={signingRole === "all:approved"}>
+                {signingRole === "all:approved" ? "Approving..." : "Approve all remaining"}
+              </Button>
+            )}
+            <Badge color={approvalReady ? "gn" : rejectedRoles.length ? "rd" : "or"} size="sm">{approvedRoles.length}/{ROLES.length} approved</Badge>
+          </div>
         </div>
         <div className="overflow-hidden rounded-lg border border-lg-bd">
           {ROLES.map((role) => {
