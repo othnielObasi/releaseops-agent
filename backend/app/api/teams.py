@@ -64,7 +64,7 @@ def _check_session_owner(session_id: str, email: str):
 
 @router.post("/api/keys")
 async def create_api_key(body: APIKeyCreate, email: str = Depends(verify_token)):
-    raw_key = "lg_" + _secrets.token_hex(32)
+    raw_key = "ro_" + _secrets.token_hex(32)
     key_hash = hash_api_key(raw_key)
     key_id = str(uuid.uuid4())
     with get_db() as conn:

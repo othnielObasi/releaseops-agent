@@ -18,6 +18,16 @@ from app.infra.config import (
 )
 from app.infra.database import get_llm_settings
 from app.domain.scoring import compute_readiness_score
+from app.domain.blockers import derive_blockers
+from app.domain.agent_execution import (
+    add_event,
+    complete_run,
+    complete_step,
+    fail_step,
+    start_run,
+    start_step,
+    sync_blockers,
+)
 
 # ── LLM clients (created on-demand based on DB settings or env vars) ─────────
 _clients: Dict[str, Any] = {}  # "openai" -> AsyncOpenAI, "anthropic" -> AsyncAnthropic
@@ -958,6 +968,7 @@ async def run_pipeline(session_id: str, feature_title: str, feature_description:
     """Run Navigator → Sentinel → Herald, writing incremental results after each agent."""
     sessions[session_id]["status"] = "running"
     persist_session_state(session_id)
+    start_run(session_id)
     state: ReleaseOpsState = {
         "session_id": session_id,
         "feature_title": feature_title,
@@ -969,8 +980,10 @@ async def run_pipeline(session_id: str, feature_title: str, feature_description:
     }
     try:
         # ── Navigator
+        start_step(session_id, "navigator", "Generating release spec, checklist, and initial risk register.")
         state = await navigator_node(state)
         if state.get("error"):
+            fail_step(session_id, "navigator", state["error"])
             sessions[session_id].update({"status": "error", "error": state["error"]})
             persist_session_state(session_id)
             return
@@ -978,10 +991,15 @@ async def run_pipeline(session_id: str, feature_title: str, feature_description:
         sessions[session_id]["navigator"] = state["navigator_output"]
         sessions[session_id]["validation_warnings"].extend(nav_warnings)
         persist_session_state(session_id)
+        complete_step(session_id, "navigator", "Release specification and initial risk register stored.", "navigator")
+        if nav_warnings:
+            add_event(session_id, "navigator", "validation_warning", "Navigator output produced validation warnings.", {"warnings": nav_warnings})
 
         # ── Sentinel
+        start_step(session_id, "sentinel", "Mapping risks to tests, guardrails, and release blockers.")
         state = await sentinel_node(state)
         if state.get("error"):
+            fail_step(session_id, "sentinel", state["error"])
             sessions[session_id].update({"status": "error", "error": state["error"]})
             persist_session_state(session_id)
             return
@@ -989,10 +1007,18 @@ async def run_pipeline(session_id: str, feature_title: str, feature_description:
         sessions[session_id]["sentinel"] = state["sentinel_output"]
         sessions[session_id]["validation_warnings"].extend(sen_warnings)
         persist_session_state(session_id)
+        blocker_result = derive_blockers(state["navigator_output"], state["sentinel_output"])
+        sync_blockers(session_id, blocker_result.get("blockers", []))
+        complete_step(session_id, "sentinel", "Tests, guardrails, and release blockers persisted.", "sentinel")
+        add_event(session_id, "sentinel", "blockers_synced", "Release blockers were persisted.", blocker_result.get("summary", {}))
+        if sen_warnings:
+            add_event(session_id, "sentinel", "validation_warning", "Sentinel output produced validation warnings.", {"warnings": sen_warnings})
 
         # ── Herald
+        start_step(session_id, "herald", "Packaging release notes, launch narrative, and stakeholder artifacts.")
         state = await herald_node(state)
         if state.get("error"):
+            fail_step(session_id, "herald", state["error"])
             sessions[session_id].update({"status": "error", "error": state["error"]})
             persist_session_state(session_id)
             return
@@ -1000,18 +1026,32 @@ async def run_pipeline(session_id: str, feature_title: str, feature_description:
         sessions[session_id]["herald"] = state["herald_output"]
         sessions[session_id]["validation_warnings"].extend(her_warnings)
         persist_session_state(session_id)
+        complete_step(session_id, "herald", "Release notes and stakeholder artifacts stored.", "herald")
+        if her_warnings:
+            add_event(session_id, "herald", "validation_warning", "Herald output produced validation warnings.", {"warnings": her_warnings})
 
         # ── Readiness Score
+        start_step(session_id, "scoring", "Computing readiness score and evidence completeness.")
         score = compute_readiness_score(state["navigator_output"], state["sentinel_output"])
         sessions[session_id]["readiness_score"] = score
         sessions[session_id]["status"] = "complete"
         sessions[session_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
         save_session_files(session_id)
+        complete_step(session_id, "scoring", "Readiness score and evidence package stored.", "readiness_score")
 
         # ── Post-completion integrations (fire-and-forget) ────────────────
+        start_step(session_id, "integrations", "Dispatching configured post-run integrations.")
         from app.api.integrations import dispatch_integrations
         s = sessions[session_id]
         dispatch_integrations(session_id, s, state["navigator_output"], score, feature_title)
+        complete_run(session_id, {
+            "feature_title": feature_title,
+            "readiness_score": score,
+            "risks": len((state["navigator_output"].get("risk_register") or {}).get("risks", [])),
+            "tests": len((state["sentinel_output"].get("test_cases") or {}).get("test_cases", [])),
+            "guardrails": len((state["sentinel_output"].get("guardrails") or {}).get("guardrails", [])),
+            "validation_warnings": sessions[session_id].get("validation_warnings", []),
+        })
 
         # ── Email notification (if user opted in)
         user_email = s.get("user_email")
@@ -1031,6 +1071,7 @@ async def run_pipeline(session_id: str, feature_title: str, feature_description:
 
     except Exception as exc:
         logger.error(f"Pipeline error for session {session_id}: {exc}")
+        fail_step(session_id, "pipeline", str(exc))
         sessions[session_id]["status"] = "error"
         sessions[session_id]["error"] = str(exc)
         persist_session_state(session_id)

@@ -210,6 +210,60 @@ def init_db():
             token TEXT PRIMARY KEY,
             data TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS agent_runs (
+            session_id TEXT PRIMARY KEY,
+            status TEXT NOT NULL DEFAULT 'planned',
+            current_step TEXT,
+            summary TEXT DEFAULT '{}',
+            started_at TEXT,
+            completed_at TEXT,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS agent_run_steps (
+            id TEXT PRIMARY KEY,
+            session_id TEXT NOT NULL,
+            step_key TEXT NOT NULL,
+            name TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            detail TEXT DEFAULT '',
+            output_ref TEXT,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            started_at TEXT,
+            completed_at TEXT,
+            updated_at TEXT NOT NULL,
+            UNIQUE(session_id, step_key)
+        );
+        CREATE INDEX IF NOT EXISTS idx_agent_run_steps_session ON agent_run_steps(session_id);
+
+        CREATE TABLE IF NOT EXISTS agent_blockers (
+            id TEXT PRIMARY KEY,
+            session_id TEXT NOT NULL,
+            step_key TEXT,
+            blocker_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            owner_role TEXT DEFAULT 'Product',
+            severity TEXT DEFAULT 'Medium',
+            status TEXT NOT NULL DEFAULT 'open',
+            source_ref TEXT DEFAULT '{}',
+            created_at TEXT NOT NULL,
+            resolved_at TEXT,
+            updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_agent_blockers_session ON agent_blockers(session_id);
+
+        CREATE TABLE IF NOT EXISTS agent_execution_events (
+            id TEXT PRIMARY KEY,
+            session_id TEXT NOT NULL,
+            step_key TEXT,
+            event_type TEXT NOT NULL,
+            message TEXT NOT NULL,
+            metadata TEXT DEFAULT '{}',
+            created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_agent_execution_events_session ON agent_execution_events(session_id);
         """)
         cur.close()
         conn.commit()

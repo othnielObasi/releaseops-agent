@@ -176,7 +176,7 @@ test.describe('ReleaseOps E2E', () => {
     });
     expect(createRes.status()).toBe(200);
     const key = await createRes.json();
-    expect(key.key).toMatch(/^lg_/);
+    expect(key.key).toMatch(/^ro_/);
 
     // Revoke
     const revokeRes = await request.delete(`${BASE}/api/keys/${key.id}`, {

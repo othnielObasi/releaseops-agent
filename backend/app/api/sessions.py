@@ -23,6 +23,7 @@ from app.domain.blockers import derive_blockers
 from app.domain.regulation_mapping import map_compliance
 from app.domain.diff import session_diff
 from app.domain.evidence_pack import build_evidence_pack
+from app.domain.agent_execution import create_agent_run, get_agent_run
 
 router = APIRouter(tags=["sessions"])
 
@@ -104,6 +105,7 @@ def _load_session(session_id: str) -> dict:
             "sentinel": s.get("sentinel") or {},
             "herald": s.get("herald") or {},
             "error": s.get("error"),
+            "agent_run": s.get("agent_run") or get_agent_run(session_id),
         }
     raise HTTPException(status_code=404, detail="Session not found")
 
@@ -148,6 +150,7 @@ async def create_session(
         "integrations": integration_defaults,
     }
     persist_session_state(session_id)
+    create_agent_run(session_id, body.feature_title, body.feature_description, email)
     background_tasks.add_task(_run_pipeline, session_id, body.feature_title, body.feature_description)
     response = {"session_id": session_id, "status": "created"}
     if pii_found:
@@ -160,6 +163,13 @@ async def get_session(session_id: str, email: str = Depends(verify_token)):
     data = _load_session(session_id)
     _check_session_owner(data, email)
     return data
+
+
+@router.get("/api/sessions/{session_id}/agent-run")
+async def get_session_agent_run(session_id: str, email: str = Depends(verify_token)):
+    data = _load_session(session_id)
+    _check_session_owner(data, email)
+    return get_agent_run(session_id)
 
 
 @router.get("/api/sessions")
@@ -574,6 +584,7 @@ async def reanalyze(
         "integrations": integration_defaults,
     }
     persist_session_state(new_id)
+    create_agent_run(new_id, new_title, new_desc, email)
     background_tasks.add_task(_run_pipeline, new_id, new_title, new_desc)
     return {
         "session_id": new_id,

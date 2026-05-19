@@ -315,12 +315,12 @@ POST   /api/sessions/{id}/export/notion       { notion_token, parent_page_id }
 Full REST API with key-based authentication for CI/CD integration:
 
 ```
-POST   /api/keys           { "name": "CI Pipeline" }  → returns lg_... key
+POST   /api/keys           { "name": "CI Pipeline" }  → returns ro_... key
 GET    /api/keys           List active keys
 DELETE /api/keys/{id}      Revoke key
 ```
 
-Keys are prefixed `lg_` and stored as SHA-256 hashes at rest.
+Keys are prefixed `ro_` and stored as SHA-256 hashes at rest.
 
 ### 7. Webhook Trigger
 
@@ -328,7 +328,7 @@ Embed ReleaseOps directly in your release pipeline:
 
 ```bash
 curl -X POST https://your-domain/api/webhook/analyze \
-  -H "Authorization: Bearer lg_your_api_key" \
+  -H "Authorization: Bearer ro_your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
     "feature_title": "Smart Recommendations",
@@ -809,7 +809,7 @@ ReleaseOps/
 ```bash
 # In your release pipeline:
 curl -X POST https://your-releaseops-url/api/webhook/analyze \
-  -H "Authorization: Bearer lg_your_api_key" \
+  -H "Authorization: Bearer ro_your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
     "feature_title": "Payment Fraud Detection v2",

@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from main import app
 from app.deps import sessions
+from app.domain.agent_execution import get_agent_run
 
 client = TestClient(app)
 
@@ -110,6 +111,36 @@ class TestSessions:
         assert other_get.status_code == 403
         other_list = client.get("/api/sessions", headers=other_headers)
         assert all(item.get("id") != session_id for item in other_list.json())
+
+    def test_agent_run_is_persisted_and_tenant_scoped(self, auth_headers):
+        owner_resp = client.get("/api/auth/me", headers=auth_headers)
+        assert owner_resp.status_code == 200
+
+        create_resp = client.post("/api/sessions", headers=auth_headers, json={
+            "feature_title": "Persisted execution session",
+            "feature_description": "An enterprise payment agent that reads customer transaction records, recommends refunds, escalates exceptions, and stores audit evidence."
+        })
+        assert create_resp.status_code == 200
+        session_id = create_resp.json()["session_id"]
+
+        run = get_agent_run(session_id)
+        assert run["session_id"] == session_id
+        assert run["status"] in {"planned", "running", "complete", "failed"}
+        assert [step["step_key"] for step in run["steps"]][:2] == ["intake", "plan"]
+        assert any(step["step_key"] == "sentinel" for step in run["steps"])
+
+        api_resp = client.get(f"/api/sessions/{session_id}/agent-run", headers=auth_headers)
+        assert api_resp.status_code == 200
+        assert api_resp.json()["session_id"] == session_id
+
+        other_signup = client.post("/api/auth/signup", json={
+            "name": f"agent-run-tenant-{uuid.uuid4().hex[:8]}",
+            "password": "pass123",
+        })
+        assert other_signup.status_code == 200
+        other_headers = {"Authorization": f"Bearer {other_signup.json()['token']}"}
+        other_resp = client.get(f"/api/sessions/{session_id}/agent-run", headers=other_headers)
+        assert other_resp.status_code == 403
 
     def test_create_session_injection(self, auth_headers):
         resp = client.post("/api/sessions", headers=auth_headers, json={
@@ -218,7 +249,7 @@ class TestAPIKeys:
         resp = client.post("/api/keys", headers=auth_headers, json={"name": "CI/CD Key"})
         assert resp.status_code == 200
         data = resp.json()
-        assert data["key"].startswith("lg_")
+        assert data["key"].startswith("ro_")
 
     def test_list_api_keys(self, auth_headers):
         resp = client.get("/api/keys", headers=auth_headers)

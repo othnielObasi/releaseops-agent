@@ -9,9 +9,9 @@
  */
 function normalise(raw) {
   if (raw.session && typeof raw.session === "object") {
-    return { sess: raw.session, nav: raw.navigator || {}, sen: raw.sentinel || {}, her: raw.herald || {} };
+    return { sess: raw.session, nav: raw.navigator || {}, sen: raw.sentinel || {}, her: raw.herald || {}, agentRun: raw.agent_run || raw.session.agent_run || {} };
   }
-  return { sess: raw, nav: raw.navigator || {}, sen: raw.sentinel || {}, her: raw.herald || {} };
+  return { sess: raw, nav: raw.navigator || {}, sen: raw.sentinel || {}, her: raw.herald || {}, agentRun: raw.agent_run || {} };
 }
 
 /**
@@ -19,7 +19,7 @@ function normalise(raw) {
  * into the shape used by SessionsList, Dashboard, SessionDetail, etc.
  */
 export function transformSession(raw) {
-  const { sess, nav, sen, her } = normalise(raw);
+  const { sess, nav, sen, her, agentRun } = normalise(raw);
 
   const risks = (nav.risk_register?.risks || []).map((r) => ({
     id: r.id,
@@ -111,6 +111,7 @@ export function transformSession(raw) {
     releaseNotes: her.release_notes || {},
     pitchOutline: her.pitch_outline || {},
     releaseSpec: nav.release_spec || {},
+    agentRun,
     // Keep raw data for detail view
     _raw: raw,
     _status: sess.status,

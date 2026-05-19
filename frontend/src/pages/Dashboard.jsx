@@ -5,23 +5,41 @@ import { Badge, Card, Button, CircularScore, Label } from "../components/ui";
 const C = { bl: "#3b82f6", or: "#f59e0b", rd: "#ef4444", gn: "#22c55e", pr: "#7c3aed", sf: "#11131b", bd: "#1d2234" };
 
 function deriveRunState(session) {
+  const run = session.agentRun || {};
+  const persistedSteps = Array.isArray(run.steps) ? run.steps : [];
+  const persistedBlockers = (Array.isArray(run.blockers) ? run.blockers : []).filter((blocker) => blocker.status !== "resolved");
   const pendingRoles = (session.signoffs || []).filter((x) => x.status === "pending").map((x) => x.role);
   const highRisks = session.sb?.[0] || 0;
-  const blockers = [];
+  const blockers = persistedBlockers.map((blocker) => blocker.reason || blocker.title).filter(Boolean);
 
   if (session._status === "error") blockers.push("Run failed. Open the session and inspect the analysis error.");
   if (session._status === "pending" || session._status === "running") blockers.push("Analysis is still running. Evidence is not ready yet.");
-  if (session.tags?.some((tag) => tag.l === "Needs Detail" || tag.l === "Low Confidence")) blockers.push("Input needs more detail before a confident release decision.");
-  if (highRisks > 0) blockers.push(`${highRisks} high-risk item${highRisks === 1 ? "" : "s"} must be controlled or accepted.`);
-  if ((session.st.tests || 0) === 0) blockers.push("No generated test cases yet.");
-  if ((session.st.guard || 0) === 0) blockers.push("No mapped guardrails yet.");
+  if (!persistedBlockers.length && session.tags?.some((tag) => tag.l === "Needs Detail" || tag.l === "Low Confidence")) blockers.push("Input needs more detail before a confident release decision.");
+  if (!persistedBlockers.length && highRisks > 0) blockers.push(`${highRisks} high-risk item${highRisks === 1 ? "" : "s"} must be controlled or accepted.`);
+  if (!persistedBlockers.length && (session.st.tests || 0) === 0) blockers.push("No generated test cases yet.");
+  if (!persistedBlockers.length && (session.st.guard || 0) === 0) blockers.push("No mapped guardrails yet.");
   if (pendingRoles.length > 0) blockers.push(`Waiting for sign-off: ${pendingRoles.join(", ")}.`);
 
   const completeEvidence = ["risks", "tests", "guard"].filter((key) => (session.st[key] || 0) > 0).length;
-  const runStatus = session._status === "complete"
-    ? blockers.length > 0 ? "Needs action" : "Ready"
-    : session._status === "error" ? "Failed" : "Running";
+  const runStatus = run.status === "failed" || session._status === "error"
+    ? "Failed"
+    : run.status === "complete" || session._status === "complete"
+      ? blockers.length > 0 ? "Needs action" : "Ready"
+      : run.status === "planned" ? "Planned" : "Running";
   const nextAction = blockers[0] || "Package evidence and prepare go-live approval.";
+  const fallbackStages = [
+    { label: "Intake", done: Boolean(session.title && session.desc) },
+    { label: "Risk model", done: (session.st.risks || 0) > 0 },
+    { label: "Validation", done: (session.st.tests || 0) > 0 && (session.st.guard || 0) > 0 },
+    { label: "Approval", done: pendingRoles.length === 0 },
+  ];
+  const stages = persistedSteps.length
+    ? persistedSteps.map((step) => ({
+      label: step.name || step.step_key,
+      done: step.status === "complete",
+      status: step.status,
+    }))
+    : fallbackStages;
 
   return {
     runStatus,
@@ -33,12 +51,7 @@ function deriveRunState(session) {
       guardrails: session.st.guard || 0,
       completeness: Math.round((completeEvidence / 3) * 100),
     },
-    stages: [
-      { label: "Intake", done: Boolean(session.title && session.desc) },
-      { label: "Risk model", done: (session.st.risks || 0) > 0 },
-      { label: "Validation", done: (session.st.tests || 0) > 0 && (session.st.guard || 0) > 0 },
-      { label: "Approval", done: pendingRoles.length === 0 },
-    ],
+    stages,
   };
 }
 

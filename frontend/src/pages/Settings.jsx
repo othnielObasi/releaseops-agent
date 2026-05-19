@@ -317,7 +317,7 @@ export default function Settings() {
               />
               <Button variant="primary" size="sm" onClick={createKey}>+ Create Key</Button>
             </div>
-            <div className="text-xs text-tx-4 mt-2">Keys are prefixed <code className="text-accent-purple2 font-mono">lg_</code> for easy identification in CI/CD configs.</div>
+            <div className="text-xs text-tx-4 mt-2">Keys are prefixed <code className="text-accent-purple2 font-mono">ro_</code> for easy identification in CI/CD configs.</div>
           </div>
         )}
 

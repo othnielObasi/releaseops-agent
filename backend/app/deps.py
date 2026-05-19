@@ -20,6 +20,7 @@ from app.infra.config import (
     JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRE_HOURS,
     ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_MODE, DATABASE_URL,
 )
+from app.domain.agent_execution import get_agent_run
 
 logger = logging.getLogger("ReleaseOps")
 
@@ -459,7 +460,7 @@ def _parse_json_field(value: Any, default: Any):
 
 
 def _row_to_session(row: Any) -> dict:
-    return {
+    session = {
         "id": row["id"],
         "feature_title": row["feature_title"] or "",
         "feature_description": row["feature_description"] or "",
@@ -478,6 +479,8 @@ def _row_to_session(row: Any) -> dict:
         "pii_detected": _parse_json_field(row["pii_detected"], []),
         "user_email": row["user_email"],
     }
+    session["agent_run"] = get_agent_run(session["id"])
+    return session
 
 
 def session_snapshot(session_data: dict) -> dict:
@@ -497,11 +500,13 @@ def session_snapshot(session_data: dict) -> dict:
             "validation_warnings": meta.get("validation_warnings", []),
             "pii_detected": meta.get("pii_detected", []),
             "integrations": meta.get("integrations", {}),
+            "agent_run": session_data.get("agent_run") or get_agent_run(meta.get("id")),
         },
         "navigator": session_data.get("navigator") or {},
         "sentinel": session_data.get("sentinel") or {},
         "herald": session_data.get("herald") or {},
         "error": session_data.get("error"),
+        "agent_run": session_data.get("agent_run") or get_agent_run(meta.get("id")),
     }
 
 
@@ -594,7 +599,9 @@ def list_sessions_for_user(email: str) -> list[dict]:
     combined: Dict[str, dict] = {}
     for session_id, session_data in sessions.items():
         if session_data.get("user_email") == email:
-            combined[session_id] = session_data
+            enriched = dict(session_data)
+            enriched["agent_run"] = enriched.get("agent_run") or get_agent_run(session_id)
+            combined[session_id] = enriched
     _ensure_session_db_columns()
     with get_db() as conn:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)

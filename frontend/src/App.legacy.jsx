@@ -42,14 +42,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("lg_token");
+    const token = localStorage.getItem("releaseops_token");
     if (token) {
       authAPI.me().then((u) => {
         setUser(u);
         setAuthenticated(true);
         setPage("dash");
         fetchSessions();
-      }).catch(() => { localStorage.removeItem("lg_token"); });
+      }).catch(() => { localStorage.removeItem("releaseops_token"); });
     }
   }, [fetchSessions]);
 
@@ -61,7 +61,7 @@ export default function App() {
       const res = authMode === "signup"
         ? await authAPI.signup(authForm.name, authForm.email, authForm.password)
         : await authAPI.login(authForm.email, authForm.password);
-      localStorage.setItem("lg_token", res.token);
+      localStorage.setItem("releaseops_token", res.token);
       setUser({ name: res.name, email: res.email, role: res.role });
       setAuthenticated(true);
       setAuthMode(null);
@@ -76,7 +76,7 @@ export default function App() {
   };
 
   const logout = () => {
-    localStorage.removeItem("lg_token");
+    localStorage.removeItem("releaseops_token");
     setAuthenticated(false);
     setUser(null);
     setPage("landing");
