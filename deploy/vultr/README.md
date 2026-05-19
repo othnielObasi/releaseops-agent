@@ -6,6 +6,8 @@ This repo is ready to run on a single Vultr Cloud Compute Ubuntu instance with D
 - `backend` serves FastAPI on container port `3001`.
 - `frontend` serves the Vite build through Nginx on ports `80` and `443`, and proxies `/api/*` to the backend.
 
+In production terms, the Vultr VM is the ReleaseOps system of record: it persists release sessions, agent outputs, readiness scores, approvals, audit events, integration settings, and evidence artifacts. The public frontend is the workspace, while the backend and database are private service surfaces on the VM.
+
 ## 1. Create the Vultr Instance
 
 Use a Vultr Cloud Compute Ubuntu LTS instance. For a first deployment, choose at least:

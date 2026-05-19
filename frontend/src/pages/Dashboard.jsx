@@ -4,6 +4,25 @@ import { Badge, Card, Button, CircularScore, Label } from "../components/ui";
 
 const C = { bl: "#3b82f6", or: "#f59e0b", rd: "#ef4444", gn: "#22c55e", pr: "#7c3aed", sf: "#11131b", bd: "#1d2234" };
 
+const AUTONOMOUS_PLAN = [
+  { step: "Intake", state: "Complete", detail: "Classify release type, actors, data, tools, and launch context." },
+  { step: "Plan", state: "Complete", detail: "Select risk frameworks, sign-off policy, tests, and evidence targets." },
+  { step: "Reason", state: "Running", detail: "Navigator, Sentinel, and Herald coordinate the readiness decision." },
+  { step: "Execute", state: "Ready", detail: "Create audit package, webhook payloads, tickets, and reviewer notifications." },
+];
+
+const ROADBLOCKS = [
+  "Missing data sensitivity blocks production approval until owner confirms PII/PHI scope.",
+  "High-risk action detected: refund execution requires human approval and logging.",
+  "No named Legal reviewer: release can proceed only as Needs review.",
+];
+
+const SYSTEM_OF_RECORD = [
+  ["Vultr Postgres", "release sessions, scores, approvals, audit events"],
+  ["ReleaseOps API", "agent runs, gate evaluation, integration triggers"],
+  ["Evidence pack", "reports, certificates, tests, guardrails, decision history"],
+];
+
 export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
   const scores = sessions.map((s) => s.st.score);
   const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
@@ -117,6 +136,50 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
             ))}
           </Card>
         </div>
+      </div>
+
+      {/* Enterprise Autonomy */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-3.5 mt-4 animate-fade-up-3">
+        <Card>
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div>
+              <Label>Autonomous Agent Run Plan</Label>
+              <p className="text-sm text-tx-3 -mt-1">ReleaseOps plans, reasons, handles blockers, and packages evidence before a go-live decision.</p>
+            </div>
+            <Badge color="gn" size="xs">Production workflow</Badge>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            {AUTONOMOUS_PLAN.map((item, index) => (
+              <div key={item.step} className="rounded-lg border border-lg-bd bg-lg-sf2 p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-tx-4">0{index + 1}</span>
+                  <Badge color={item.state === "Running" ? "or" : item.state === "Ready" ? "bl" : "gn"} size="xs">{item.state}</Badge>
+                </div>
+                <div className="mt-2 text-sm font-bold text-tx">{item.step}</div>
+                <div className="mt-1 text-xs leading-5 text-tx-3">{item.detail}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card>
+          <Label>Roadblocks & System of Record</Label>
+          <div className="space-y-2">
+            {ROADBLOCKS.map((item) => (
+              <div key={item} className="rounded-lg border border-accent-orange/20 bg-accent-orange/5 p-2.5 text-xs leading-5 text-tx-2">
+                {item}
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 space-y-2">
+            {SYSTEM_OF_RECORD.map(([label, detail]) => (
+              <div key={label} className="flex items-start justify-between gap-3 rounded-lg bg-lg-sf2 p-2.5">
+                <span className="text-xs font-bold text-tx">{label}</span>
+                <span className="text-right text-xs leading-5 text-tx-3">{detail}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
     </div>
   );

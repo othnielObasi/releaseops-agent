@@ -122,6 +122,49 @@ Each output is validated, scored using a 0–100 readiness grade, and persisted 
 
 ---
 
+## Production-Grade Autonomy
+
+ReleaseOps Agent is designed as an operational decision system, not a chat assistant. Each run follows an explicit autonomous plan:
+
+1. **Intake:** classify the AI release, business action, user groups, data sensitivity, tools, and launch environment.
+2. **Plan:** select applicable governance frameworks, required sign-offs, release gates, tests, and evidence targets.
+3. **Reason:** coordinate specialist agents to generate the release spec, risk model, tests, guardrails, and launch decision.
+4. **Handle roadblocks:** pause or downgrade the decision when required context, owners, sign-offs, or controls are missing.
+5. **Execute:** package the decision record, evidence pack, certificates, webhooks, reviewer notifications, and integration outputs.
+6. **Persist:** store run state, artifacts, approvals, metrics, and audit events as a durable enterprise record.
+
+This makes the agent suitable for real release operations: it can say **yes**, **yes with controls**, **not yet**, or **blocked**, and it records why.
+
+---
+
+## Vultr as the System of Record
+
+The Vultr deployment is not just a demo host. It runs the central operational record for ReleaseOps:
+
+- **Postgres on Vultr:** users, tenants, release sessions, scores, approvals, gates, audit logs, share tokens, and integration settings.
+- **FastAPI backend on Vultr:** authenticated agent orchestration, session APIs, governance APIs, export APIs, and webhook triggers.
+- **Nginx/React frontend on Vultr:** browser-based release review workspace for product, engineering, compliance, and leadership users.
+- **Docker Compose deployment:** reproducible production-style services with private backend/database ports and public frontend access.
+
+This satisfies the enterprise-agent requirement that planning, coordination, execution, and decision history live in a durable backend system.
+
+---
+
+## Measurable Enterprise Value
+
+ReleaseOps Agent produces outputs that can be inspected, compared, and governed:
+
+| Metric | Why it matters |
+|--------|----------------|
+| **Readiness score** | Gives leadership a clear launch signal. |
+| **Risk count and severity** | Shows what must be fixed or controlled before release. |
+| **Generated tests** | Turns risk analysis into QA action. |
+| **Mapped guardrails** | Converts policy into runtime controls. |
+| **Required sign-offs** | Makes ownership explicit across PM, QA, Legal, and Security. |
+| **Evidence pack** | Gives auditors and stakeholders a durable record of the decision. |
+
+---
+
 ## Key Features
 
 | Category | Capabilities |
