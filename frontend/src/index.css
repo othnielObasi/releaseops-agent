@@ -216,6 +216,25 @@
   box-shadow: 0 2px 8px rgba(72, 64, 52, 0.07);
 }
 
+.releaseops-light-app .workspace-section {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #ded6c8;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.releaseops-light-app .workspace-row {
+  border-top: 1px solid #e7dfd2;
+}
+
+.releaseops-light-app .workspace-row:first-child {
+  border-top: 0;
+}
+
+.releaseops-light-app .workspace-row:hover {
+  background: #fffdf9;
+}
+
 .releaseops-light-app .shadow-sm,
 .releaseops-light-app .shadow-lg,
 .releaseops-light-app .shadow-2xl,

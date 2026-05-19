@@ -1,7 +1,7 @@
 /* ReleaseOps v3 — Dashboard Page (Tailwind) */
 
 import { useState } from "react";
-import { Badge, Card, Button, Label } from "../components/ui";
+import { Badge, Button, Label } from "../components/ui";
 import { governance } from "../services/api";
 
 const C = { bl: "#2563eb", or: "#b45309", rd: "#b91c1c", gn: "#047857", sf: "#ffffff", bd: "#d8d0c2", tx3: "#6b7280" };
@@ -28,7 +28,7 @@ function ReadinessTrend({ sessions }) {
   const path = points.map((p) => `${p.x},${p.y}`).join(" ");
 
   return (
-    <Card className="mb-4 animate-fade-up-2">
+    <section className="workspace-section mb-4 p-5 animate-fade-up-2">
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Label>Readiness Score Trends</Label>
@@ -66,7 +66,7 @@ function ReadinessTrend({ sessions }) {
           </text>
         ))}
       </svg>
-    </Card>
+    </section>
   );
 }
 
@@ -176,7 +176,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
         <Button variant="primary" size="md" onClick={onNew} className="w-full sm:w-auto">+ New Readiness Check</Button>
       </div>
 
-      <Card className="mb-4 animate-fade-up">
+      <section className="workspace-section mb-4 p-5 animate-fade-up">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
             <div className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent-purple">Judge briefing</div>
@@ -192,14 +192,14 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
             {sessions[0] && <Button variant="ghost" size="sm" onClick={() => onOpen(sessions[0].id)}>Open latest evidence</Button>}
           </div>
         </div>
-        <div className="mt-4 grid gap-2 md:grid-cols-4">
+        <div className="mt-4 grid gap-0 overflow-hidden rounded-lg border border-lg-bd md:grid-cols-4">
           {[
             ["1. Intake", "Feature title and release context enter the backend."],
             ["2. Reason", "Agent models risks, tests, guardrails, and regulatory impact."],
             ["3. Govern", "Open blockers prevent a GO decision until handled."],
             ["4. Prove", "Audit trail, evidence pack, certificate, and run history persist."],
           ].map(([title, body]) => (
-            <div key={title} className="rounded-xl border border-lg-bd bg-lg-sf2 p-3">
+            <div key={title} className="border-b border-lg-bd bg-lg-sf2 p-3 md:border-b-0 md:border-r last:border-b-0 md:last:border-r-0">
               <div className="text-sm font-extrabold text-tx">{title}</div>
               <div className="mt-1 text-xs leading-5 text-tx-3">{body}</div>
             </div>
@@ -217,7 +217,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
             </div>
           ))}
         </div>
-        <div className="mt-4 rounded-xl border border-lg-bd bg-lg-sf2 p-3">
+        <div className="mt-4 rounded-lg border border-lg-bd bg-lg-sf2 p-3">
           <div className="mb-2 flex items-center justify-between gap-3">
             <div className="text-sm font-extrabold text-tx">Production-grade proof</div>
             <Badge color="gn" size="xs">Beyond hackathon demo</Badge>
@@ -230,14 +230,14 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
               ["Audit trail", "Resolution, acceptance, and decisions are logged."],
               ["Deployable stack", "Vultr VM, API, Postgres, Nginx, Docker Compose."],
             ].map(([title, body]) => (
-              <div key={title} className="rounded-lg bg-white px-3 py-2 shadow-sm shadow-stone-200/60">
+              <div key={title} className="border-l border-lg-bd px-3 py-1.5 first:border-l-0">
                 <div className="text-xs font-bold text-tx">{title}</div>
                 <div className="mt-1 text-[11px] leading-5 text-tx-3">{body}</div>
               </div>
             ))}
           </div>
         </div>
-      </Card>
+      </section>
 
       {actionMsg && (
         <div className="mb-3 rounded-md border border-lg-bd bg-lg-sf2 px-3 py-2 text-sm text-tx-2">
@@ -246,7 +246,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       )}
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 gap-2.5 mb-4 animate-fade-up-1 sm:grid-cols-3 xl:grid-cols-6">
+      <section className="workspace-section mb-4 grid grid-cols-2 overflow-hidden animate-fade-up-1 sm:grid-cols-3 xl:grid-cols-6">
         {[
           { l: "Sessions", v: sessions.length },
           { l: "Avg Score", v: avg },
@@ -255,21 +255,21 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
           { l: "Drift Alerts", v: driftAlerts },
           { l: "Frameworks", v: 7 },
         ].map((x, i) => (
-          <Card key={i} className="!p-3 text-center">
+          <div key={i} className="border-b border-r border-lg-bd p-3 text-center last:border-r-0 sm:[&:nth-child(3n)]:border-r-0 xl:border-b-0 xl:[&:nth-child(3n)]:border-r xl:[&:nth-child(6n)]:border-r-0">
             <div className={`text-2xl font-extrabold ${statColor[i]}`}>{x.v}</div>
             <div className="text-sm text-tx-3 mt-0.5">{x.l}</div>
-          </Card>
+          </div>
         ))}
-      </div>
+      </section>
 
       {/* Score Trends */}
       {sessions.length > 0 ? (
         <ReadinessTrend sessions={sessions} />
       ) : (
-      <Card className="mb-4 animate-fade-up-2 text-center !py-8">
+      <section className="workspace-section mb-4 animate-fade-up-2 p-8 text-center">
         <div className="text-tx-3 text-sm">No sessions yet. Run your first readiness check to see trends.</div>
         <Button variant="primary" size="sm" onClick={onNew} className="mt-3">+ New Readiness Check</Button>
-      </Card>
+      </section>
       )}
 
       {/* Two Columns */}
@@ -280,9 +280,9 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
             <Label>Recent Sessions</Label>
             {sessions.length > 4 && <span className="text-xs font-semibold text-tx-4">{sessions.length - 4} more stored</span>}
           </div>
-          <div className="space-y-2">
+          <div className="workspace-section overflow-hidden">
             {sessions.slice(0, 4).map((s) => (
-              <Card key={s.id} onClick={() => onOpen(s.id)} className="!p-4">
+              <button key={s.id} type="button" onClick={() => onOpen(s.id)} className="workspace-row w-full bg-transparent p-4 text-left font-sans transition-colors">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-orange/10 text-accent-orange">{s.icon}</span>
@@ -304,7 +304,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
                     </span>
                   </div>
                 </div>
-              </Card>
+              </button>
             ))}
           </div>
         </div>
@@ -312,11 +312,12 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
         {/* Governance Status */}
         <div>
           <Label>Governance Status</Label>
-          <Card className="!p-3 mb-2 !border-l-[3px] border-l-accent-purple">
+          <div className="workspace-section overflow-hidden">
+          <div className="workspace-row border-l-[3px] border-l-accent-purple p-3">
             <div className="text-sm font-bold text-tx">🚦 Production Release Gate</div>
             <div className="text-sm text-tx-3 mt-1">{sessions.length} sessions analyzed · Configure gates in Settings</div>
-          </Card>
-          <Card className={`!p-3 mb-2 !border-l-[3px] ${driftAlerts > 0 ? "border-l-accent-red" : "border-l-accent-green"}`}>
+          </div>
+          <div className={`workspace-row border-l-[3px] p-3 ${driftAlerts > 0 ? "border-l-accent-red" : "border-l-accent-green"}`}>
             <div className="text-sm font-bold text-tx">📡 Drift Monitor</div>
             <div className="text-sm text-tx-3 mt-1">
               {sessions.filter((s) => s.drift?.active).length} active monitors · {driftAlerts} regressions detected
@@ -324,21 +325,22 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
             {sessions.filter((s) => s.drift?.scoreDelta < 0).map((s) => (
               <div key={s.id} className="text-sm text-accent-red2 mt-1">⚠ {s.title}: {s.drift.scoreDelta} points</div>
             ))}
-          </Card>
-          <Card className={`!p-3 !border-l-[3px] ${pendingSignoffs > 0 ? "border-l-accent-orange" : "border-l-accent-green"}`}>
+          </div>
+          <div className={`workspace-row border-l-[3px] p-3 ${pendingSignoffs > 0 ? "border-l-accent-orange" : "border-l-accent-green"}`}>
             <div className="text-sm font-bold text-tx">✍️ Pending Sign-offs</div>
             {sessions.filter((s) => s.signoffs.some((x) => x.status === "pending")).slice(0, 3).map((s) => (
               <div key={s.id} className="text-sm text-accent-orange2 mt-1">
                 {s.title}: {s.signoffs.filter((x) => x.status === "pending").map((x) => x.role).join(", ")}
               </div>
             ))}
-          </Card>
+          </div>
         </div>
+      </div>
       </div>
 
       {/* Operational Queue */}
       <div className="grid grid-cols-1 gap-4 mt-4 animate-fade-up-3 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card>
+        <section className="workspace-section p-5">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div>
               <Label>Production Workbench</Label>
@@ -349,9 +351,9 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
             </Badge>
           </div>
           {operationalRuns.length > 0 ? (
-            <div className="space-y-2">
+            <div className="overflow-hidden rounded-lg border border-lg-bd">
               {operationalRuns.map(({ session, state }) => (
-                <div key={session.id} className="rounded-lg border border-lg-bd bg-lg-sf2 p-3">
+                <div key={session.id} className="workspace-row bg-lg-sf2 p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="truncate text-sm font-bold text-tx">{session.title}</div>
@@ -383,14 +385,14 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
               No runs yet. Create a release check to generate an operations queue.
             </div>
           )}
-        </Card>
+        </section>
 
-        <Card>
+        <section className="workspace-section p-5">
           <Label>Next Actions</Label>
           {activeBlockers.length > 0 ? (
-            <div className="space-y-2">
+            <div className="overflow-hidden rounded-lg border border-accent-orange/20">
               {activeBlockers.map(({ session, blocker, text, index }) => (
-                <div key={`${session.id}-${blocker?.id || index}`} className="rounded-lg border border-accent-orange/20 bg-accent-orange/5 p-2.5 text-xs leading-5 text-tx-2">
+                <div key={`${session.id}-${blocker?.id || index}`} className="workspace-row bg-accent-orange/5 p-2.5 text-xs leading-5 text-tx-2">
                   <button type="button" onClick={() => onOpen(session.id)} className="w-full bg-transparent border-none p-0 text-left font-sans">
                     <span className="block font-bold text-accent-orange2">{session.title}</span>
                     <span className="block text-tx-2">{blocker?.title || text}</span>
@@ -416,20 +418,21 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
               No active blockers in the latest runs. Evidence packages are ready for review.
             </div>
           )}
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-lg border border-lg-bd">
             {[
               ["Stored runs", sessions.length],
               ["Evidence items", sessions.reduce((total, s) => total + s.st.risks + s.st.tests + s.st.guard, 0)],
               ["Approvals left", pendingSignoffs],
             ].map(([label, value]) => (
-              <div key={label} className="rounded-lg bg-lg-sf2 p-2.5 text-center">
+              <div key={label} className="border-r border-lg-bd bg-lg-sf2 p-2.5 text-center last:border-r-0">
                 <div className="text-lg font-extrabold text-tx">{value}</div>
                 <div className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-tx-4">{label}</div>
               </div>
             ))}
           </div>
-        </Card>
+        </section>
       </div>
     </div>
   );
 }
+
