@@ -505,7 +505,7 @@ function IntegratedAppHeader({ page, user, isAdmin, showGuide, onNavigate, onNew
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/90 px-6 py-4 text-slate-950 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[#e6e0d6] bg-white/90 px-6 py-4 text-slate-950 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <button type="button" onClick={() => onNavigate("dash")} className="text-left">
           <Logo />
@@ -514,16 +514,16 @@ function IntegratedAppHeader({ page, user, isAdmin, showGuide, onNavigate, onNew
           {navItems.map(([label, key]) => {
             const active = page === key || (key === "sessions" && (page === "detail" || page === "compare"));
             return (
-              <button key={key} type="button" onClick={() => onNavigate(key)} className={cn("rounded-xl px-4 py-2 text-sm font-semibold transition", active ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950")}>
+              <button key={key} type="button" onClick={() => onNavigate(key)} className={cn("rounded-xl px-4 py-2 text-sm font-semibold transition", active ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-[#fbfaf7] hover:text-slate-950")}>
                 {label}
               </button>
             );
           })}
           <button type="button" onClick={onNewCheck} className="ml-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-bold text-white hover:bg-violet-700">+ New Check</button>
-          <button type="button" onClick={onToggleGuide} className={cn("rounded-xl border px-4 py-2 text-sm font-semibold", showGuide ? "border-violet-500 bg-violet-600 text-white" : "border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-950")}>Guide</button>
+          <button type="button" onClick={onToggleGuide} className={cn("rounded-xl border px-4 py-2 text-sm font-semibold", showGuide ? "border-violet-500 bg-violet-600 text-white" : "border-[#e6e0d6] text-slate-600 hover:bg-[#fbfaf7] hover:text-slate-950")}>Guide</button>
         </nav>
         <div className="flex items-center gap-2">
-          <span className="hidden rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-700 md:inline-flex">{user?.name || user?.email || "User"}</span>
+          <span className="hidden rounded-xl bg-[#fbfaf7] px-3 py-2 text-sm text-slate-700 md:inline-flex">{user?.name || user?.email || "User"}</span>
           <button type="button" onClick={onLogout} className="rounded-xl border border-red-100 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">Sign out</button>
         </div>
       </div>
