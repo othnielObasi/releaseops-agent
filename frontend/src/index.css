@@ -35,13 +35,13 @@
     @apply bg-lg-sf/85 backdrop-blur-xl border border-lg-bd;
   }
 
-  /* Card with hover glow */
+  /* Product surface */
   .card-glow {
-    @apply bg-lg-sf border border-lg-bd rounded-xl transition-all duration-200;
+    @apply bg-lg-sf border border-lg-bd rounded-lg transition-colors duration-150;
   }
   .card-glow:hover {
     @apply border-lg-bd2;
-    box-shadow: 0 0 20px rgba(124,58,237,0.06), 0 4px 16px rgba(0,0,0,0.3);
+    box-shadow: none;
   }
 
   /* Gradient text */
@@ -122,9 +122,9 @@
 
 .releaseops-light-app {
   background:
-    radial-gradient(circle at top right, rgba(79, 70, 229, 0.07), transparent 34rem),
-    radial-gradient(circle at 8% 14%, rgba(4, 120, 87, 0.06), transparent 24rem),
-    linear-gradient(180deg, #f8f6f1 0%, #fbfaf7 34rem);
+    radial-gradient(circle at top right, rgba(79, 70, 229, 0.04), transparent 34rem),
+    radial-gradient(circle at 8% 14%, rgba(4, 120, 87, 0.04), transparent 24rem),
+    linear-gradient(180deg, #f7f3ea 0%, #fbfaf7 34rem);
   color: #111827;
 }
 
@@ -148,7 +148,7 @@
 }
 
 .releaseops-light-app .bg-lg-sf3 {
-  background-color: #f3efe7 !important;
+  background-color: #f1eadf !important;
 }
 
 .releaseops-light-app .text-tx {
@@ -156,15 +156,15 @@
 }
 
 .releaseops-light-app .text-tx-2 {
-  color: #374151 !important;
+  color: #263241 !important;
 }
 
 .releaseops-light-app .text-tx-3 {
-  color: #6b7280 !important;
+  color: #4b5563 !important;
 }
 
 .releaseops-light-app .text-tx-4 {
-  color: #9ca3af !important;
+  color: #6b7280 !important;
 }
 
 .releaseops-light-app .text-accent-green,
@@ -194,34 +194,53 @@
 
 .releaseops-light-app .border-lg-bd,
 .releaseops-light-app .border-lg-bd\/60 {
-  border-color: #e6e0d6 !important;
+  border-color: #ded6c8 !important;
 }
 
 .releaseops-light-app .border-lg-bd2 {
-  border-color: #d8d0c2 !important;
+  border-color: #cfc5b6 !important;
 }
 
 .releaseops-light-app .card-glow,
 .releaseops-light-app .glass,
 .releaseops-light-app .glass-strong {
-  background-color: rgba(255, 255, 255, 0.9) !important;
-  border-color: #e6e0d6 !important;
-  box-shadow: 0 18px 46px rgba(79, 70, 55, 0.08);
+  background-color: #ffffff !important;
+  border-color: #ded6c8 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 2px rgba(72, 64, 52, 0.05);
 }
 
 .releaseops-light-app .card-glow:hover {
-  border-color: #d8d0c2 !important;
-  box-shadow: 0 20px 52px rgba(79, 70, 55, 0.11);
+  background-color: #fffdf9 !important;
+  border-color: #cfc5b6 !important;
+  box-shadow: 0 2px 8px rgba(72, 64, 52, 0.07);
+}
+
+.releaseops-light-app .shadow-sm,
+.releaseops-light-app .shadow-lg,
+.releaseops-light-app .shadow-2xl,
+.releaseops-light-app .shadow-stone-200\/60,
+.releaseops-light-app .shadow-slate-200\/80,
+.releaseops-light-app .shadow-accent-purple\/20,
+.releaseops-light-app .shadow-accent-purple\/25,
+.releaseops-light-app .shadow-accent-purple\/30,
+.releaseops-light-app .shadow-accent-purple\/40 {
+  box-shadow: none !important;
+}
+
+.releaseops-light-app header {
+  background-color: rgba(255, 253, 249, 0.94) !important;
+  border-color: #ded6c8 !important;
 }
 
 .releaseops-light-app .input-glass {
   background-color: #ffffff !important;
-  border-color: #d8d0c2 !important;
+  border-color: #cfc5b6 !important;
   color: #111827 !important;
 }
 
 .releaseops-light-app .input-glass::placeholder {
-  color: #9ca3af !important;
+  color: #6b7280 !important;
 }
 
 .releaseops-light-app .bg-accent-purple\/5 {

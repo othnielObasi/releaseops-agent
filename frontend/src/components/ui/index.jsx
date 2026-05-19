@@ -102,7 +102,7 @@ export function CircularScore({ score, size = 88 }) {
 // ── Section Label ──
 export function Label({ children }) {
   return (
-    <div className="text-sm font-bold text-tx-3 tracking-wide uppercase mb-3">{children}</div>
+    <div className="text-sm font-bold text-tx-2 tracking-wide uppercase mb-3">{children}</div>
   );
 }
 
