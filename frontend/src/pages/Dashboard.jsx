@@ -102,14 +102,14 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
   ];
 
   return (
-    <div className="max-w-[960px] mx-auto">
+    <div className="mx-auto max-w-6xl">
       {/* Header */}
-      <div className="flex justify-between items-center mb-5 pt-6 animate-fade-up">
+      <div className="flex flex-col gap-3 pt-6 mb-5 animate-fade-up sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold text-tx">Dashboard</h1>
           <p className="text-sm text-tx-3 mt-1">Autonomous AI release review, evidence, blockers, and go-live governance.</p>
         </div>
-        <Button variant="primary" size="md" onClick={onNew}>+ New Readiness Check</Button>
+        <Button variant="primary" size="md" onClick={onNew} className="w-full sm:w-auto">+ New Readiness Check</Button>
       </div>
 
       <Card className="mb-4 animate-fade-up">
@@ -162,7 +162,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       )}
 
       {/* Stats Row */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 mb-4 animate-fade-up-1">
+      <div className="grid grid-cols-2 gap-2.5 mb-4 animate-fade-up-1 sm:grid-cols-3 xl:grid-cols-6">
         {[
           { l: "Sessions", v: sessions.length },
           { l: "Avg Score", v: avg },
@@ -203,24 +203,36 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       )}
 
       {/* Two Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         {/* Recent Sessions */}
         <div>
-          <Label>Recent Sessions</Label>
-          {sessions.slice(0, 4).map((s) => (
-            <Card key={s.id} onClick={() => onOpen(s.id)} className="!p-3 mb-2">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">{s.icon}</span>
-                  <div>
-                    <div className="text-sm font-semibold text-tx">{s.title}</div>
-                    <div className="text-xs text-tx-3 font-mono">{s.date.split(",")[0]}</div>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <Label>Recent Sessions</Label>
+            {sessions.length > 4 && <span className="text-xs font-semibold text-tx-4">{sessions.length - 4} more stored</span>}
+          </div>
+          <div className="space-y-2">
+            {sessions.slice(0, 4).map((s) => (
+              <Card key={s.id} onClick={() => onOpen(s.id)} className="!p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-orange/10 text-accent-orange">{s.icon}</span>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-extrabold text-tx">{s.title}</div>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-tx-3">
+                        <span className="font-mono">{s.date.split(",")[0]}</span>
+                        <span>{s.st.risks} risks</span>
+                        <span>{s.st.tests} tests</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <Badge color={s.st.score >= 80 ? "gn" : s.st.score >= 60 ? "or" : "rd"} size="xs">{s.st.score}/100</Badge>
+                    <CircularScore score={s.st.score} size={42} />
                   </div>
                 </div>
-                <CircularScore score={s.st.score} size={36} />
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))}
+          </div>
         </div>
 
         {/* Governance Status */}
@@ -251,7 +263,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       </div>
 
       {/* Operational Queue */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-3.5 mt-4 animate-fade-up-3">
+      <div className="grid grid-cols-1 gap-4 mt-4 animate-fade-up-3 xl:grid-cols-[1.1fr_0.9fr]">
         <Card>
           <div className="flex items-start justify-between gap-3 mb-3">
             <div>
