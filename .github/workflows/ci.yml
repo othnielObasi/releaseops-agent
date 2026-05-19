@@ -1,4 +1,4 @@
-name: LaunchGuard CI
+name: ReleaseOps CI
 
 on:
   push:
@@ -17,8 +17,8 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: launchguard_test
-          POSTGRES_USER: launchguard
+          POSTGRES_DB: releaseops_test
+          POSTGRES_USER: releaseops
           POSTGRES_PASSWORD: test_secret
         ports:
           - 5433:5432

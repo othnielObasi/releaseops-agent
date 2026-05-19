@@ -33,8 +33,8 @@ deploy.sh
 test_production.sh
 
 # Legacy / duplicate codebases
-launchguard_codebase_*/
-launchguard-ui*.jsx
+releaseops_codebase_*/
+releaseops-ui*.jsx
 *.docx
 
 # SSL certs

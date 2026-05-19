@@ -17,8 +17,8 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: launchguard_test
-          POSTGRES_USER: launchguard
+          POSTGRES_DB: releaseops_test
+          POSTGRES_USER: releaseops
           POSTGRES_PASSWORD: test_secret
         ports:
           - 5433:5432
@@ -90,7 +90,7 @@ jobs:
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='frontend/dist' \
-            --exclude='launchguard_codebase_*' \
+            --exclude='releaseops_codebase_*' \
             backend/ frontend/ docker-compose.yml deploy.sh
 
           # Upload archive
@@ -99,7 +99,7 @@ jobs:
           # Extract and rebuild on server
           $SSH_CMD << 'DEPLOY_SCRIPT'
             set -e
-            cd /opt/launchguard || mkdir -p /opt/launchguard && cd /opt/launchguard
+            cd /opt/releaseops || mkdir -p /opt/releaseops && cd /opt/releaseops
 
             # Backup current deployment
             [ -d backend ] && cp -r backend backend.bak.$(date +%Y%m%d%H%M%S) || true
