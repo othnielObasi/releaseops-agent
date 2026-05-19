@@ -67,7 +67,7 @@ JWT_SECRET=replace-with-a-long-random-token
 ADMIN_EMAIL=admin@yourdomain.com
 ADMIN_PASSWORD=replace-with-a-strong-password
 DEMO_MODE=true
-DATABASE_URL=postgresql://launchguard:replace-with-a-long-random-password@postgres:5432/launchguard
+DATABASE_URL=postgresql://releaseops:replace-with-a-long-random-password@postgres:5432/releaseops
 ```
 
 Use the same password in `.env` and `backend/.env`.

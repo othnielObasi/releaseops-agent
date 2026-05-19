@@ -1,5 +1,5 @@
 """
-LaunchGuard infrastructure layer.
+ReleaseOps infrastructure layer.
 
 - config   → centralized env-var configuration
 - database → SQLite connection manager & schema

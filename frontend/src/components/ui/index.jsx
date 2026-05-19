@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Reusable UI Primitives (Tailwind) */
+/* ReleaseOps v3 — Reusable UI Primitives (Tailwind) */
 
 const palette = {
   gn: ["bg-accent-green/10", "text-accent-green2"],

@@ -1,18 +1,18 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: launchguard-postgres
+    container_name: releaseops-postgres
     environment:
-      POSTGRES_DB: launchguard
-      POSTGRES_USER: launchguard
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-launchguard_secret}
+      POSTGRES_DB: releaseops
+      POSTGRES_USER: releaseops
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-releaseops_secret}
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U launchguard -d launchguard"]
+      test: ["CMD-SHELL", "pg_isready -U releaseops -d releaseops"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,13 +20,13 @@ services:
 
   backend:
     build: ./backend
-    container_name: launchguard-backend
+    container_name: releaseops-backend
     ports:
       - "127.0.0.1:3001:3001"
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: postgresql://launchguard:${POSTGRES_PASSWORD:-launchguard_secret}@postgres:5432/launchguard
+      DATABASE_URL: postgresql://releaseops:${POSTGRES_PASSWORD:-releaseops_secret}@postgres:5432/releaseops
     volumes:
       - backend-sessions:/app/sessions
       - backend-logs:/app/logs
@@ -43,7 +43,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: launchguard-frontend
+    container_name: releaseops-frontend
     ports:
       - "80:80"
       - "443:443"

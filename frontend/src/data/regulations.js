@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   LaunchGuard v3 — Regulation Frameworks & Gate Configuration
+   ReleaseOps v3 — Regulation Frameworks & Gate Configuration
    ═══════════════════════════════════════════════════════════════ */
 
 export const REG_FRAMEWORKS = [

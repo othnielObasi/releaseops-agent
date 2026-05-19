@@ -1,5 +1,5 @@
 """
-LaunchGuard – Release Readiness Copilot (slim entry-point)
+ReleaseOps – Release Readiness Copilot (slim entry-point)
 All business logic lives in app.api.*, app.agents.*, app.domain.*, app.infra.*
 """
 import uuid, asyncio, logging, contextvars, json, os
@@ -54,7 +54,7 @@ class JsonFormatter(logging.Formatter):
         })
 
 
-_lg = logging.getLogger("launchguard")
+_lg = logging.getLogger("ReleaseOps")
 _lg.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
 _lg.propagate = False
 if not _lg.handlers:
@@ -62,7 +62,7 @@ if not _lg.handlers:
     sh.setFormatter(JsonFormatter())
     _lg.addHandler(sh)
     if LOG_TO_FILE:
-        fh = logging.FileHandler(str(LOG_DIR / "launchguard.log"))
+        fh = logging.FileHandler(str(LOG_DIR / "ReleaseOps.log"))
         fh.setFormatter(JsonFormatter())
         _lg.addHandler(fh)
 
@@ -95,7 +95,7 @@ async def _lifespan(app):
     bootstrap_admin()
     reload_sessions_from_disk()
     cleanup_task = asyncio.create_task(_periodic_cleanup())
-    logger.info(json.dumps({"event": "launchguard_start"}))
+    logger.info(json.dumps({"event": "releaseops_start"}))
     yield
     cleanup_task.cancel()
 
@@ -104,7 +104,7 @@ async def _lifespan(app):
 # FastAPI App
 # ═══════════════════════════════════════════════════════════════════════════════
 
-app = FastAPI(title="LaunchGuard", version="2.0.0", lifespan=_lifespan)
+app = FastAPI(title="ReleaseOps", version="2.0.0", lifespan=_lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -171,18 +171,18 @@ async def metrics():
 async def legacy_metrics():
     data = await metrics()
     lines = [
-        "# HELP launchguard_sessions_total Total LaunchGuard sessions",
-        "# TYPE launchguard_sessions_total gauge",
-        f"launchguard_sessions_total {data['total_sessions']}",
-        "# HELP launchguard_sessions_complete Completed LaunchGuard sessions",
-        "# TYPE launchguard_sessions_complete gauge",
-        f"launchguard_sessions_complete {data['complete']}",
-        "# HELP launchguard_sessions_error Failed LaunchGuard sessions",
-        "# TYPE launchguard_sessions_error gauge",
-        f"launchguard_sessions_error {data['error']}",
-        "# HELP launchguard_sessions_running Running LaunchGuard sessions",
-        "# TYPE launchguard_sessions_running gauge",
-        f"launchguard_sessions_running {data['running']}",
+        "# HELP releaseops_sessions_total Total ReleaseOps sessions",
+        "# TYPE releaseops_sessions_total gauge",
+        f"releaseops_sessions_total {data['total_sessions']}",
+        "# HELP releaseops_sessions_complete Completed ReleaseOps sessions",
+        "# TYPE releaseops_sessions_complete gauge",
+        f"releaseops_sessions_complete {data['complete']}",
+        "# HELP releaseops_sessions_error Failed ReleaseOps sessions",
+        "# TYPE releaseops_sessions_error gauge",
+        f"releaseops_sessions_error {data['error']}",
+        "# HELP releaseops_sessions_running Running ReleaseOps sessions",
+        "# TYPE releaseops_sessions_running gauge",
+        f"releaseops_sessions_running {data['running']}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -220,7 +220,7 @@ def _frontend_redirect_target(request: Request, full_path: str = "") -> str | No
 async def redirect_root_to_frontend(request: Request):
     target = _frontend_redirect_target(request)
     if not target:
-        return PlainTextResponse("LaunchGuard API is running on this port. Open the frontend on port 80.")
+        return PlainTextResponse("ReleaseOps API is running on this port. Open the frontend on port 80.")
     return RedirectResponse(url=target, status_code=307)
 
 

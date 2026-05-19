@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Admin Page (Tailwind) */
+/* ReleaseOps v3 — Admin Page (Tailwind) */
 
 import { useState, useEffect } from "react";
 import { Badge, Card, Button, Label } from "../components/ui";

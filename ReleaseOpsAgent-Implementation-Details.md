@@ -1,15 +1,15 @@
-# LaunchGuard v3 — Implementation Details
+# ReleaseOps v3 — Implementation Details
 
 ## Overview
 
-This document details the production restructuring of LaunchGuard, combining the **V2 backend** (FastAPI + LangGraph) with the **V3 enterprise UI** (React 19) into a clean, modular project structure.
+This document details the production restructuring of ReleaseOps, combining the **V2 backend** (FastAPI + LangGraph) with the **V3 enterprise UI** (React 19) into a clean, modular project structure.
 
 ---
 
 ## 1. Project Structure
 
 ```
-launchguard/
+ReleaseOps/
 ├── .gitignore                          # Root ignore (Python, Node, env, data)
 ├── README.md                           # Project overview & quick start
 ├── docker-compose.yml                  # Orchestrates backend + frontend
@@ -44,7 +44,7 @@ launchguard/
 │   ├── index.html                      # SPA entry point
 │   ├── Dockerfile                      # Multi-stage: Node build → Nginx
 │   ├── nginx.conf                      # SPA fallback + API proxy
-│   ├── LaunchGuardUI.jsx               # Original monolithic v3 UI (archived)
+│   ├── ReleaseOpsUI.jsx               # Original monolithic v3 UI (archived)
 │   └── src/
 │       ├── main.jsx                    # React DOM entry
 │       ├── App.jsx                     # Navigation & layout
@@ -69,7 +69,7 @@ launchguard/
 │       └── services/
 │           └── api.js                  # Fetch wrappers for all endpoints
 │
-└── LaunchGuard-Codebase-Review.md      # Prior review document
+└── ReleaseOps-Codebase-Review.md      # Prior review document
 ```
 
 ---
@@ -178,7 +178,7 @@ All `os.getenv()` reads consolidated into one module:
 
 ## 4. Frontend — Component Decomposition
 
-The monolithic 284-line `LaunchGuardUI.jsx` was decomposed into 18 files across 5 layers:
+The monolithic 284-line `ReleaseOpsUI.jsx` was decomposed into 18 files across 5 layers:
 
 ### 4.1 Design System — `src/theme.js`
 
@@ -311,7 +311,7 @@ dist/assets/index-y2Ga56W-.js  261.05 kB │ gzip: 77.00 kB
 | Add React Router | Optional | Currently using state-based navigation |
 | Add error boundaries | Pending | No error handling on component failures |
 | Add loading states | Pending | No skeleton/loading UI during API calls |
-| Clean up old directories | Pending | `launchguard_codebase_prod_updated/`, `launchguard_codebase_v2_updated/`, root JSX files still present |
+| Clean up old directories | Pending | `releaseops_codebase_prod_updated/`, `releaseops_codebase_v2_updated/`, root JSX files still present |
 | CI/CD pipeline | Pending | No GitHub Actions workflow yet |
 | Environment-specific configs | Pending | No staging/production env differentiation |
 

@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Dashboard Page (Tailwind) */
+/* ReleaseOps v3 — Dashboard Page (Tailwind) */
 
 import { Badge, Card, Button, CircularScore, Label } from "../components/ui";
 

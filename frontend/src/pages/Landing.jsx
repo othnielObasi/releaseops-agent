@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Landing Page (Tailwind) */
+/* ReleaseOps v3 — Landing Page (Tailwind) */
 
 import { useState } from "react";
 import { Badge, Card, Button, CircularScore } from "../components/ui";
@@ -190,7 +190,7 @@ export default function Landing({ onLogin }) {
 
           <p className="text-[15px] text-tx-2 mt-5 leading-relaxed max-w-xl mx-auto text-balance">
             Most AI features fail in production — not because the idea was wrong, but because no one did the hard work of thinking through{" "}
-            <em className="text-tx font-medium not-italic">spec, risks, tests,</em> and <em className="text-tx font-medium not-italic">launch copy</em> before shipping. LaunchGuard does it all in under 60 seconds.
+            <em className="text-tx font-medium not-italic">spec, risks, tests,</em> and <em className="text-tx font-medium not-italic">launch copy</em> before shipping. ReleaseOps does it all in under 60 seconds.
           </p>
 
           {/* Stats */}
@@ -233,7 +233,7 @@ export default function Landing({ onLogin }) {
       <section className="mt-16 animate-fade-up-3">
         <h2 className="text-xl font-bold text-tx mb-3">The Agentic Pipeline — Three specialised AI agents</h2>
         <p className="text-[13px] text-tx-2 leading-relaxed mb-6">
-          LaunchGuard isn't a single LLM prompt. It's a <strong className="text-tx">multi-agent orchestration engine</strong> — three purpose-built AI agents that run in sequence, each handing verified output to the next. Provider-agnostic across OpenAI and Anthropic with automatic failover.
+          ReleaseOps isn't a single LLM prompt. It's a <strong className="text-tx">multi-agent orchestration engine</strong> — three purpose-built AI agents that run in sequence, each handing verified output to the next. Provider-agnostic across OpenAI and Anthropic with automatic failover.
         </p>
         <div className="space-y-2">
           {[
@@ -305,7 +305,7 @@ export default function Landing({ onLogin }) {
       <section className="mt-14">
         <h2 className="text-xl font-bold text-tx mb-2">Enforceable Governance</h2>
         <p className="text-[13px] text-tx-2 leading-relaxed mb-4">
-          LaunchGuard doesn't just flag risks — it <strong className="text-tx">enforces your release process</strong> with gates, approvals, monitoring, and auditor-ready certificates.
+          ReleaseOps doesn't just flag risks — it <strong className="text-tx">enforces your release process</strong> with gates, approvals, monitoring, and auditor-ready certificates.
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {[
@@ -328,7 +328,7 @@ export default function Landing({ onLogin }) {
       <section className="mt-14">
         <h2 className="text-xl font-bold text-tx mb-2">"Can't I just use ChatGPT, Claude, or Gemini?"</h2>
         <p className="text-[13px] text-tx-2 leading-relaxed mb-5">
-          A single-prompt LLM gives you a <em>conversation</em> about risks. LaunchGuard gives you an <em>agentic system</em> — three specialised AI agents orchestrating in sequence, with provider failover, persistent state, and auditable output. Here's what that means in practice:
+          A single-prompt LLM gives you a <em>conversation</em> about risks. ReleaseOps gives you an <em>agentic system</em> — three specialised AI agents orchestrating in sequence, with provider failover, persistent state, and auditable output. Here's what that means in practice:
         </p>
 
         {/* Comparison table */}
@@ -338,7 +338,7 @@ export default function Landing({ onLogin }) {
               <tr className="text-left border-b border-lg-bd">
                 <th className="py-2 pr-3 text-tx-3 font-semibold w-[40%]"></th>
                 <th className="py-2 px-3 text-tx-4 font-semibold text-left">Generic LLMs</th>
-                <th className="py-2 pl-3 text-accent-green font-semibold text-left">LaunchGuard</th>
+                <th className="py-2 pl-3 text-accent-green font-semibold text-left">ReleaseOps</th>
               </tr>
             </thead>
             <tbody className="text-tx-2">
@@ -366,7 +366,7 @@ export default function Landing({ onLogin }) {
 
         <Card className="!p-4 !border-l-[3px] !border-accent-purple mt-5">
           <div className="text-[12px] text-tx leading-relaxed">
-            <strong>Architectural difference:</strong> LaunchGuard is a <em>multi-agent orchestration engine</em> — Navigator builds the spec, Sentinel stress-tests it, Herald writes the launch docs. Each agent's output is verified before handoff. Provider-agnostic across OpenAI and Anthropic with automatic failover. This is purpose-built AI governance infrastructure, not a chatbot wrapper.
+            <strong>Architectural difference:</strong> ReleaseOps is a <em>multi-agent orchestration engine</em> — Navigator builds the spec, Sentinel stress-tests it, Herald writes the launch docs. Each agent's output is verified before handoff. Provider-agnostic across OpenAI and Anthropic with automatic failover. This is purpose-built AI governance infrastructure, not a chatbot wrapper.
           </div>
         </Card>
       </section>
@@ -375,7 +375,7 @@ export default function Landing({ onLogin }) {
       <section className="mt-14">
         <h2 className="text-xl font-bold text-tx mb-2">Under the Hood — Platform Architecture</h2>
         <p className="text-[13px] text-tx-2 leading-relaxed mb-5">
-          This isn't a thin LLM wrapper. LaunchGuard is a vertically-integrated agentic AI platform built for enterprise AI governance.
+          This isn't a thin LLM wrapper. ReleaseOps is a vertically-integrated agentic AI platform built for enterprise AI governance.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[

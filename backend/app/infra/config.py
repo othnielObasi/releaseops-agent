@@ -9,13 +9,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── Paths (portable — use env vars or sensible defaults) ─────────────────────
-BASE_DIR      = Path(os.getenv("LAUNCHGUARD_BASE_DIR", Path(__file__).resolve().parent.parent.parent))
-DATA_DIR      = Path(os.getenv("LAUNCHGUARD_DATA_DIR", BASE_DIR / "data"))
-LOG_DIR       = Path(os.getenv("LAUNCHGUARD_LOG_DIR", BASE_DIR / "logs"))
-SESSIONS_DIR  = Path(os.getenv("LAUNCHGUARD_SESSIONS_DIR", BASE_DIR / "sessions"))
-MOCK_DIR      = Path(os.getenv("LAUNCHGUARD_MOCK_DIR", BASE_DIR / "mock"))
-STATIC_DIR    = Path(os.getenv("LAUNCHGUARD_STATIC_DIR", BASE_DIR / "static"))
-DOWNLOADS_DIR = Path(os.getenv("LAUNCHGUARD_DOWNLOADS_DIR", BASE_DIR / "downloads"))
+BASE_DIR      = Path(os.getenv("RELEASEOPS_BASE_DIR", Path(__file__).resolve().parent.parent.parent))
+DATA_DIR      = Path(os.getenv("RELEASEOPS_DATA_DIR", BASE_DIR / "data"))
+LOG_DIR       = Path(os.getenv("RELEASEOPS_LOG_DIR", BASE_DIR / "logs"))
+SESSIONS_DIR  = Path(os.getenv("RELEASEOPS_SESSIONS_DIR", BASE_DIR / "sessions"))
+MOCK_DIR      = Path(os.getenv("RELEASEOPS_MOCK_DIR", BASE_DIR / "mock"))
+STATIC_DIR    = Path(os.getenv("RELEASEOPS_STATIC_DIR", BASE_DIR / "static"))
+DOWNLOADS_DIR = Path(os.getenv("RELEASEOPS_DOWNLOADS_DIR", BASE_DIR / "downloads"))
 
 for _p in (DATA_DIR, LOG_DIR, SESSIONS_DIR, MOCK_DIR, STATIC_DIR, DOWNLOADS_DIR):
     _p.mkdir(parents=True, exist_ok=True)
@@ -26,7 +26,7 @@ LOGIN_HISTORY_FILE = DATA_DIR / "login_history.json"
 # ── Database ─────────────────────────────────────────────────────────────────
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    f"sqlite:///{DATA_DIR / 'launchguard.db'}"
+    f"sqlite:///{DATA_DIR / 'releaseops.db'}"
 )
 
 # ── Deploy AI ────────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ SMTP_HOST     = os.getenv("SMTP_HOST", "")
 SMTP_PORT     = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER     = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-FROM_EMAIL    = os.getenv("FROM_EMAIL", "noreply@launchguard.dev")
+FROM_EMAIL    = os.getenv("FROM_EMAIL", "noreply@releaseops.dev")
 
 # ── LLM Provider ─────────────────────────────────────────────────────────────
 LLM_PROVIDER    = os.getenv("LLM_PROVIDER", "openai").lower()  # "openai" or "anthropic"
@@ -69,7 +69,7 @@ if not JWT_SECRET:
     raise RuntimeError("JWT_SECRET environment variable is required")
 JWT_ALGORITHM    = "HS256"
 JWT_EXPIRE_HOURS = 72
-ADMIN_EMAIL      = os.getenv("ADMIN_EMAIL", "admin@launchguard.dev")
+ADMIN_EMAIL      = os.getenv("ADMIN_EMAIL", "admin@releaseops.dev")
 ADMIN_PASSWORD   = os.getenv("ADMIN_PASSWORD", "admin123")
 
 # ── Server ───────────────────────────────────────────────────────────────────

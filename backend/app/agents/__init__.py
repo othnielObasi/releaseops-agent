@@ -1,5 +1,5 @@
 """
-LaunchGuard  agents package.
+ReleaseOps  agents package.
 
 This directory is the starting point for evolving the current monolith into
 a modular monolith:

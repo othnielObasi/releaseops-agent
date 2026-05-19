@@ -7,7 +7,7 @@ import time as _time
 import logging
 from collections import defaultdict
 
-logger = logging.getLogger("launchguard")
+logger = logging.getLogger("ReleaseOps")
 
 # ── Prompt-injection & jailbreak safeguards ──────────────────────────────────
 _INJECTION_PATTERNS = [

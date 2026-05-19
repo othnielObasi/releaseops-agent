@@ -133,7 +133,7 @@
     "release_notes": {
       "title": "Readiness Snapshot – Vague Description Only",
       "version": "v0.0.1",
-      "summary": "LaunchGuard detected that the feature description is too vague for a meaningful readiness assessment.",
+      "summary": "ReleaseOps detected that the feature description is too vague for a meaningful readiness assessment.",
       "whats_new": [
         "Low-confidence detection and warnings for incomplete descriptions."
       ],
@@ -162,7 +162,7 @@
       "trust_and_safety": {
         "headline": "We'd rather say 'we don't know' than mislead you.",
         "bullets": [
-          "LaunchGuard surfaces uncertainty explicitly.",
+          "ReleaseOps surfaces uncertainty explicitly.",
           "Encourages better problem framing before shipping AI features."
         ]
       },
@@ -177,7 +177,7 @@
           "key_points": [
             "Vague feature descriptions produce speculative risk registers and misleading test plans.",
             "Teams that ship without clarity create systems that are hard to govern and impossible to audit.",
-            "LaunchGuard stops and asks for more detail rather than faking precision."
+            "ReleaseOps stops and asks for more detail rather than faking precision."
           ],
           "notes_for_speaker": [
             "Start with a relatable failure: a team that shipped an AI feature described as “AI to help users” — with no defined scope, users, or success criteria.",
@@ -187,7 +187,7 @@
         },
         {
           "id": 2,
-          "title": "LaunchGuard’s low-confidence guardrail",
+          "title": "ReleaseOps’s low-confidence guardrail",
           "objective": "Demonstrate that responsible AI tooling surfaces uncertainty rather than hiding it.",
           "key_points": [
             "Navigator detects when confidence is Low and sets needs_more_detail = true.",
@@ -195,8 +195,8 @@
             "Users see exactly what information is needed before a real readiness assessment can run."
           ],
           "notes_for_speaker": [
-            "Show the vague scenario output in LaunchGuard: the low-confidence banner, the sparse risk register, the diagnostic checklist.",
-            "Emphasise the contrast: a generic AI tool would generate a polished but useless output. LaunchGuard tells the truth.",
+            "Show the vague scenario output in ReleaseOps: the low-confidence banner, the sparse risk register, the diagnostic checklist.",
+            "Emphasise the contrast: a generic AI tool would generate a polished but useless output. ReleaseOps tells the truth.",
             "This slide proves that the system is calibrated, not just confident."
           ]
         },
@@ -206,13 +206,13 @@
           "objective": "Close the loop by showing what a refined description unlocks and what the next step is.",
           "key_points": [
             "Add domain, user roles, specific workflow, and risk sensitivity — and rerun the pipeline.",
-            "The legal and high-risk demos show what a complete LaunchGuard analysis delivers.",
+            "The legal and high-risk demos show what a complete ReleaseOps analysis delivers.",
             "Clarity is not just good practice — it’s the precondition for safe AI deployment."
           ],
           "notes_for_speaker": [
             "Pivot to one of the polished demo scenarios to show the contrast.",
-            "The message: vagueness is fixable — LaunchGuard shows you exactly what to fix.",
-            "Close with: “If you can’t describe your feature clearly enough for LaunchGuard, you’re not ready to build it.”"
+            "The message: vagueness is fixable — ReleaseOps shows you exactly what to fix.",
+            "Close with: “If you can’t describe your feature clearly enough for ReleaseOps, you’re not ready to build it.”"
           ]
         }
       ]

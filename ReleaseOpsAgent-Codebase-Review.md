@@ -24,12 +24,12 @@ Input (feature_title, feature_description)
   ↓
 [Herald]   → Release Notes, Landing Copy, Pitch Deck Outline
   ↓
-Output: LaunchGuardSessionResponse + Readiness Score (0–100)
+Output: ReleaseOpsSessionResponse + Readiness Score (0–100)
 ```
 
 ---
 
-## 2. Production Backend Review (`launchguard_codebase_prod_updated/`)
+## 2. Production Backend Review (`releaseops_codebase_prod_updated/`)
 
 ### Architecture
 
@@ -55,7 +55,7 @@ Output: LaunchGuardSessionResponse + Readiness Score (0–100)
 | `requirements.txt`          | FastAPI, LangGraph, OpenAI, auth, testing deps              | ~15   |
 | `tests/test_api.py`         | Pytest integration tests (auth, sessions, keys, teams)      | ~200  |
 | `tests/e2e.spec.js`         | Playwright E2E tests (15 scenarios)                         | ~300  |
-| `types/launchguard.ts`      | TypeScript interfaces for frontend integration              | ~200  |
+| `types/releaseops.ts`      | TypeScript interfaces for frontend integration              | ~200  |
 | `.github/workflows/ci.yml`  | CI/CD: lint, test, E2E, Docker build (4 jobs)               | ~130  |
 | `app/` (all `__init__.py`)  | Empty structural placeholders for planned modular refactor   | —     |
 
@@ -114,7 +114,7 @@ score = (
 
 ---
 
-## 3. V2 Backend Review (`launchguard_codebase_v2_updated/`)
+## 3. V2 Backend Review (`releaseops_codebase_v2_updated/`)
 
 ### What's the Same
 
@@ -195,7 +195,7 @@ ZIP contents:
 
 ---
 
-## 4. UI v1 Review (`launchguard-ui.jsx`)
+## 4. UI v1 Review (`releaseops-ui.jsx`)
 
 ### Overview
 
@@ -212,7 +212,7 @@ ZIP contents:
 
 - Primitives: `Badge`, `Card`, `AgentBadge`, `SeverityBadge`
 - Pages: `PipelineFlow`, `LiveAnalysis`, `DashboardPage`, `PipelinePage`, `RisksPage`, `DemosPage`, `ArtefactsPage`, `SettingsPage`
-- Main export: `LaunchGuardUI`
+- Main export: `ReleaseOpsUI`
 
 ### Features
 
@@ -235,7 +235,7 @@ ZIP contents:
 
 ---
 
-## 5. UI v2 Review (`launchguard-ui (1).jsx`)
+## 5. UI v2 Review (`releaseops-ui (1).jsx`)
 
 ### Overview
 
@@ -271,7 +271,7 @@ ZIP contents:
 
 ---
 
-## 6. UI v3 Review (`launchguard-ui (2).jsx`)
+## 6. UI v3 Review (`releaseops-ui (2).jsx`)
 
 ### Overview
 
@@ -399,11 +399,11 @@ ZIP contents:
 
 | Asset | Action | Reason |
 |-------|--------|--------|
-| `launchguard_codebase_v2_updated/` | **USE** | Superset of prod — has modular domain layer |
-| `launchguard-ui (2).jsx` (v3)     | **USE** | Enterprise features align with V2 backend |
-| `launchguard_codebase_prod_updated/` | Skip | Strict subset of V2 |
-| `launchguard-ui.jsx` (v1)           | Skip | Prototype only |
-| `launchguard-ui (1).jsx` (v2)       | Skip | MVP subset of v3 |
+| `releaseops_codebase_v2_updated/` | **USE** | Superset of prod — has modular domain layer |
+| `releaseops-ui (2).jsx` (v3)     | **USE** | Enterprise features align with V2 backend |
+| `releaseops_codebase_prod_updated/` | Skip | Strict subset of V2 |
+| `releaseops-ui.jsx` (v1)           | Skip | Prototype only |
+| `releaseops-ui (1).jsx` (v2)       | Skip | MVP subset of v3 |
 
 ### Integration Work Required
 

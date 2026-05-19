@@ -10,22 +10,22 @@ import tempfile
 import pytest
 
 # Create a temp directory BEFORE any app code imports
-_test_tmpdir = tempfile.mkdtemp(prefix="launchguard_test_")
-os.environ["LAUNCHGUARD_DATA_DIR"] = os.path.join(_test_tmpdir, "data")
-os.environ["LAUNCHGUARD_SESSIONS_DIR"] = os.path.join(_test_tmpdir, "sessions")
-os.environ["LAUNCHGUARD_LOG_DIR"] = os.path.join(_test_tmpdir, "logs")
-os.environ["LAUNCHGUARD_DOWNLOADS_DIR"] = os.path.join(_test_tmpdir, "downloads")
+_test_tmpdir = tempfile.mkdtemp(prefix="releaseops_test_")
+os.environ["RELEASEOPS_DATA_DIR"] = os.path.join(_test_tmpdir, "data")
+os.environ["RELEASEOPS_SESSIONS_DIR"] = os.path.join(_test_tmpdir, "sessions")
+os.environ["RELEASEOPS_LOG_DIR"] = os.path.join(_test_tmpdir, "logs")
+os.environ["RELEASEOPS_DOWNLOADS_DIR"] = os.path.join(_test_tmpdir, "downloads")
 os.environ.setdefault("DEMO_MODE", "true")
 
 # Point to the test PostgreSQL instance (must be running before pytest starts)
 _PG_HOST = os.environ.get("TEST_PG_HOST", "localhost")
 _PG_PORT = os.environ.get("TEST_PG_PORT", "5433")
-_PG_USER = "launchguard"
+_PG_USER = "releaseops"
 _PG_PASS = "test_secret"
-_PG_DB   = f"lg_test_{os.getpid()}"
+_PG_DB   = f"releaseops_test_{os.getpid()}"
 
 # Create the test database
-_admin_url = f"postgresql://{_PG_USER}:{_PG_PASS}@{_PG_HOST}:{_PG_PORT}/launchguard_test"
+_admin_url = f"postgresql://{_PG_USER}:{_PG_PASS}@{_PG_HOST}:{_PG_PORT}/releaseops_test"
 os.environ["DATABASE_URL"] = f"postgresql://{_PG_USER}:{_PG_PASS}@{_PG_HOST}:{_PG_PORT}/{_PG_DB}"
 
 import psycopg2

@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Compare View Page (Tailwind) */
+/* ReleaseOps v3 — Compare View Page (Tailwind) */
 
 import { Badge, Card, Button, CircularScore, Label } from "../components/ui";
 

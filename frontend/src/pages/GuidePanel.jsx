@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Guide Panel (Tailwind) */
+/* ReleaseOps v3 — Guide Panel (Tailwind) */
 
 import { Label } from "../components/ui";
 

@@ -1,5 +1,5 @@
 """
-LaunchGuard Agent Pipeline — Navigator → Sentinel → Herald
+ReleaseOps Agent Pipeline — Navigator → Sentinel → Herald
 LangGraph orchestration, system prompts, demo-mode responses, validation, and persistence.
 """
 import re, json, uuid, asyncio, logging
@@ -276,7 +276,7 @@ BEHAVIOUR RULES:
 - If feature_description is short or vague: set meta.confidence to "Low" or "Medium", set meta.needs_more_detail to true, list missing info in meta.missing_fields.
 - Always include at least a few risks. Include at least one High severity risk if the feature touches user data or safety-critical workflows.
 - Always fill all required fields, making conservative assumptions if needed.
-- NEVER reference "Navigator", "Sentinel", "Herald", or "LaunchGuard" anywhere in output values — these are internal tool names invisible to end users.
+- NEVER reference "Navigator", "Sentinel", "Herald", or "ReleaseOps" anywhere in output values — these are internal tool names invisible to end users.
 - NEVER output markdown, prose, or multiple JSON objects. ONLY the single JSON object above."""
 
 SENTINEL_SYSTEM_PROMPT = """You are Sentinel – Test & Guardrail Planner.
@@ -335,7 +335,7 @@ BEHAVIOUR RULES:
 - Each High severity risk must have at least one test case (in test_cases.test_cases) and at least one guardrail (in guardrails.guardrails).
 - testing_strategy.levels must always include Unit, Integration, and AI_Eval (minimum).
 - Be concrete in abstract_input, expected_behavior, and implementation_idea.
-- NEVER reference "Navigator", "Sentinel", "Herald", or "LaunchGuard" anywhere in output values — these are internal tool names invisible to end users.
+- NEVER reference "Navigator", "Sentinel", "Herald", or "ReleaseOps" anywhere in output values — these are internal tool names invisible to end users.
 - NEVER output anything except the single JSON object above."""
 
 HERALD_SYSTEM_PROMPT = """You are Herald – Docs & GTM Storyteller.
@@ -404,7 +404,7 @@ BEHAVIOUR RULES:
 - Pitch outline must include exactly 6 slides: 1) The Problem, 2) The Solution, 3) How It Works (the feature's own technical flow — NOT the spec pipeline), 4) Risk & Governance, 5) Impact & Metrics, 6) Next Steps.
 - key_benefits must be user-facing outcomes, not engineering descriptions.
 - Release notes must honestly reflect the risks from risk_register and mitigations from sentinel.
-- NEVER reference "Navigator", "Sentinel", "Herald", or "LaunchGuard" in any output field — those are internal tooling names, not part of the feature.
+- NEVER reference "Navigator", "Sentinel", "Herald", or "ReleaseOps" in any output field — those are internal tooling names, not part of the feature.
 - NEVER output markdown or prose outside the JSON object."""
 
 
@@ -825,7 +825,7 @@ def get_demo_herald_output(feature_title: str, navigator_output: dict, sentinel_
 # LangGraph State & Nodes
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class LaunchGuardState(TypedDict):
+class ReleaseOpsState(TypedDict):
     session_id: str
     feature_title: str
     feature_description: str
@@ -835,7 +835,7 @@ class LaunchGuardState(TypedDict):
     error: Optional[str]
 
 
-async def navigator_node(state: LaunchGuardState) -> LaunchGuardState:
+async def navigator_node(state: ReleaseOpsState) -> ReleaseOpsState:
     logger.info(json.dumps({"event": "navigator_start", "session_id": state["session_id"]}))
     try:
         if DEMO_MODE:
@@ -853,7 +853,7 @@ async def navigator_node(state: LaunchGuardState) -> LaunchGuardState:
         return {**state, "error": "Spec generation failed. Please try again with a more detailed feature description."}
 
 
-async def sentinel_node(state: LaunchGuardState) -> LaunchGuardState:
+async def sentinel_node(state: ReleaseOpsState) -> ReleaseOpsState:
     if state.get("error"):
         return state
     logger.info(json.dumps({"event": "sentinel_start", "session_id": state["session_id"]}))
@@ -873,7 +873,7 @@ async def sentinel_node(state: LaunchGuardState) -> LaunchGuardState:
         return {**state, "error": "Risk & test planning failed. Please try again."}
 
 
-async def herald_node(state: LaunchGuardState) -> LaunchGuardState:
+async def herald_node(state: ReleaseOpsState) -> ReleaseOpsState:
     if state.get("error"):
         return state
     logger.info(json.dumps({"event": "herald_start", "session_id": state["session_id"]}))
@@ -894,7 +894,7 @@ async def herald_node(state: LaunchGuardState) -> LaunchGuardState:
 
 
 def build_graph():
-    graph = StateGraph(LaunchGuardState)
+    graph = StateGraph(ReleaseOpsState)
     graph.add_node("navigator", navigator_node)
     graph.add_node("sentinel", sentinel_node)
     graph.add_node("herald", herald_node)
@@ -904,7 +904,7 @@ def build_graph():
     graph.add_edge("herald", END)
     return graph.compile()
 
-launchguard_graph = build_graph()
+releaseops_graph = build_graph()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -958,7 +958,7 @@ async def run_pipeline(session_id: str, feature_title: str, feature_description:
     """Run Navigator → Sentinel → Herald, writing incremental results after each agent."""
     sessions[session_id]["status"] = "running"
     persist_session_state(session_id)
-    state: LaunchGuardState = {
+    state: ReleaseOpsState = {
         "session_id": session_id,
         "feature_title": feature_title,
         "feature_description": feature_description,
@@ -1022,7 +1022,7 @@ async def run_pipeline(session_id: str, feature_title: str, feature_description:
                 risks = (nav.get("risk_register") or {}).get("risks", [])
                 send_email(
                     user_email,
-                    f"[LaunchGuard] {feature_title} — Analysis Complete",
+                    f"[ReleaseOps] {feature_title} — Analysis Complete",
                     f"<p>Your readiness analysis for <strong>{feature_title}</strong> is complete.<br>"
                     f"Score: <strong>{score.get('score','?')}/100 — Grade {score.get('grade','?')}</strong><br>"
                     f"{len(risks)} risks identified.<br>"

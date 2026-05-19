@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Pipeline Visualization (Tailwind) */
+/* ReleaseOps v3 — Pipeline Visualization (Tailwind) */
 
 import { useState, useEffect } from "react";
 import { Badge, Spinner } from "./ui";

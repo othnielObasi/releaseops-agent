@@ -21,7 +21,7 @@ from app.infra.config import (
     ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_MODE, DATABASE_URL,
 )
 
-logger = logging.getLogger("launchguard")
+logger = logging.getLogger("ReleaseOps")
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 class Role:

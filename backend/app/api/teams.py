@@ -165,13 +165,13 @@ async def invite_member(team_id: str, body: TeamInvite, email: str = Depends(ver
         cur2.execute("SELECT name FROM teams WHERE id=%s", (team_id,))
         team_row = cur2.fetchone()
         cur2.close()
-    team_name = team_row["name"] if team_row else "a LaunchGuard workspace"
+    team_name = team_row["name"] if team_row else "a ReleaseOps workspace"
     send_email(
         body.email,
-        f"You've been invited to join {team_name} on LaunchGuard",
+        f"You've been invited to join {team_name} on ReleaseOps",
         f"""<html><body style="font-family:Arial,sans-serif;color:#1e293b;max-width:520px;margin:0 auto;">
         <div style="background:#6366f1;color:white;padding:20px;border-radius:8px 8px 0 0;">
-          <h2 style="margin:0;font-size:18px;">LaunchGuard — Team Invitation</h2></div>
+          <h2 style="margin:0;font-size:18px;">ReleaseOps — Team Invitation</h2></div>
         <div style="padding:24px;background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;">
           <p><strong>{email}</strong> has invited you to join <strong>{team_name}</strong>.</p>
           <a href="/join/{token}"

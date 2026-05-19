@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   LaunchGuard v3 — Design Tokens & Global Styles
+   ReleaseOps v3 — Design Tokens & Global Styles
    ═══════════════════════════════════════════════════════════════ */
 
 export const T = {

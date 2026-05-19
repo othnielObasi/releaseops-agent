@@ -68,7 +68,7 @@ def _render_readiness_md(s: dict, score: dict, blockers: dict, compliance: dict)
     sid = s.get("id","")
     decision = score.get("decision","")
     lines = []
-    lines.append(f"# LaunchGuard Evidence Pack")
+    lines.append(f"# ReleaseOps Evidence Pack")
     lines.append("")
     lines.append(f"## Feature")
     lines.append(f"- Title: **{title}**")

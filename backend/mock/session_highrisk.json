@@ -353,7 +353,7 @@
           "notes_for_speaker": [
             "Emphasise that this is a design philosophy, not just a disclaimer.",
             "The widget helps users think better about risk \u2014 that\u2019s a differentiated value proposition, not a compliance cop-out.",
-            "Transition: show how LaunchGuard\u2019s pipeline stress-tested this approach before a single line of production code was written."
+            "Transition: show how ReleaseOps\u2019s pipeline stress-tested this approach before a single line of production code was written."
           ]
         },
         {
@@ -367,7 +367,7 @@
           ],
           "notes_for_speaker": [
             "This is the credibility slide for risk and compliance audiences \u2014 spend time here.",
-            "Show the traceability chain live in LaunchGuard if possible: R1 \u2192 T1+T5 \u2192 G1+G4.",
+            "Show the traceability chain live in ReleaseOps if possible: R1 \u2192 T1+T5 \u2192 G1+G4.",
             "The message: we didn\u2019t hope this would be safe. We designed, tested, and verified it."
           ]
         },
@@ -383,7 +383,7 @@
           "notes_for_speaker": [
             "Anchor to the success metrics from the release spec: zero incidents, improved risk literacy, not just engagement.",
             "The immutable audit log is a genuine differentiator \u2014 most competitors treat this as an afterthought.",
-            "Close: \u2018Run your own high-risk feature through LaunchGuard and see what the pipeline surfaces.\u2019"
+            "Close: \u2018Run your own high-risk feature through ReleaseOps and see what the pipeline surfaces.\u2019"
           ]
         }
       ]

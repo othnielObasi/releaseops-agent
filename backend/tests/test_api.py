@@ -1,5 +1,5 @@
 """
-LaunchGuard API Tests
+ReleaseOps API Tests
 Run with: pytest tests/ -v
 """
 import pytest
@@ -248,7 +248,7 @@ class TestHealth:
     def test_metrics(self):
         resp = client.get("/metrics")
         assert resp.status_code == 200
-        assert "launchguard_sessions_total" in resp.text
+        assert "releaseops_sessions_total" in resp.text
 
     def test_backend_root_redirects_to_frontend_when_hit_on_api_port(self):
         api_port_client = TestClient(app, base_url="http://testserver:3001")

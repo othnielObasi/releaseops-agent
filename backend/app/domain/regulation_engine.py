@@ -1,5 +1,5 @@
 """
-LaunchGuard v3 — Regulation Engine
+ReleaseOps v3 — Regulation Engine
 Structured, queryable database of AI regulatory requirements.
 Maps risks to applicable regulatory obligations across 7+ frameworks.
 """
@@ -10,7 +10,7 @@ from typing import Any
 from app.deps import get_db
 import psycopg2.extras
 
-logger = logging.getLogger("launchguard")
+logger = logging.getLogger("ReleaseOps")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Schema — regulation tables

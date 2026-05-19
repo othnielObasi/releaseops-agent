@@ -229,7 +229,7 @@ async def export_session(session_id: str, email: str = Depends(verify_token)):
         zf.writestr("final.json", json.dumps(
             {"session": meta, "navigator": nav, "sentinel": sen, "herald": her}, indent=2))
         zf.writestr("README.txt",
-            f"LaunchGuard Readiness Package\n{'='*30}\n"
+            f"ReleaseOps Readiness Package\n{'='*30}\n"
             f"Feature : {s['feature_title']}\nSession : {session_id}\nCreated : {s['created_at']}\n")
     buf.seek(0)
     safe = re.sub(r"[^a-zA-Z0-9_-]", "_", s["feature_title"])[:40]
@@ -264,7 +264,7 @@ async def export_pdf(session_id: str, email: str = Depends(verify_token)):
     table{{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px;}}
     th{{background:#f1f5f9;padding:6px 8px;text-align:left;border:1px solid #e2e8f0;}}
     td{{padding:5px 8px;border:1px solid #e2e8f0;}}</style></head><body>
-    <h1>LaunchGuard — Release Readiness Report</h1>
+    <h1>ReleaseOps — Release Readiness Report</h1>
     <p>Feature: <strong>{meta.get('feature_title','')}</strong> | Session: {meta.get('id','')[:8]}</p>"""
     if score:
         html += f"<p>Score: <strong>{score.get('score',0)}/100 — Grade {score.get('grade','?')}</strong></p>"
@@ -280,7 +280,7 @@ async def export_pdf(session_id: str, email: str = Depends(verify_token)):
         html += "</table>"
     html += "</body></html>"
     return StreamingResponse(io.BytesIO(html.encode()), media_type="text/html",
-                             headers={"Content-Disposition": f"attachment; filename=launchguard_{session_id[:8]}.html"})
+                             headers={"Content-Disposition": f"attachment; filename=releaseops_{session_id[:8]}.html"})
 
 
 @router.get("/api/sessions/{session_id}/export/evidence")
@@ -295,10 +295,10 @@ async def export_evidence_pack(session_id: str, email: str = Depends(verify_toke
 
 @router.get("/api/download/codebase")
 async def download_codebase():
-    zip_path = DOWNLOADS_DIR / "launchguard_codebase.zip"
+    zip_path = DOWNLOADS_DIR / "releaseops_codebase.zip"
     if not zip_path.exists():
         raise HTTPException(status_code=404, detail="Codebase zip not found")
-    return FileResponse(path=str(zip_path), media_type="application/zip", filename="launchguard_codebase.zip")
+    return FileResponse(path=str(zip_path), media_type="application/zip", filename="releaseops_codebase.zip")
 
 
 # ── V2 endpoints ──────────────────────────────────────────────────────────────
@@ -671,10 +671,10 @@ async def notify_by_email(session_id: str, email: str = Depends(verify_token)):
     risks = (nav.get("risk_register") or {}).get("risks", [])
     html = f"""<html><body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
     <div style="background:#6366f1;color:white;padding:20px;border-radius:8px 8px 0 0;">
-      <h1 style="margin:0;font-size:20px;">LaunchGuard Report Ready</h1></div>
+      <h1 style="margin:0;font-size:20px;">ReleaseOps Report Ready</h1></div>
     <div style="padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;">
       <h2 style="color:#6366f1;">{meta.get('feature_title','')}</h2>
       <p>Score: <strong>{score.get('score','N/A')}/100 — Grade {score.get('grade','?')}</strong></p>
       <p>{len(risks)} risks identified.</p></div></body></html>"""
-    ok = send_email(email, f"LaunchGuard Report: {meta.get('feature_title','')}", html)
+    ok = send_email(email, f"ReleaseOps Report: {meta.get('feature_title','')}", html)
     return {"sent": ok}

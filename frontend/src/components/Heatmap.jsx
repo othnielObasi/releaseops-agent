@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Risk Heatmap (Tailwind) */
+/* ReleaseOps v3 — Risk Heatmap (Tailwind) */
 
 const LEVELS = ["Low", "Medium", "High"];
 

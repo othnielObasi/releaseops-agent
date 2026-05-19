@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Sessions List Page (Tailwind) */
+/* ReleaseOps v3 — Sessions List Page (Tailwind) */
 
 import { useState } from "react";
 import { Badge, Card, Button, CircularScore } from "../components/ui";

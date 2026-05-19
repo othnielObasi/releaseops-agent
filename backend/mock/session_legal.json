@@ -355,7 +355,7 @@
         },
         {
           "id": 3,
-          "title": "The Risk Architecture \u2013 How LaunchGuard stress-tested it",
+          "title": "The Risk Architecture \u2013 How ReleaseOps stress-tested it",
           "objective": "Show that the system was built with a structured risk framework, not shipped with fingers crossed.",
           "key_points": [
             "Navigator identified 4 risks across Privacy, Safety, and UX/Business dimensions.",
@@ -365,7 +365,7 @@
           "notes_for_speaker": [
             "This slide is your credibility builder with risk/compliance audiences.",
             "Show the traceability chain: R1 \u2192 T1+T3 \u2192 G1+G2 \u2014 nothing is untested.",
-            "If time allows, open the Tests tab in LaunchGuard to show the matrix live."
+            "If time allows, open the Tests tab in ReleaseOps to show the matrix live."
           ]
         },
         {
@@ -379,7 +379,7 @@
           ],
           "notes_for_speaker": [
             "Anchor the pitch to the success metrics from the release spec.",
-            "Invite the audience to run their own feature through LaunchGuard to see the pipeline in action.",
+            "Invite the audience to run their own feature through ReleaseOps to see the pipeline in action.",
             "End with: \u2018This is what release-ready looks like for AI in legal.\u2019"
           ]
         }

@@ -1,4 +1,4 @@
-// types/launchguard.ts
+// types/releaseops.ts
 
 export interface SessionSummary {
   id: string;
@@ -157,7 +157,7 @@ export interface HeraldSection {
   pitch_outline: PitchDeckOutline;
 }
 
-export interface LaunchGuardSessionResponse {
+export interface ReleaseOpsSessionResponse {
   session: SessionSummary;
   navigator: NavigatorSection;
   sentinel: SentinelSection;

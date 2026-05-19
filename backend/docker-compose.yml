@@ -1,10 +1,10 @@
 version: "3.9"
 
 services:
-  launchguard:
+  releaseops:
     build: .
-    image: launchguard:latest
-    container_name: launchguard
+    image: releaseops:latest
+    container_name: releaseops
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -23,11 +23,11 @@ services:
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
-      - FROM_EMAIL=${FROM_EMAIL:-noreply@launchguard.dev}
+      - FROM_EMAIL=${FROM_EMAIL:-noreply@releaseops.dev}
     volumes:
-      - launchguard_data:/app/data
-      - launchguard_sessions:/app/sessions
-      - launchguard_logs:/app/logs
+      - releaseops_data:/app/data
+      - releaseops_sessions:/app/sessions
+      - releaseops_logs:/app/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
@@ -36,6 +36,6 @@ services:
       start_period: 15s
 
 volumes:
-  launchguard_data:
-  launchguard_sessions:
-  launchguard_logs:
+  releaseops_data:
+  releaseops_sessions:
+  releaseops_logs:

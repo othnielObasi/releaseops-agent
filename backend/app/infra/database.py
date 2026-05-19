@@ -12,7 +12,7 @@ import psycopg2.extras
 
 from app.infra.config import DATABASE_URL
 
-logger = logging.getLogger("launchguard")
+logger = logging.getLogger("ReleaseOps")
 
 # ── Connection pool (simple thread-safe approach) ─────────────────────────────
 

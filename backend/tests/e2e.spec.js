@@ -4,7 +4,7 @@ const { test, expect } = require('@playwright/test');
 const BASE = process.env.BASE_URL || 'http://localhost:3001';
 
 // Unique test user so runs don't collide
-const TEST_EMAIL = `e2e_${Date.now()}@test.launchguard.dev`;
+const TEST_EMAIL = `e2e_${Date.now()}@test.releaseops.dev`;
 const TEST_PASS  = 'e2eTestPass123';
 let   authToken  = '';
 
@@ -45,7 +45,7 @@ async function ensureAuth(request) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-test.describe('LaunchGuard E2E', () => {
+test.describe('ReleaseOps E2E', () => {
 
   // ── 1. Health check ──────────────────────────────────────────────────
   test('health endpoint returns ok', async ({ request }) => {
@@ -56,11 +56,11 @@ test.describe('LaunchGuard E2E', () => {
   });
 
   // ── 2. Home page loads ───────────────────────────────────────────────
-  test('home page loads and shows LaunchGuard title', async ({ request }) => {
+  test('home page loads and shows ReleaseOps title', async ({ request }) => {
     const res = await request.get(BASE);
     expect(res.status()).toBe(200);
     const html = await res.text();
-    expect(html).toContain('LaunchGuard');
+    expect(html).toContain('ReleaseOps');
     expect(html).toContain('<html');
   });
 
@@ -217,7 +217,7 @@ test.describe('LaunchGuard E2E', () => {
     const res  = await request.get(`${BASE}/metrics`);
     expect(res.status()).toBe(200);
     const text = await res.text();
-    expect(text).toContain('launchguard_sessions_total');
+    expect(text).toContain('releaseops_sessions_total');
   });
 
   // ── 14. Rate limiting headers ───────────────────────────────────────

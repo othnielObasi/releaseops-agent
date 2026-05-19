@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — Settings Page (Tailwind) — wired to real API */
+/* ReleaseOps v3 — Settings Page (Tailwind) — wired to real API */
 
 import { useState, useEffect } from "react";
 import { Badge, Card, Button } from "../components/ui";
@@ -373,7 +373,7 @@ export default function Settings() {
                   icon="🔗" title="Webhook" subtitle="Custom HMAC-signed payload"
                   description="POST analysis results to any URL with an HMAC-SHA256 signature header."
                   fields={[
-                    { key: "webhook_url", label: "Endpoint URL", placeholder: "https://your-api.com/hooks/launchguard" },
+                    { key: "webhook_url", label: "Endpoint URL", placeholder: "https://your-api.com/hooks/ReleaseOps" },
                     { key: "webhook_secret", label: "HMAC Secret", placeholder: "your-signing-secret", type: "password" },
                   ]}
                   values={integrationDefaults}

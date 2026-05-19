@@ -160,7 +160,7 @@ class HeraldSection(BaseModel):
     pitch_outline: PitchDeckOutline
 
 
-class LaunchGuardSessionResponse(BaseModel):
+class ReleaseOpsSessionResponse(BaseModel):
     session: SessionSummary
     navigator: NavigatorSection
     sentinel: SentinelSection

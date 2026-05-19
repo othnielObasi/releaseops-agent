@@ -95,7 +95,7 @@ def call_navigator_agent(feature_title: str, feature_description: str) -> Dict[s
                 "id": "R2",
                 "title": "Over-reliance on the tool's output",
                 "description": (
-                    "Stakeholders may treat LaunchGuard's recommendations as final, without "
+                    "Stakeholders may treat ReleaseOps's recommendations as final, without "
                     "applying human judgment, especially under time pressure."
                 ),
                 "category": "UX/Business",
@@ -103,7 +103,7 @@ def call_navigator_agent(feature_title: str, feature_description: str) -> Dict[s
                 "impact": "Medium",
                 "severity": "High",
                 "mitigation_ideas": [
-                    "Clearly position LaunchGuard as a copilot, not an approval authority.",
+                    "Clearly position ReleaseOps as a copilot, not an approval authority.",
                     "Require human sign-off in the checklist (e.g., Product / Eng / QA review items).",
                     "Include warnings wherever High severity risks are present."
                 ],
@@ -254,7 +254,7 @@ def call_sentinel_agent(navigator_output: Dict[str, Any]) -> Dict[str, Any]:
                 "category": "UX",
                 "abstract_input": "Generate a readiness snapshot for any feature.",
                 "expected_behavior": (
-                    "Snapshot clearly positions LaunchGuard as a copilot and calls for human review."
+                    "Snapshot clearly positions ReleaseOps as a copilot and calls for human review."
                 ),
                 "automation": "Hybrid",
             },
@@ -324,7 +324,7 @@ def call_herald_agent(
     Produces release notes, landing page copy, and a pitch deck outline.
     """
 
-    feature_name = "LaunchGuard – Release Readiness Copilot"
+    feature_name = "ReleaseOps – Release Readiness Copilot"
 
     release_notes = {
         "title": f"Introducing {feature_name}",
@@ -350,7 +350,7 @@ def call_herald_agent(
 
     landing_copy = {
         "hero_title": "Is your AI feature truly ready to ship?",
-        "hero_subtitle": "LaunchGuard turns your idea into a structured readiness snapshot – specs, risks, tests, and launch story in one flow.",
+        "hero_subtitle": "ReleaseOps turns your idea into a structured readiness snapshot – specs, risks, tests, and launch story in one flow.",
         "tagline": "Ship AI features with confidence, not crossed fingers.",
         "key_benefits": [
             "Unify specs, risks, tests, and docs in a single readiness board.",
@@ -399,8 +399,8 @@ def call_herald_agent(
             },
             {
                 "id": 2,
-                "title": "Solution – LaunchGuard Release Readiness Copilot",
-                "objective": "Introduce LaunchGuard as the central readiness brain.",
+                "title": "Solution – ReleaseOps Release Readiness Copilot",
+                "objective": "Introduce ReleaseOps as the central readiness brain.",
                 "key_points": [
                     "Multi-agent pipeline converting feature ideas into structured readiness artefacts.",
                     "Single Readiness Snapshot to review before every AI release.",
@@ -438,7 +438,7 @@ def call_herald_agent(
             {
                 "id": 5,
                 "title": "Why It Matters",
-                "objective": "Tie LaunchGuard to business value.",
+                "objective": "Tie ReleaseOps to business value.",
                 "key_points": [
                     "Fewer last-minute release fire drills.",
                     "More consistent AI quality standards.",

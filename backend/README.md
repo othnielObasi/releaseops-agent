@@ -1,4 +1,4 @@
-# LaunchGuard — Release Readiness Copilot
+# ReleaseOps — Release Readiness Copilot
 
 **Multi-agent AI system for automated feature release governance**
 
@@ -62,7 +62,7 @@ The consequences are real and measurable:
 
 ## The Solution
 
-**LaunchGuard** is a release readiness copilot that transforms a plain-language feature description into a complete, structured launch package in under 60 seconds.
+**ReleaseOps** is a release readiness copilot that transforms a plain-language feature description into a complete, structured launch package in under 60 seconds.
 
 It uses a three-agent AI pipeline — Navigator, Sentinel, and Herald — to automatically produce everything a cross-functional team needs to ship an AI feature responsibly:
 
@@ -77,13 +77,13 @@ It uses a three-agent AI pipeline — Navigator, Sentinel, and Herald — to aut
 | | Compliance-ready checklist items (GDPR / SOC 2 / HIPAA) |
 | | Exportable package for engineering handoff |
 
-LaunchGuard does not replace human judgment — it ensures that judgment is applied to the right questions, with the right structure, at the right time.
+ReleaseOps does not replace human judgment — it ensures that judgment is applied to the right questions, with the right structure, at the right time.
 
 ---
 
 ## Who It's For
 
-LaunchGuard is built for the people responsible for getting AI features from idea to production safely and quickly.
+ReleaseOps is built for the people responsible for getting AI features from idea to production safely and quickly.
 
 ### Product Managers
 - Get a complete, structured spec from a rough feature concept in seconds
@@ -119,7 +119,7 @@ LaunchGuard is built for the people responsible for getting AI features from ide
 
 ## How It Works
 
-LaunchGuard operates as a sequential three-agent pipeline, where each agent builds on the previous one's structured output.
+ReleaseOps operates as a sequential three-agent pipeline, where each agent builds on the previous one's structured output.
 
 ```
 User Input (feature title + description)
@@ -189,7 +189,7 @@ Every LLM call uses **async retry with exponential backoff** (3 attempts, 1.5 s 
 
 ### The Readiness Score
 
-On completion, LaunchGuard computes a **0–100 composite readiness score** graded A–F, broken down by five dimensions:
+On completion, ReleaseOps computes a **0–100 composite readiness score** graded A–F, broken down by five dimensions:
 
 | Dimension | What it measures |
 |---|---|
@@ -324,7 +324,7 @@ Keys are prefixed `lg_` and stored as SHA-256 hashes at rest.
 
 ### 7. Webhook Trigger
 
-Embed LaunchGuard directly in your release pipeline:
+Embed ReleaseOps directly in your release pipeline:
 
 ```bash
 curl -X POST https://your-domain/api/webhook/analyze \
@@ -396,7 +396,7 @@ Configure via `PATCH /api/sessions/{id}/integrations`.
 
 ### 13. Trust and Safety
 
-LaunchGuard is built with safety-first principles throughout:
+ReleaseOps is built with safety-first principles throughout:
 
 - **PII Detection** — regex scanning on all input before LLM processing (email, SSN, phone, credit card patterns)
 - **Prompt Injection Guards** — 16-pattern blocklist with output safety scanning after every LLM call
@@ -413,7 +413,7 @@ LaunchGuard is built with safety-first principles throughout:
 ### LangGraph State Machine
 
 ```python
-class LaunchGuardState(TypedDict):
+class ReleaseOpsState(TypedDict):
     session_id: str
     feature_title: str
     feature_description: str
@@ -443,7 +443,7 @@ POST /api/sessions
 
 | Store | Contents |
 |---|---|
-| `data/launchguard.db` | Users, teams, API keys, annotations, audit log, session metadata |
+| `data/releaseops.db` | Users, teams, API keys, annotations, audit log, session metadata |
 | `sessions/{id}/final.json` | Complete agent outputs — immutable once written |
 | `sessions/{id}/navigator.json` | Navigator output only |
 | `sessions/{id}/sentinel.json` | Sentinel output only |
@@ -485,7 +485,7 @@ POST /api/sessions
 
 ```bash
 git clone <repo-url>
-cd launchguard
+cd releaseops-agent
 ```
 
 ### 2. Install dependencies
@@ -578,8 +578,8 @@ gunicorn main:app -c gunicorn.conf.py
 ### Build and run locally
 
 ```bash
-docker build -t launchguard .
-docker run -p 3001:3001 --env-file .env launchguard
+docker build -t releaseops .
+docker run -p 3001:3001 --env-file .env releaseops
 ```
 
 ### Docker Compose (recommended for local dev)
@@ -593,7 +593,7 @@ docker-compose up --build
 ## File Structure
 
 ```
-launchguard/
+ReleaseOps/
 ├── main.py                     # FastAPI app, LangGraph pipeline, all API routes (~3,600 lines)
 ├── agents.py                   # Agent stub implementations
 ├── schemas.py                  # Pydantic output schemas for all three agents
@@ -619,7 +619,7 @@ launchguard/
 │       ├── herald.json
 │       └── final.json
 ├── data/
-│   ├── launchguard.db          # SQLite: teams, API keys, annotations, audit, sessions_db
+│   ├── releaseops.db          # SQLite: teams, API keys, annotations, audit, sessions_db
 │   ├── templates.json          # User-saved custom templates
 │   └── share_tokens.json       # Public share link tokens
 ├── tests/
@@ -627,7 +627,7 @@ launchguard/
 │   ├── e2e.spec.js             # Playwright end-to-end tests (15 scenarios)
 │   └── __init__.py
 └── logs/
-    └── launchguard.json        # JSON structured logs (trace_id, level, timestamp)
+    └── releaseops.json        # JSON structured logs (trace_id, level, timestamp)
 ```
 
 ---
@@ -808,7 +808,7 @@ launchguard/
 
 ```bash
 # In your release pipeline:
-curl -X POST https://your-launchguard-url/api/webhook/analyze \
+curl -X POST https://your-releaseops-url/api/webhook/analyze \
   -H "Authorization: Bearer lg_your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -902,7 +902,7 @@ npx playwright test tests/e2e.spec.js
 ---
 
 **License**: MIT
-**Maintainer**: LaunchGuard Team
+**Maintainer**: ReleaseOps Team
 **Version**: 2.0.0
 **Live App**: https://6pycqjui.run.complete.dev/
 

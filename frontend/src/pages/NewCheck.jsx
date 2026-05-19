@@ -1,4 +1,4 @@
-/* LaunchGuard v3 — New Readiness Check Modal (Tailwind) */
+/* ReleaseOps v3 — New Readiness Check Modal (Tailwind) */
 
 import { useState, useRef, useCallback } from "react";
 import { Button } from "../components/ui";

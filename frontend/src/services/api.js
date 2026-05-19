@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   LaunchGuard v3 — API Service Layer
+   ReleaseOps v3 — API Service Layer
    Centralised fetch wrappers for backend communication.
    All requests proxy through Vite → localhost:3001.
    ═══════════════════════════════════════════════════════════════ */
@@ -178,7 +178,7 @@ export const admin = {
 export const exports = {
   evidencePack: async (sessionId) => {
     const blob = await requestBlob(`/sessions/${encodeURIComponent(sessionId)}/export/evidence`);
-    triggerDownload(blob, `launchguard-${sessionId}-evidence.zip`);
+    triggerDownload(blob, `releaseops-${sessionId}-evidence.zip`);
     return true;
   },
 

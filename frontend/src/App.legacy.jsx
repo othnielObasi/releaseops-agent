@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   LaunchGuard v3 — Main App (Tailwind)
+   ReleaseOps v3 — Main App (Tailwind)
    ═══════════════════════════════════════════════════════════════ */
 
 import { useState, useEffect, useCallback } from "react";
@@ -104,7 +104,7 @@ export default function App() {
         {/* Logo */}
         <div className="flex items-center gap-1.5 cursor-pointer group" onClick={() => authenticated ? navigate("dash") : navigate("landing")}>
           <span className="text-accent-yellow text-sm group-hover:animate-pulse">⚡</span>
-          <span className="text-sm font-bold text-tx tracking-tight">LaunchGuard</span>
+          <span className="text-sm font-bold text-tx tracking-tight">ReleaseOps</span>
         </div>
 
         {authenticated ? (
@@ -185,7 +185,7 @@ export default function App() {
 
               <div className="relative">
                 <h2 className="text-lg font-bold text-tx">{authMode === "signup" ? "Create Account" : "Welcome Back"}</h2>
-                <p className="text-sm text-tx-3 mt-1 mb-5">{authMode === "signup" ? "Start your first release check in 60 seconds." : "Sign in to LaunchGuard."}</p>
+                <p className="text-sm text-tx-3 mt-1 mb-5">{authMode === "signup" ? "Start your first release check in 60 seconds." : "Sign in to ReleaseOps."}</p>
 
                 {authError && (
                   <div className="bg-accent-red/10 border border-accent-red/25 rounded-lg px-3 py-2 mb-4 text-sm text-accent-red2">{authError}</div>
@@ -230,7 +230,7 @@ export default function App() {
 
       {/* ── Footer ── */}
       <footer className="relative z-10 text-center py-3 border-t border-lg-bd text-xs text-tx-4">
-        ⚡ LaunchGuard v3 — AI-generated outputs require human review. Regulation data is not legal advice.
+        ⚡ ReleaseOps v3 — AI-generated outputs require human review. Regulation data is not legal advice.
       </footer>
     </div>
   );

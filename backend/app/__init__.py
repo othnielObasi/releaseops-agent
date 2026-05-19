@@ -1,5 +1,5 @@
 """
-LaunchGuard  package.
+ReleaseOps  package.
 
 This directory is the starting point for evolving the current monolith into
 a modular monolith:

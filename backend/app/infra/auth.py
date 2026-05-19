@@ -17,7 +17,7 @@ from app.infra.config import (
     ADMIN_EMAIL, ADMIN_PASSWORD, USERS_FILE, LOGIN_HISTORY_FILE,
 )
 
-logger = logging.getLogger("launchguard")
+logger = logging.getLogger("ReleaseOps")
 
 pwd_context   = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer(auto_error=False)
