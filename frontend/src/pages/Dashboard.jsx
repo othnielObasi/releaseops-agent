@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Badge, Card, Button, CircularScore, Label } from "../components/ui";
 import { governance } from "../services/api";
 
-const C = { bl: "#2563eb", or: "#d97706", rd: "#dc2626", gn: "#059669", pr: "#7c3aed", sf: "#ffffff", bd: "#cbd5e1" };
+const C = { bl: "#2563eb", or: "#b45309", rd: "#b91c1c", gn: "#047857", pr: "#4f46e5", sf: "#ffffff", bd: "#d8d0c2" };
 
 function deriveRunState(session) {
   const run = session.agentRun || {};
@@ -152,6 +152,26 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
               <div className="mt-1 text-xs leading-5 text-tx-2">{body}</div>
             </div>
           ))}
+        </div>
+        <div className="mt-4 rounded-xl border border-lg-bd bg-lg-sf2 p-3">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="text-sm font-extrabold text-tx">Production-grade proof</div>
+            <Badge color="gn" size="xs">Beyond hackathon demo</Badge>
+          </div>
+          <div className="grid gap-2 md:grid-cols-5">
+            {[
+              ["Tenant isolation", "Auth-scoped sessions prevent tenant leakage."],
+              ["Persistent runs", "Agent steps, blockers, and events are stored."],
+              ["Governance gates", "Open blockers block GO decisions."],
+              ["Audit trail", "Resolution, acceptance, and decisions are logged."],
+              ["Deployable stack", "Vultr VM, API, Postgres, Nginx, Docker Compose."],
+            ].map(([title, body]) => (
+              <div key={title} className="rounded-lg bg-white px-3 py-2 shadow-sm shadow-stone-200/60">
+                <div className="text-xs font-bold text-tx">{title}</div>
+                <div className="mt-1 text-[11px] leading-5 text-tx-3">{body}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </Card>
 

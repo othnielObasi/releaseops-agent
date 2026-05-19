@@ -221,7 +221,20 @@
 }
 
 .releaseops-light-app .input-glass::placeholder {
-  color: #94a3b8 !important;
+  color: #9ca3af !important;
+}
+
+.releaseops-light-app .bg-accent-purple\/5 {
+  background-color: rgba(79, 70, 229, 0.06) !important;
+}
+
+.releaseops-light-app .bg-accent-orange\/5,
+.releaseops-light-app .bg-accent-orange\/8 {
+  background-color: rgba(180, 83, 9, 0.07) !important;
+}
+
+.releaseops-light-app .bg-accent-green\/5 {
+  background-color: rgba(4, 120, 87, 0.07) !important;
 }
 
 .releaseops-light-app .border-gradient {

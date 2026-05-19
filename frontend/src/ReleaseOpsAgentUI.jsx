@@ -196,7 +196,7 @@ function PublicHeader({ onNavigate }) {
           <Logo />
         </button>
         <nav className="hidden items-center gap-8 md:flex">
-          {[["Product", "Product"], ["Guide", "Guide"], ["App", "Dashboard"]].map(([label, page]) => (
+          {[["Product", "Product"], ["Guide", "Guide"]].map(([label, page]) => (
             <button key={label} type="button" onClick={() => onNavigate(page)} className="text-sm font-medium text-slate-600 hover:text-slate-950">
               {label}
             </button>
