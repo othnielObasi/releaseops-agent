@@ -479,10 +479,11 @@ function AuthModal({ mode, form, error, loading, onClose, onSubmit, onFormChange
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm" onClick={onClose}>
       <form onSubmit={onSubmit} onClick={(event) => event.stopPropagation()} className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-7 shadow-2xl shadow-slate-200/80">
         <h2 className="text-xl font-semibold text-slate-950">{mode === "signup" ? "Create account" : "Welcome back"}</h2>
-        <p className="mt-1 text-sm text-slate-600">{mode === "signup" ? "Choose a name and password to keep your workspace private." : "Sign in with your name and password."}</p>
+        <p className="mt-1 text-sm text-slate-600">{mode === "signup" ? "Create a real email-based account for your organization." : "Sign in with your work email address."}</p>
         {error ? <div className="mt-4 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
         <div className="mt-5 space-y-3">
-          <input type="text" required placeholder="Name" value={form.name} onChange={(event) => onFormChange({ ...form, name: event.target.value })} className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-slate-500" />
+          {mode === "signup" ? <input type="text" required placeholder="Full name" value={form.name} onChange={(event) => onFormChange({ ...form, name: event.target.value })} className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-slate-500" /> : null}
+          <input type="email" required placeholder="Email address" value={form.email} onChange={(event) => onFormChange({ ...form, email: event.target.value })} className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-slate-500" />
           <input type="password" required minLength={6} placeholder="Password (min 6 chars)" value={form.password} onChange={(event) => onFormChange({ ...form, password: event.target.value })} className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-slate-500" />
         </div>
         <button type="submit" disabled={loading} className="mt-5 w-full rounded-md border border-slate-950 bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60">
@@ -545,7 +546,7 @@ export default function ReleaseOpsAgentUI() {
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [authMode, setAuthMode] = useState(null);
-  const [authForm, setAuthForm] = useState({ name: "", password: "" });
+  const [authForm, setAuthForm] = useState({ name: "", email: "", password: "" });
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
@@ -603,13 +604,13 @@ export default function ReleaseOpsAgentUI() {
     setAuthLoading(true);
     try {
       const res = authMode === "signup"
-        ? await authAPI.signup(authForm.name, authForm.password)
-        : await authAPI.login(authForm.name, authForm.password);
+        ? await authAPI.signup(authForm.name, authForm.email, authForm.password)
+        : await authAPI.login(authForm.email, authForm.password);
       localStorage.setItem("releaseops_token", res.token);
       setUser({ name: res.name, email: res.email, role: res.role });
       setAuthenticated(true);
       setAuthMode(null);
-      setAuthForm({ name: "", password: "" });
+      setAuthForm({ name: "", email: "", password: "" });
       setPage("dash");
       fetchSessions();
     } catch (err) {

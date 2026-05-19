@@ -58,11 +58,11 @@ function triggerDownload(blob, filename) {
 
 /* ── Auth ── */
 export const auth = {
-  login: (identifier, password) =>
-    request("/auth/login", { method: "POST", body: JSON.stringify({ identifier, password }) }),
+  login: (email, password) =>
+    request("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
 
-  signup: (name, password, email) =>
-    request("/auth/signup", { method: "POST", body: JSON.stringify({ name, password, ...(email ? { email } : {}) }) }),
+  signup: (name, email, password) =>
+    request("/auth/signup", { method: "POST", body: JSON.stringify({ name, email, password }) }),
 
   me: () => request("/auth/me"),
 };
@@ -157,6 +157,13 @@ export const teams = {
   members: (teamId) => request(`/teams/${encodeURIComponent(teamId)}/members`),
   invite: (teamId, email, role = "member") =>
     request(`/teams/${encodeURIComponent(teamId)}/invite`, { method: "POST", body: JSON.stringify({ email, role }) }),
+  addMember: (teamId, payload) =>
+    request(`/teams/${encodeURIComponent(teamId)}/members`, { method: "POST", body: JSON.stringify(payload) }),
+  updateMemberRole: (teamId, email, role) =>
+    request(`/teams/${encodeURIComponent(teamId)}/members/${encodeURIComponent(email)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ role }),
+    }),
   removeMember: (teamId, email) =>
     request(`/teams/${encodeURIComponent(teamId)}/members/${encodeURIComponent(email)}`, { method: "DELETE" }),
   branding: (teamId) => request(`/teams/${encodeURIComponent(teamId)}/branding`),

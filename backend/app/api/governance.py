@@ -38,6 +38,76 @@ def _check_owner(session_data: dict, email: str):
         raise HTTPException(status_code=403, detail="Access denied")
 
 
+def _shared_team_ids(owner_email: str, email: str) -> list[str]:
+    if not owner_email or not email:
+        return []
+    with get_db() as conn:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            """
+            SELECT owner.team_id
+            FROM team_members owner
+            JOIN team_members member ON member.team_id=owner.team_id
+            WHERE owner.email=%s AND member.email=%s
+            """,
+            (owner_email, email),
+        )
+        rows = cur.fetchall()
+        cur.close()
+    return [row["team_id"] for row in rows]
+
+
+def _check_session_access(session_data: dict, email: str):
+    owner = session_data.get("user_email")
+    if owner == email:
+        return
+    if not _shared_team_ids(owner, email):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+
+SIGN_OFF_ROLE_PERMISSIONS = {
+    "pm": {"owner", "admin", "product", "pm"},
+    "legal": {"legal", "compliance"},
+    "qa": {"qa"},
+    "security": {"security"},
+}
+
+
+def _team_roles_for(owner_email: str, email: str) -> set[str]:
+    team_ids = _shared_team_ids(owner_email, email)
+    if not team_ids:
+        return set()
+    placeholders = ",".join(["%s"] * len(team_ids))
+    with get_db() as conn:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT role FROM team_members WHERE email=%s AND team_id IN ({placeholders})",
+            [email, *team_ids],
+        )
+        rows = cur.fetchall()
+        cur.close()
+    return {str(row["role"]).lower() for row in rows}
+
+
+def _assert_can_sign(session_data: dict, email: str, signoff_role: str):
+    owner = session_data.get("user_email")
+    user_roles = _team_roles_for(owner, email)
+    allowed_roles = SIGN_OFF_ROLE_PERMISSIONS.get(signoff_role, set())
+
+    if user_roles and user_roles.intersection(allowed_roles):
+        return
+
+    # Backward-compatible fallback for a single-user workspace with no organization yet.
+    if owner == email and not _shared_team_ids(owner, email):
+        return
+
+    readable = ", ".join(sorted(allowed_roles))
+    raise HTTPException(
+        status_code=403,
+        detail=f"This approval requires an organization role of: {readable}.",
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Sign-offs — role-based approval workflow
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -50,11 +120,14 @@ async def submit_sign_off(session_id: str, body: SignOffRequest, email: str = De
     s = _resolve_session(session_id)
     if not s:
         raise HTTPException(status_code=404, detail="Session not found")
-    _check_owner(s, email)
+    _check_session_access(s, email)
     if body.role not in VALID_SIGN_OFF_ROLES:
         raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(VALID_SIGN_OFF_ROLES)}")
     if body.status not in ("approved", "rejected"):
         raise HTTPException(status_code=400, detail="Status must be 'approved' or 'rejected'")
+    if body.status == "rejected" and not (body.comment or "").strip():
+        raise HTTPException(status_code=400, detail="Rejections require a reason.")
+    _assert_can_sign(s, email, body.role)
 
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as conn:
@@ -67,13 +140,13 @@ async def submit_sign_off(session_id: str, body: SignOffRequest, email: str = De
         if existing:
             cur.execute(
             "UPDATE governance_signoffs SET status=%s, user_email=%s, signed_at=%s, comment=%s WHERE id=%s",
-            (body.status, email, now, body.comment, existing["id"])
+            (body.status, email, now, (body.comment or "").strip(), existing["id"])
         )
         else:
             cur.execute(
             """INSERT INTO governance_signoffs (id, session_id, role, status, user_email, signed_at, comment)
                VALUES (%s,%s,%s,%s,%s,%s,%s)""",
-            (str(uuid.uuid4()), session_id, body.role, body.status, email, now, body.comment)
+            (str(uuid.uuid4()), session_id, body.role, body.status, email, now, (body.comment or "").strip())
         )
         cur.close()
 
@@ -87,7 +160,7 @@ async def list_sign_offs(session_id: str, email: str = Depends(verify_token)):
     s = _resolve_session(session_id)
     if not s:
         raise HTTPException(status_code=404, detail="Session not found")
-    _check_owner(s, email)
+    _check_session_access(s, email)
     with get_db() as conn:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(
@@ -101,7 +174,15 @@ async def list_sign_offs(session_id: str, email: str = Depends(verify_token)):
     for role in VALID_SIGN_OFF_ROLES:
         if role not in existing_roles:
             sign_offs.append({"role": role, "status": "pending", "user_email": None, "signed_at": None})
-    return {"session_id": session_id, "sign_offs": sign_offs}
+    owner = s.get("user_email")
+    org_roles = sorted(_team_roles_for(owner, email))
+    can_sign = {
+        role: bool(set(org_roles).intersection(SIGN_OFF_ROLE_PERMISSIONS.get(role, set())))
+        for role in VALID_SIGN_OFF_ROLES
+    }
+    if owner == email and not org_roles:
+        can_sign = {role: True for role in VALID_SIGN_OFF_ROLES}
+    return {"session_id": session_id, "sign_offs": sign_offs, "organization_roles": org_roles, "can_sign": can_sign}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -220,6 +301,8 @@ async def update_blocker(session_id: str, blocker_id: str, body: BlockerUpdateRe
     if not s:
         raise HTTPException(status_code=404, detail="Session not found")
     _check_owner(s, email)
+    if body.status == "accepted" and not (body.comment or "").strip():
+        raise HTTPException(status_code=400, detail="Risk acceptance requires a rationale.")
     try:
         blocker = update_blocker_status(session_id, blocker_id, body.status, email, body.comment)
     except ValueError as exc:

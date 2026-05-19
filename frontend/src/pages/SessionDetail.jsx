@@ -839,35 +839,21 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
   };
 
   async function handleSignoff(role, status = "approved") {
+    const comment = status === "rejected"
+      ? window.prompt(`Reason for rejecting ${ROLE_LABELS[role] || role} approval:`)
+      : "";
+    if (status === "rejected" && !comment?.trim()) return;
     setSigningRole(`${role}:${status}`);
     try {
-      await governance.signoff(sessionId, { role, status });
-      const fresh = await governance.signoffs(sessionId);
-      setSignoffs(fresh?.sign_offs || (Array.isArray(fresh) ? fresh : []));
-      const freshDecision = await governance.decision(sessionId).catch(() => null);
-      if (freshDecision) setDecision(freshDecision);
-      onRefreshGovernance?.();
-    } catch { /* silent */ } finally { setSigningRole(null); }
-  }
-
-  async function handleApproveAll() {
-    setSigningRole("all:approved");
-    try {
-      const pendingRoles = ROLES.filter((role) => {
-        const so = (signoffs || []).find((x) => x.role === role);
-        return so?.status !== "approved";
-      });
-      await Promise.all(pendingRoles.map((role) => governance.signoff(sessionId, { role, status: "approved" })));
+      await governance.signoff(sessionId, { role, status, comment });
       const fresh = await governance.signoffs(sessionId);
       setSignoffs(fresh?.sign_offs || (Array.isArray(fresh) ? fresh : []));
       const freshDecision = await governance.decision(sessionId).catch(() => null);
       if (freshDecision) setDecision(freshDecision);
       onRefreshGovernance?.();
     } catch (err) {
-      setIntegrationMsg(err.message || "Failed to approve remaining roles.");
-    } finally {
-      setSigningRole(null);
-    }
+      setActionMsg?.(err.message || "Failed to update approval.");
+    } finally { setSigningRole(null); }
   }
 
   async function handleEvaluate(gateId) {
@@ -879,9 +865,11 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
   }
 
   async function handleBlockerStatus(blocker, status) {
+    const comment = status === "accepted" ? window.prompt("Risk acceptance rationale:") : "";
+    if (status === "accepted" && !comment?.trim()) return;
     setUpdatingBlocker(blocker.id);
     try {
-      const res = await governance.updateBlocker(sessionId, blocker.id, { status });
+      const res = await governance.updateBlocker(sessionId, blocker.id, { status, comment });
       if (res.decision) setDecision(res.decision);
       onRefreshSession?.();
       onRefreshGovernance?.();
@@ -957,11 +945,6 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
             <p className="-mt-2 mb-3 text-sm text-tx-3">Each production release requires accountable approval from product, quality, legal/compliance, and security.</p>
           </div>
           <div className="flex items-center gap-2">
-            {!approvalReady && (
-              <Button variant="primary" size="xs" onClick={handleApproveAll} disabled={signingRole === "all:approved"}>
-                {signingRole === "all:approved" ? "Approving..." : "Approve all remaining"}
-              </Button>
-            )}
             <Badge color={approvalReady ? "gn" : rejectedRoles.length ? "rd" : "or"} size="sm">{approvedRoles.length}/{ROLES.length} approved</Badge>
           </div>
         </div>
@@ -981,6 +964,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
                   {(so?.signed_by || so?.user_email) && (
                     <div className="mt-1 text-xs text-tx-4">{so.signed_by || so.user_email} / {so.signed_at ? new Date(so.signed_at).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}</div>
                   )}
+                  {so?.comment && <div className="mt-1 text-xs text-tx-3">Reason: {so.comment}</div>}
                 </div>
                 <div className="flex gap-2 lg:justify-end">
                   {!approved && (

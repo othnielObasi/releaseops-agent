@@ -42,15 +42,16 @@ class TestAuth:
         assert resp.status_code == 200
         assert "token" in resp.json()
 
-    def test_simple_name_signup_and_login(self):
-        name = f"simple-{uuid.uuid4().hex[:8]}"
+    def test_email_signup_and_login(self):
+        name = f"email-{uuid.uuid4().hex[:8]}"
+        email = f"{name}@test.com"
         password = "pass123"
-        resp = client.post("/api/auth/signup", json={"name": name, "password": password})
+        resp = client.post("/api/auth/signup", json={"name": name, "email": email, "password": password})
         assert resp.status_code == 200
         assert "token" in resp.json()
-        assert resp.json()["email"].endswith("@local.releaseops")
+        assert resp.json()["email"] == email
 
-        login_resp = client.post("/api/auth/login", json={"identifier": name, "password": password})
+        login_resp = client.post("/api/auth/login", json={"email": email, "password": password})
         assert login_resp.status_code == 200
         assert "token" in login_resp.json()
 
@@ -95,8 +96,9 @@ class TestSessions:
 
     def test_sessions_do_not_leak_between_users(self, auth_headers):
         other_name = f"tenant-{uuid.uuid4().hex[:8]}"
+        other_email = f"{other_name}@test.com"
         other_password = "pass123"
-        other_signup = client.post("/api/auth/signup", json={"name": other_name, "password": other_password})
+        other_signup = client.post("/api/auth/signup", json={"name": other_name, "email": other_email, "password": other_password})
         assert other_signup.status_code == 200
         other_headers = {"Authorization": f"Bearer {other_signup.json()['token']}"}
 
@@ -135,6 +137,7 @@ class TestSessions:
 
         other_signup = client.post("/api/auth/signup", json={
             "name": f"agent-run-tenant-{uuid.uuid4().hex[:8]}",
+            "email": f"agent-run-tenant-{uuid.uuid4().hex[:8]}@test.com",
             "password": "pass123",
         })
         assert other_signup.status_code == 200
@@ -296,6 +299,29 @@ class TestTeams:
         resp = client.get("/api/teams", headers=auth_headers)
         assert resp.status_code == 200
         assert isinstance(resp.json(), list)
+
+    def test_add_user_and_assign_role(self, auth_headers):
+        team_resp = client.post("/api/teams", headers=auth_headers, json={"name": f"Org {uuid.uuid4().hex[:6]}"})
+        assert team_resp.status_code == 200
+        team_id = team_resp.json()["id"]
+        member_email = f"qa_{uuid.uuid4().hex[:6]}@test.com"
+
+        add_resp = client.post("/api/teams/{}/members".format(team_id), headers=auth_headers, json={
+            "name": "QA Approver",
+            "email": member_email,
+            "role": "qa",
+            "password": "pass123",
+        })
+        assert add_resp.status_code == 200
+        assert add_resp.json()["role"] == "qa"
+
+        update_resp = client.patch(f"/api/teams/{team_id}/members/{member_email}", headers=auth_headers, json={"role": "security"})
+        assert update_resp.status_code == 200
+        assert update_resp.json()["role"] == "security"
+
+        members_resp = client.get(f"/api/teams/{team_id}/members", headers=auth_headers)
+        assert members_resp.status_code == 200
+        assert any(m["email"] == member_email and m["role"] == "security" for m in members_resp.json())
 
 # ── Health & Metrics ──────────────────────────────────────────────────────────
 

@@ -45,6 +45,53 @@ def _check_session_owner(session_data: dict, email: str):
         raise HTTPException(status_code=403, detail="Access denied")
 
 
+def _shares_team(owner_email: str, email: str) -> bool:
+    if not owner_email or not email:
+        return False
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT 1
+            FROM team_members owner
+            JOIN team_members member ON member.team_id=owner.team_id
+            WHERE owner.email=%s AND member.email=%s
+            LIMIT 1
+            """,
+            (owner_email, email),
+        )
+        row = cur.fetchone()
+        cur.close()
+    return bool(row)
+
+
+def _check_session_access(session_data: dict, email: str):
+    meta = session_data.get("session") or session_data
+    owner = meta.get("user_email")
+    if owner == email or _shares_team(owner, email):
+        return
+    raise HTTPException(status_code=403, detail="Access denied")
+
+
+def _accessible_session_owner_emails(email: str) -> list[str]:
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT DISTINCT owner.email
+            FROM team_members member
+            JOIN team_members owner ON owner.team_id=member.team_id
+            WHERE member.email=%s
+            """,
+            (email,),
+        )
+        rows = cur.fetchall()
+        cur.close()
+    owners = {email}
+    owners.update(row[0] for row in rows if row and row[0])
+    return sorted(owners)
+
+
 def _get_next_version(feature_title: str, user_email: Optional[str]) -> int:
     title_lower = feature_title.lower().strip()
     max_v = 0
@@ -161,20 +208,24 @@ async def create_session(
 @router.get("/api/sessions/{session_id}")
 async def get_session(session_id: str, email: str = Depends(verify_token)):
     data = _load_session(session_id)
-    _check_session_owner(data, email)
+    _check_session_access(data, email)
     return data
 
 
 @router.get("/api/sessions/{session_id}/agent-run")
 async def get_session_agent_run(session_id: str, email: str = Depends(verify_token)):
     data = _load_session(session_id)
-    _check_session_owner(data, email)
+    _check_session_access(data, email)
     return get_agent_run(session_id)
 
 
 @router.get("/api/sessions")
 async def list_sessions(email: str = Depends(verify_token)):
-    return list_sessions_for_user(email)
+    combined = {}
+    for owner_email in _accessible_session_owner_emails(email):
+        for session_data in list_sessions_for_user(owner_email):
+            combined[session_data.get("id")] = session_data
+    return sorted(combined.values(), key=lambda item: item.get("created_at") or "", reverse=True)
 
 
 @router.get("/api/history")

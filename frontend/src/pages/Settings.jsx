@@ -18,6 +18,16 @@ const EMPTY_INTEGRATIONS = {
   webhook_secret: "",
 };
 
+const ORG_ROLES = [
+  ["member", "Member"],
+  ["product", "Product / PM"],
+  ["qa", "QA"],
+  ["legal", "Legal"],
+  ["compliance", "Compliance"],
+  ["security", "Security"],
+  ["admin", "Admin"],
+];
+
 /* ── IntegrationCard — expandable per-provider card ── */
 function IntegrationCard({ icon, title, subtitle, description, fields, values, onChange }) {
   const [open, setOpen] = useState(false);
@@ -71,8 +81,8 @@ export default function Settings() {
   const [newTeamName, setNewTeamName] = useState("");
   const [expandedTeam, setExpandedTeam] = useState(null);
   const [members, setMembers] = useState([]);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteMsg, setInviteMsg] = useState("");
+  const [memberForm, setMemberForm] = useState({ name: "", email: "", role: "member", password: "" });
+  const [memberMsg, setMemberMsg] = useState("");
 
   /* ── API Keys state ── */
   const [keysList, setKeysList] = useState([]);
@@ -120,15 +130,31 @@ export default function Settings() {
     try { setMembers(await teamsAPI.members(teamId)); } catch { setMembers([]); }
   };
 
-  const inviteMember = async (teamId) => {
-    if (!inviteEmail.trim()) return;
-    setInviteMsg("");
+  const addMember = async (teamId) => {
+    if (!memberForm.email.trim()) return;
+    setMemberMsg("");
     try {
-      await teamsAPI.invite(teamId, inviteEmail.trim());
-      setInviteMsg("Invited!");
-      setInviteEmail("");
+      const res = await teamsAPI.addMember(teamId, {
+        email: memberForm.email.trim(),
+        name: memberForm.name.trim(),
+        role: memberForm.role,
+        password: memberForm.password,
+      });
+      setMemberMsg(res.temporary_password ? `User added. Temporary password: ${res.temporary_password}` : "User added.");
+      setMemberForm({ name: "", email: "", role: "member", password: "" });
       setMembers(await teamsAPI.members(teamId));
-    } catch (e) { setInviteMsg(e.message); }
+    } catch (e) { setMemberMsg(e.message); }
+  };
+
+  const updateMemberRole = async (teamId, memberEmail, role) => {
+    setMemberMsg("");
+    try {
+      await teamsAPI.updateMemberRole(teamId, memberEmail, role);
+      setMembers(await teamsAPI.members(teamId));
+      setMemberMsg("Role updated.");
+    } catch (e) {
+      setMemberMsg(e.message);
+    }
   };
 
   const removeMember = async (teamId, email) => {
@@ -195,7 +221,7 @@ export default function Settings() {
       <Card className="animate-fade-up-1">
         {/* Tabs */}
         <div className="flex gap-0 mb-3.5 border-b border-lg-bd">
-          {[{ k: "teams", l: "🏢 Teams" }, { k: "api", l: "🔑 API Keys" }, { k: "int", l: "🔌 Integrations" }, { k: "gates", l: "🚦 Gates" }].map((t) => (
+          {[{ k: "teams", l: "Organizations" }, { k: "api", l: "API Keys" }, { k: "int", l: "Integrations" }, { k: "gates", l: "Gates" }].map((t) => (
             <button key={t.k} onClick={() => setTab(t.k)} className={`bg-transparent border-none text-xs px-3 py-2 cursor-pointer font-sans border-b-2 transition-colors ${tab === t.k ? "text-tx font-semibold border-accent-purple2" : "text-tx-4 font-normal border-transparent hover:text-tx-2"}`}>
               {t.l}
             </button>
@@ -206,9 +232,9 @@ export default function Settings() {
         {tab === "teams" && (
           <div>
             {teamsLoading ? (
-              <div className="text-xs text-tx-3 text-center py-4 animate-pulse">Loading teams...</div>
+              <div className="text-xs text-tx-3 text-center py-4 animate-pulse">Loading organizations...</div>
             ) : teamsList.length === 0 ? (
-              <div className="text-xs text-tx-3 text-center py-4">No teams yet. Create one to collaborate.</div>
+              <div className="text-xs text-tx-3 text-center py-4">No organization yet. Create one before assigning approver roles.</div>
             ) : (
               teamsList.map((t) => (
                 <div key={t.id} className="p-3 bg-lg-sf2 rounded-lg mb-2">
@@ -235,27 +261,39 @@ export default function Settings() {
                         members.map((m) => (
                           <div key={m.email} className="flex justify-between items-center py-1">
                             <div>
-                              <span className="text-sm text-tx">{m.email}</span>
-                              <span className="text-xs text-tx-4 ml-1.5">{m.role}</span>
+                              <span className="text-sm text-tx">{m.name || m.email}</span>
+                              <span className="text-xs text-tx-4 ml-1.5">{m.email}</span>
                             </div>
+                            {["owner", "admin"].includes(t.role) && m.role !== "owner" ? (
+                              <select value={m.role} onChange={(e) => updateMemberRole(t.id, m.email, e.target.value)} className="input-glass text-xs max-w-[150px]">
+                                {ORG_ROLES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                              </select>
+                            ) : (
+                              <span className="text-xs text-tx-4">{m.role}</span>
+                            )}
                             {t.role === "owner" && m.role !== "owner" && (
                               <button onClick={() => removeMember(t.id, m.email)} className="text-xs text-accent-red cursor-pointer bg-transparent border-none font-sans hover:underline">Remove</button>
                             )}
                           </div>
                         ))
                       )}
-                      {/* Invite */}
-                      {t.role === "owner" && (
-                        <div className="flex gap-1 mt-2">
-                          <input
-                            type="email" placeholder="Invite by email" value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
-                            className="input-glass text-sm flex-1"
-                          />
-                          <Button variant="primary" size="xs" onClick={() => inviteMember(t.id)}>Invite</Button>
+                      {["owner", "admin"].includes(t.role) && (
+                        <div className="mt-3 rounded-lg border border-lg-bd bg-white p-3">
+                          <div className="text-sm font-bold text-tx mb-2">Add organization user</div>
+                          <div className="grid grid-cols-1 gap-2">
+                            <input type="text" placeholder="Full name" value={memberForm.name} onChange={(e) => setMemberForm({ ...memberForm, name: e.target.value })} className="input-glass text-sm" />
+                            <input type="email" placeholder="Email address" value={memberForm.email} onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })} className="input-glass text-sm" />
+                            <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+                              <select value={memberForm.role} onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value })} className="input-glass text-sm">
+                                {ORG_ROLES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                              </select>
+                              <input type="password" placeholder="Initial password or blank" value={memberForm.password} onChange={(e) => setMemberForm({ ...memberForm, password: e.target.value })} className="input-glass text-sm" />
+                              <Button variant="primary" size="xs" onClick={() => addMember(t.id)}>Add</Button>
+                            </div>
+                          </div>
+                          {memberMsg && <div className="text-xs text-tx-3 mt-2">{memberMsg}</div>}
                         </div>
                       )}
-                      {inviteMsg && <div className="text-xs text-accent-green mt-1">{inviteMsg}</div>}
                     </div>
                   )}
                 </div>
@@ -265,12 +303,12 @@ export default function Settings() {
             {/* Create team */}
             <div className="flex gap-1 mt-2">
               <input
-                type="text" placeholder="New workspace name" value={newTeamName}
+                type="text" placeholder="Organization name" value={newTeamName}
                 onChange={(e) => setNewTeamName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && createTeam()}
                 className="input-glass text-sm flex-1"
               />
-              <Button variant="primary" size="sm" onClick={createTeam}>Create Workspace</Button>
+              <Button variant="primary" size="sm" onClick={createTeam}>Create Organization</Button>
             </div>
           </div>
         )}

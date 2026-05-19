@@ -6,11 +6,11 @@ from pydantic import BaseModel
 # ── Auth ──────────────────────────────────────────────────────────────────────
 class SignupRequest(BaseModel):
     name: str
-    email: Optional[str] = None
+    email: str
     password: str
 
 class LoginRequest(BaseModel):
-    email: Optional[str] = None
+    email: str
     name: Optional[str] = None
     identifier: Optional[str] = None
     password: str
@@ -75,6 +75,15 @@ class TeamCreate(BaseModel):
 class TeamInvite(BaseModel):
     email: str
     role: Optional[str] = "member"
+
+class TeamMemberCreate(BaseModel):
+    email: str
+    name: Optional[str] = None
+    role: str = "member"
+    password: Optional[str] = None
+
+class TeamMemberRoleUpdate(BaseModel):
+    role: str
 
 class BrandingUpdate(BaseModel):
     brand_color: Optional[str] = None

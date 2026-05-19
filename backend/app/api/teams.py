@@ -9,11 +9,11 @@ import psycopg2.extras
 
 from app.deps import (
     verify_token, get_db, audit, send_email, hash_api_key, logger,
-    load_users, sessions, normalize_session, SESSIONS_DIR,
+    load_users, save_users, hash_password, Role, sessions, normalize_session, SESSIONS_DIR,
 )
 from app.models.schemas import (
     TeamCreate, TeamInvite, BrandingUpdate, APIKeyCreate,
-    TemplateCreate, AnnotationCreate,
+    TemplateCreate, AnnotationCreate, TeamMemberCreate, TeamMemberRoleUpdate,
 )
 from app.infra.config import DATA_DIR
 
@@ -24,6 +24,35 @@ TEMPLATES_FILE = DATA_DIR / "templates.json"
 
 def _normalize_email(email: str) -> str:
     return email.lower().strip()
+
+
+ORG_ROLES = {"owner", "admin", "product", "pm", "qa", "legal", "compliance", "security", "member"}
+
+
+def _normalize_role(role: str) -> str:
+    value = (role or "member").lower().strip()
+    if value == "manager":
+        value = "admin"
+    if value not in ORG_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid role. Use one of: {', '.join(sorted(ORG_ROLES))}",
+        )
+    return value
+
+
+def _require_team_admin(team_id: str, email: str):
+    with get_db() as conn:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            "SELECT role FROM team_members WHERE team_id=%s AND email=%s",
+            (team_id, email),
+        )
+        row = cur.fetchone()
+        cur.close()
+    if not row or row.get("role") not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Only organization owners and admins can manage users.")
+    return row["role"]
 
 
 def _load_templates() -> list:
@@ -145,6 +174,7 @@ async def list_teams(email: str = Depends(verify_token)):
 
 @router.post("/api/teams/{team_id}/invite")
 async def invite_member(team_id: str, body: TeamInvite, email: str = Depends(verify_token)):
+    invite_role = _normalize_role(body.role or "member")
     with get_db() as conn:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(
@@ -157,7 +187,7 @@ async def invite_member(team_id: str, body: TeamInvite, email: str = Depends(ver
         token = _secrets.token_hex(16)
         cur.execute(
         "INSERT INTO team_invites (id,team_id,inviter_email,invitee_email,role,token,created_at) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-        (str(uuid.uuid4()), team_id, email, _normalize_email(body.email), body.role or "member", token, datetime.now(timezone.utc).isoformat())
+        (str(uuid.uuid4()), team_id, email, _normalize_email(body.email), invite_role, token, datetime.now(timezone.utc).isoformat())
         )
         cur.close()
     with get_db() as conn2:
@@ -220,7 +250,7 @@ async def accept_invite(token: str, email: str = Depends(verify_token)):
             raise HTTPException(status_code=404, detail="Invitation not found or already used")
         if inv["invitee_email"] and _normalize_email(inv["invitee_email"]) != _normalize_email(email):
             raise HTTPException(status_code=403, detail="This invitation was sent to a different email address")
-        invite_role = inv.get("role") or "member"
+        invite_role = _normalize_role(inv.get("role") or "member")
         cur.execute(
         "INSERT INTO team_members (team_id,email,role,joined_at) VALUES (%s,%s,%s,%s) ON CONFLICT DO NOTHING",
         (inv["team_id"], email, invite_role, datetime.now(timezone.utc).isoformat())
@@ -241,12 +271,89 @@ async def list_members(team_id: str, email: str = Depends(verify_token)):
         if not member:
             raise HTTPException(status_code=403, detail="Not a team member")
         cur.execute(
-        "SELECT email, role, joined_at FROM team_members WHERE team_id=%s ORDER BY joined_at",
+        """SELECT tm.email, tm.role, tm.joined_at, COALESCE(u.name, '') AS name
+           FROM team_members tm
+           LEFT JOIN users u ON u.email=tm.email
+           WHERE tm.team_id=%s
+           ORDER BY
+             CASE tm.role WHEN 'owner' THEN 0 WHEN 'admin' THEN 1 ELSE 2 END,
+             tm.joined_at""",
         (team_id,)
         )
         rows = cur.fetchall()
         cur.close()
     return [dict(r) for r in rows]
+
+
+@router.post("/api/teams/{team_id}/members")
+async def add_member(team_id: str, body: TeamMemberCreate, email: str = Depends(verify_token)):
+    _require_team_admin(team_id, email)
+    member_email = _normalize_email(body.email)
+    member_role = _normalize_role(body.role)
+    if member_role == "owner":
+        raise HTTPException(status_code=400, detail="Use admin for delegated administration. Ownership transfer is not supported here.")
+
+    users = load_users()
+    temporary_password = None
+    if member_email not in users:
+        password = (body.password or "").strip()
+        if not password:
+            password = _secrets.token_urlsafe(12)
+            temporary_password = password
+        if len(password) < 6:
+            raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
+        users[member_email] = {
+            "name": (body.name or member_email.split("@")[0]).strip()[:120],
+            "email": member_email,
+            "password_hash": hash_password(password),
+            "role": Role.USER,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_seen": None,
+            "notification_email": True,
+        }
+        save_users(users)
+    elif body.name:
+        users[member_email]["name"] = body.name.strip()[:120]
+        save_users(users)
+
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """INSERT INTO team_members (team_id,email,role,joined_at)
+               VALUES (%s,%s,%s,%s)
+               ON CONFLICT (team_id,email) DO UPDATE SET role=EXCLUDED.role""",
+            (team_id, member_email, member_role, now),
+        )
+        cur.close()
+    audit(email, "organization_member_added", team_id, metadata={"member": member_email, "role": member_role})
+    response = {"email": member_email, "role": member_role, "status": "added"}
+    if temporary_password:
+        response["temporary_password"] = temporary_password
+    return response
+
+
+@router.patch("/api/teams/{team_id}/members/{member_email}")
+async def update_member_role(team_id: str, member_email: str, body: TeamMemberRoleUpdate, email: str = Depends(verify_token)):
+    _require_team_admin(team_id, email)
+    member_email = _normalize_email(member_email)
+    next_role = _normalize_role(body.role)
+    if next_role == "owner":
+        raise HTTPException(status_code=400, detail="Ownership transfer is not supported here.")
+    with get_db() as conn:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("SELECT role FROM team_members WHERE team_id=%s AND email=%s", (team_id, member_email))
+        current = cur.fetchone()
+        if not current:
+            cur.close()
+            raise HTTPException(status_code=404, detail="Member not found")
+        if current.get("role") == "owner":
+            cur.close()
+            raise HTTPException(status_code=400, detail="Owner role cannot be changed from this screen.")
+        cur.execute("UPDATE team_members SET role=%s WHERE team_id=%s AND email=%s", (next_role, team_id, member_email))
+        cur.close()
+    audit(email, "organization_member_role_updated", team_id, metadata={"member": member_email, "role": next_role})
+    return {"email": member_email, "role": next_role, "status": "updated"}
 
 
 @router.delete("/api/teams/{team_id}/members/{member_email}")

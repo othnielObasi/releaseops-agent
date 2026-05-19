@@ -12,54 +12,27 @@ from app.models.schemas import SignupRequest, LoginRequest, NotifPrefs
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-LOCAL_ACCOUNT_DOMAIN = "local.releaseops"
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
-def _normalize_simple_name(name: str) -> str:
-    cleaned = re.sub(r"[^a-z0-9]+", "-", (name or "").lower().strip()).strip("-")
-    if not cleaned or len(cleaned) < 2:
-        raise HTTPException(status_code=400, detail="Name must contain at least two letters or numbers.")
-    return cleaned[:64]
-
-
-def _account_key_from_name(name: str) -> str:
-    return f"{_normalize_simple_name(name)}@{LOCAL_ACCOUNT_DOMAIN}"
-
-
-def _resolve_account_key(identifier: str, users: dict) -> str:
-    ident = (identifier or "").strip()
-    if not ident:
-        raise HTTPException(status_code=400, detail="Name is required.")
-    if "@" in ident:
-        return ident.lower()
-    simple_key = _account_key_from_name(ident)
-    if simple_key in users:
-        return simple_key
-    matches = [
-        email for email, user in users.items()
-        if (user.get("name") or "").strip().lower() == ident.lower()
-    ]
-    if len(matches) == 1:
-        return matches[0]
-    if len(matches) > 1:
-        raise HTTPException(status_code=409, detail="That name is ambiguous. Sign in with the account email.")
-    return simple_key
+def _normalize_email(email: str) -> str:
+    value = (email or "").lower().strip()
+    if not value:
+        raise HTTPException(status_code=400, detail="Email address is required.")
+    if not EMAIL_RE.match(value):
+        raise HTTPException(status_code=400, detail="Enter a valid email address.")
+    return value
 
 
 @router.post("/signup")
 async def signup(body: SignupRequest, request: Request):
     users = load_users()
     display_name = body.name.strip()
-    email = body.email.lower().strip() if body.email else _account_key_from_name(display_name)
+    if not display_name:
+        raise HTTPException(status_code=400, detail="Name is required.")
+    email = _normalize_email(body.email)
     if email in users:
-        raise HTTPException(status_code=409, detail="An account with this name already exists.")
-    if not body.email:
-        name_taken = any(
-            (user.get("name") or "").strip().lower() == display_name.lower()
-            for user in users.values()
-        )
-        if name_taken:
-            raise HTTPException(status_code=409, detail="An account with this name already exists.")
+        raise HTTPException(status_code=409, detail="An account with this email already exists.")
     if len(body.password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
     users[email] = {
@@ -83,14 +56,13 @@ async def signup(body: SignupRequest, request: Request):
 @router.post("/login")
 async def login(body: LoginRequest, request: Request):
     users = load_users()
-    identifier = body.identifier or body.name or body.email
-    email = _resolve_account_key(identifier, users)
+    email = _normalize_email(body.email or body.identifier or "")
     ip = request.client.host if request.client else "unknown"
     ua = request.headers.get("user-agent", "")
     user = users.get(email)
     if not user or not verify_password(body.password, user.get("password_hash", "")):
         record_login_event(email, ip, ua, success=False, reason="invalid_credentials")
-        raise HTTPException(status_code=401, detail="Invalid name or password.")
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
     record_login_event(email, ip, ua, success=True)
     user["last_seen"] = datetime.now(timezone.utc).isoformat()
     save_users(users)
