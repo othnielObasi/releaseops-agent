@@ -24,8 +24,8 @@ const DEMO_RESULT = {
     { name: "Risk Register", status: "generated" },
     { name: "Test Plan", status: "generated" },
     { name: "Release Notes", status: "generated" },
-    { name: "GTM Page", status: "generated" },
-    { name: "Pitch Deck", status: "generated" },
+    { name: "Market Page", status: "generated" },
+    { name: "Stakeholder Brief", status: "generated" },
   ],
   frameworks: ["EU AI Act", "OWASP Top 10", "NIST AI RMF", "GDPR"],
   tests: 12,
@@ -127,7 +127,7 @@ function PlaygroundDemo({ onLogin }) {
                 <div className="space-y-1">
                   {DEMO_RESULT.artefacts.map((a) => (
                     <div key={a.name} className="flex items-center gap-2 text-[11px]">
-                      <span className="text-accent-green text-[10px]">✓</span>
+                      <span className="text-accent-green text-[10px]">ready</span>
                       <span className="text-tx">{a.name}</span>
                     </div>
                   ))}
@@ -138,7 +138,7 @@ function PlaygroundDemo({ onLogin }) {
                 <div className="space-y-1">
                   {DEMO_RESULT.frameworks.map((f) => (
                     <div key={f} className="flex items-center gap-2 text-[11px]">
-                      <span className="text-accent-purple text-[10px]">✓</span>
+                      <span className="text-accent-purple text-[10px]">mapped</span>
                       <span className="text-tx">{f}</span>
                     </div>
                   ))}
@@ -176,12 +176,9 @@ export default function Landing({ onLogin }) {
       {/* ── Hero ── */}
       <section className="relative text-center pt-16 pb-10 md:pt-20 animate-fade-up overflow-hidden">
         {/* Hero glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-hero-glow pointer-events-none" />
-        <div className="orb w-32 h-32 bg-accent-purple/10 top-10 right-0 animate-float" />
-        <div className="orb w-24 h-24 bg-accent-blue/8 top-20 left-0 animate-float" style={{ animationDelay: "2s" }} />
 
         <div className="relative">
-          <Badge color="pr" size="lg" className="tracking-widest">✦ AI RELEASE GOVERNANCE PLATFORM</Badge>
+          <Badge color="pr" size="lg" className="tracking-widest">AI RELEASE GOVERNANCE PLATFORM</Badge>
 
           <h1 className="text-4xl md:text-5xl font-extrabold text-tx mt-5 leading-[1.08] tracking-tight text-balance">
             Is your AI feature<br />
@@ -189,13 +186,12 @@ export default function Landing({ onLogin }) {
           </h1>
 
           <p className="text-[15px] text-tx-2 mt-5 leading-relaxed max-w-xl mx-auto text-balance">
-            Most AI features fail in production — not because the idea was wrong, but because no one did the hard work of thinking through{" "}
-            <em className="text-tx font-medium not-italic">spec, risks, tests,</em> and <em className="text-tx font-medium not-italic">launch copy</em> before shipping. ReleaseOps does it all in under 60 seconds.
+            ReleaseOps gives product, security, compliance, and operations teams one structured place to review AI workflows before production. It turns release context into risks, tests, controls, approvals, and a durable decision record.
           </p>
 
           {/* Stats */}
           <div className="flex justify-center gap-3 mt-8">
-            {[{ v: "3", l: "AI AGENTS" }, { v: "<60s", l: "END TO END" }, { v: "7", l: "FRAMEWORKS" }, { v: "0", l: "MANUAL DOCS" }].map((s, i) => (
+            {[{ v: "3", l: "REVIEW STAGES" }, { v: "1", l: "DECISION RECORD" }, { v: "7", l: "FRAMEWORKS" }, { v: "0", l: "LOST CONTEXT" }].map((s, i) => (
               <div key={i} className={`card-glow !p-3 !px-5 text-center animate-fade-up-${i + 1}`}>
                 <div className="text-xl font-extrabold text-tx">{s.v}</div>
                 <div className="text-[8px] text-tx-4 tracking-[0.15em] mt-0.5 font-semibold">{s.l}</div>
@@ -207,9 +203,9 @@ export default function Landing({ onLogin }) {
 
       {/* ── The Problem ── */}
       <section className="mt-16 animate-fade-up-2">
-        <h2 className="text-xl font-bold text-tx mb-2">Why single-prompt AI fails at release governance</h2>
+        <h2 className="text-xl font-bold text-tx mb-2">Why ad hoc release review fails</h2>
         <p className="text-[13px] text-tx-2 leading-relaxed mb-5">
-          Pasting into ChatGPT, Claude, or Gemini gives you a one-off opinion — a different answer every time, no regulation citations, and no audit trail. That's not governance. These are the gaps a single LLM can never close:
+          Pasting into ChatGPT, Claude, or Gemini gives you a one-off opinion — a different answer every time, no regulation citations, and no audit trail. That's not governance. These are the gaps ad hoc review rarely closes:
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
@@ -217,7 +213,7 @@ export default function Landing({ onLogin }) {
             { c: "bg-accent-orange", title: "Blind spots in risk", desc: "Safety, legal, and operational risks are overlooked until production.", quote: '"We didn\'t think about that edge case."' },
             { c: "bg-accent-red", title: "Shallow test coverage", desc: "Happy-path tests pass; adversarial inputs and bias edge cases are never written.", quote: '"Tests passed, but it still broke in prod."' },
             { c: "bg-accent-orange", title: "Launch docs written last", desc: "Release notes and pitch decks are rushed, inconsistent, and disconnected from what engineering built.", quote: '"Can someone write the changelog by EOD?"' },
-            { c: "bg-accent-red", title: "LLM chat ≠ governance", desc: "Pasting into ChatGPT, Claude, or Gemini gives a different answer every time, cites no real regulations, and disappears when you close the tab.", quote: '"I asked GPT — it said we\'re fine."' },
+            { c: "bg-accent-red", title: "Chat transcript is not governance", desc: "Pasting into ChatGPT, Claude, or Gemini gives a different answer every time, cites no real regulations, and disappears when you close the tab.", quote: '"Where is the evidence record?"' },
           ].map((p, i) => (
             <Card key={i} className="!p-4 group">
               <div className={`w-2 h-2 rounded-full ${p.c} mb-3`} />
@@ -233,7 +229,7 @@ export default function Landing({ onLogin }) {
       <section className="mt-16 animate-fade-up-3">
         <h2 className="text-xl font-bold text-tx mb-3">The Release Review Pipeline</h2>
         <p className="text-[13px] text-tx-2 leading-relaxed mb-6">
-          ReleaseOps is not a single LLM prompt. It is a structured decision workflow where each stage produces validated output for the next step. Provider-agnostic across OpenAI and Anthropic with automatic failover.
+          ReleaseOps is not an ad hoc LLM prompt. It is a structured decision workflow where each stage produces evidence for the next step. The backend supports provider routing and failover so review execution is not tied to a single model vendor.
         </p>
         <div className="space-y-2">
           {[
@@ -249,7 +245,7 @@ export default function Landing({ onLogin }) {
                 </div>
                 <div className="text-[11px] text-tx-2 mt-2 leading-relaxed ml-9">{a.desc}</div>
               </Card>
-              {i < 2 && <div className="text-center py-1 text-sm text-tx-4">↓</div>}
+              {i < 2 && <div className="h-3" />}
             </div>
           ))}
         </div>
@@ -264,8 +260,8 @@ export default function Landing({ onLogin }) {
             { c: "border-accent-red", t: "Full Risk Register", d: "Categorised risks with severity, likelihood, mitigations" },
             { c: "border-accent-purple", t: "Test Plan + Guardrails", d: "Edge-case, adversarial, and bias test coverage" },
             { c: "border-accent-blue", t: "Release Notes", d: "Versioned, audience-appropriate changelog" },
-            { c: "border-accent-teal", t: "GTM Landing Page", d: "Launch copy with trust & safety section" },
-            { c: "border-accent-orange", t: "Pitch Deck Outline", d: "Slide-by-slide with speaker notes" },
+            { c: "border-accent-teal", t: "Market Readiness Page", d: "Stakeholder-ready launch and trust copy" },
+            { c: "border-accent-orange", t: "Stakeholder Brief", d: "Decision narrative for leadership review" },
           ].map((a, i) => (
             <Card key={i} className={`!p-3 !border-l-2 ${a.c}`}>
               <div className="text-xs font-bold text-tx">{a.t}</div>
@@ -311,10 +307,10 @@ export default function Landing({ onLogin }) {
           {[
             { t: "CI/CD Gates", d: "Block releases below score threshold", c: "border-accent-green" },
             { t: "Role Sign-offs", d: "PM, Legal, QA, Security must approve", c: "border-accent-purple" },
-            { t: "Compliance Certs", d: "Auditor-ready PDF with signatures", c: "border-accent-blue" },
+            { t: "Compliance Certificates", d: "Auditor-ready PDF with signatures", c: "border-accent-blue" },
             { t: "Drift Monitor", d: "Re-scan deployed features weekly", c: "border-accent-teal" },
             { t: "Risk Trends", d: "Track posture across all features", c: "border-accent-orange" },
-            { t: "Session Compare", d: "v1 vs v2 side-by-side diff", c: "border-accent-purple" },
+            { t: "Review Compare", d: "Version-to-version decision diff", c: "border-accent-purple" },
           ].map((f, i) => (
             <Card key={i} className={`!p-3 !border-l-2 ${f.c}`}>
               <div className="text-xs font-bold text-tx">{f.t}</div>
@@ -328,7 +324,7 @@ export default function Landing({ onLogin }) {
       <section className="mt-14">
         <h2 className="text-xl font-bold text-tx mb-2">"Can't I just use ChatGPT, Claude, or Gemini?"</h2>
         <p className="text-[13px] text-tx-2 leading-relaxed mb-5">
-          A single-prompt LLM gives you a <em>conversation</em> about risks. ReleaseOps gives you an <em>agentic system</em> — three specialised AI agents orchestrating in sequence, with provider failover, persistent state, and auditable output. Here's what that means in practice:
+          An ad hoc LLM prompt gives you a <em>conversation</em> about risks. ReleaseOps gives you an <em>operating record</em>: repeatable stages, persistent state, approval status, and audit-ready output. Here is what that means in practice:
         </p>
 
         {/* Comparison table */}
@@ -343,16 +339,16 @@ export default function Landing({ onLogin }) {
             </thead>
             <tbody className="text-tx-2">
               {[
-                ["Consistent output structure", "❌ Different every prompt", "✅ Same pipeline, every time"],
-                ["Regulatory framework mapping", "❌ Guesses — no source articles", "✅ 7 frameworks, specific articles"],
-                ["Risk severity scoring", "❌ Subjective, no scale", "✅ Quantified (1–5) with heatmap"],
-                ["Adversarial test generation", "❌ Happy-path only", "✅ Edge-case, bias & abuse tests"],
-                ["Compliance certificates", "❌ A chat transcript", "✅ Auditor-ready PDF artefacts"],
-                ["CI/CD gate integration", "❌ Not possible", "✅ Block deploys below threshold"],
-                ["Role-based sign-offs", "❌ Not possible", "✅ PM, Legal, QA, Security gates"],
-                ["Drift monitoring", "❌ Conversation forgotten", "✅ Weekly re-scans, trend tracking"],
-                ["Session history & compare", "❌ Lost when tab closes", "✅ v1 → v2 side-by-side diff"],
-                ["Team-wide audit trail", "❌ Single-user chat", "✅ Shared dashboard, full log"],
+                ["Consistent output structure", "Different every prompt", "Same pipeline, every time"],
+                ["Regulatory framework mapping", "Unstructured mapping, weak traceability", "7 frameworks, specific articles"],
+                ["Risk severity scoring", "Subjective, no scale", "Quantified severity with heatmap"],
+                ["Adversarial test generation", "Happy-path only", "Edge-case, bias & abuse tests"],
+                ["Compliance certificates", "A chat transcript", "Auditor-ready PDF artefacts"],
+                ["CI/CD gate integration", "Not possible", "Block deploys below threshold"],
+                ["Role-based sign-offs", "Not possible", "PM, Legal, QA, Security gates"],
+                ["Drift monitoring", "Conversation forgotten", "Weekly re-scans, trend tracking"],
+                ["Session history & compare", "Lost when tab closes", "Version-to-version side-by-side diff"],
+                ["Team-wide audit trail", "Single-user chat", "Shared dashboard, full log"],
               ].map(([feature, chatgpt, lg], i) => (
                 <tr key={i} className="border-b border-lg-bd/30 hover:bg-lg-sf/50 transition-colors">
                   <td className="py-2 pr-3 font-medium text-tx">{feature}</td>
@@ -422,7 +418,7 @@ export default function Landing({ onLogin }) {
 
         <div className="relative">
           <div className="text-2xl md:text-3xl font-extrabold text-tx text-balance">Ready to ship with confidence?</div>
-          <p className="text-[13px] text-tx-2 mt-3 text-balance">Describe your feature and get a production-ready analysis — spec, risks, tests, regulation mapping, and launch docs — in under 60 seconds.</p>
+          <p className="text-[13px] text-tx-2 mt-3 text-balance">Describe your feature and get a production-grade release review — spec, risks, tests, regulation mapping, and launch docs — as an auditable workflow.</p>
           <Button variant="cta" size="lg" onClick={onLogin} className="mt-5">Open Workspace</Button>
         </div>
       </section>

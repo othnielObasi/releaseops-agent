@@ -10,8 +10,8 @@ import LegacySettings from "./pages/Settings";
 import LegacyNewCheck from "./pages/NewCheck";
 import LegacyGuidePanel from "./pages/GuidePanel";
 
-const PAGES = ["Landing", "Product", "Guide", "Dashboard", "New Release Review", "Session Detail", "Settings"];
-const SESSION_TABS = ["Overview", "Spec & Risks", "Tests & Guardrails", "Docs & Launch", "Regulation", "Governance"];
+const PAGES = ["Landing", "Product", "Guide", "Dashboard", "New Release Review", "Review Detail", "Settings"];
+const SESSION_TABS = ["Overview", "Spec & Risks", "Tests & Guardrails", "Docs", "Regulation", "Governance"];
 const SETTINGS_TABS = ["Profile", "Team", "API Keys", "Integrations", "Gates"];
 const FRAMEWORKS = ["EU AI Act", "OWASP Top 10 LLM", "NIST AI RMF", "ISO 42001", "GDPR", "SOC 2", "HIPAA"];
 
@@ -21,14 +21,14 @@ export const UI_TEST_CASES = [
   { page: "Guide", expected: "quick-start guide renders" },
   { page: "Dashboard", expected: "authenticated dashboard renders" },
   { page: "New Release Review", expected: "new review intake form renders" },
-  { page: "Session Detail", expected: "session workspace tabs render" },
+  { page: "Review Detail", expected: "session workspace tabs render" },
   { page: "Settings", expected: "settings tabs render" },
 ];
 
 export const INTERACTION_TEST_CASES = [
   { action: "click public Run review", expected: "Dashboard page opens" },
   { action: "click dashboard New Release Review", expected: "New Release Review page opens" },
-  { action: "click recent session", expected: "Session Detail page opens" },
+  { action: "click recent session", expected: "Review Detail page opens" },
   { action: "click each session tab", expected: "corresponding tab content renders" },
   { action: "click each settings tab", expected: "corresponding settings panel renders" },
   { action: "click logo in public header", expected: "Landing page opens" },
@@ -216,7 +216,7 @@ function AppHeader({ onNavigate }) {
           <Logo dark />
         </button>
         <nav className="hidden items-center gap-2 lg:flex">
-          {[["Dashboard", "Dashboard"], ["Sessions", "Session Detail"], ["Settings", "Settings"], ["Guide", "Guide"]].map(([label, page]) => (
+          {[["Dashboard", "Dashboard"], ["Reviews", "Review Detail"], ["Settings", "Settings"], ["Guide", "Guide"]].map(([label, page]) => (
             <button key={label} type="button" onClick={() => onNavigate(page)} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white">
               {label}
             </button>
@@ -248,7 +248,7 @@ function LandingPage({ onNavigate }) {
   const pipeline = [
     ["01", "Release Analysis", "Turns the feature idea into a structured release spec, risk register, and readiness checklist."],
     ["02", "Validation Planning", "Generates test strategy, linked test cases, and practical guardrails before rollout."],
-    ["03", "Decision Packaging", "Produces release notes, stakeholder summary, GTM assets, and an approval-ready decision pack."],
+    ["03", "Decision Packaging", "Produces release notes, stakeholder summary, market readiness assets, and an approval-ready decision pack."],
   ];
   const outputs = ["Readiness score", "Risk register", "Test plan", "Guardrails", "Regulation mapping", "Governance evidence"];
 
@@ -294,9 +294,9 @@ function LandingPage({ onNavigate }) {
                 <div className="rounded-[1.5rem] border border-slate-200 p-5">
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Required controls</p>
                   <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-600">
-                    <li>✓ Human approval for refunds above threshold</li>
-                    <li>✓ PII access logging enabled</li>
-                    <li>✓ Customer replies pass moderation</li>
+                    <li>Human approval for refunds above threshold</li>
+                    <li>PII access logging enabled</li>
+                    <li>Customer replies pass moderation</li>
                   </ul>
                 </div>
               </div>
@@ -379,14 +379,14 @@ function ProductPage({ onNavigate }) {
 }
 
 function GuidePage({ onNavigate }) {
-  const quickStart = [["1", "Click + New Release Review", "Start from anywhere in the app."], ["2", "Describe your feature", "Add a title, description, and industry preset."], ["3", "Watch the pipeline", "Follow the live Release Analysis → Validation Planning → Decision Packaging logs."], ["4", "Explore results", "Review Overview, Spec & Risks, Tests, Docs, Regulation, and Governance."]];
-  const agents = [["Release Analysis", ["Release spec", "Risk register", "Readiness checklist"]], ["Validation Planning", ["Test strategy", "Test cases", "Guardrails"]], ["Decision Packaging", ["Release notes", "GTM page", "Pitch deck"]]];
+  const quickStart = [["1", "Click + New Release Review", "Start from anywhere in the app."], ["2", "Describe your feature", "Add a title, description, and industry preset."], ["3", "Watch the pipeline", "Follow the live Release Analysis, Validation Planning, and Decision Packaging logs."], ["4", "Explore results", "Overview, Spec & Risks, Tests, Docs, Regulation, and Governance."]];
+  const agents = [["Release Analysis", ["Release spec", "Risk register", "Readiness checklist"]], ["Validation Planning", ["Test strategy", "Test cases", "Guardrails"]], ["Decision Packaging", ["Release notes", "Market page", "Stakeholder brief"]]];
   return (
     <main className="min-h-screen bg-white text-slate-950">
       <PublicHeader onNavigate={onNavigate} />
       <section className="px-6 py-20 md:py-28 lg:px-8"><div className="mx-auto max-w-6xl"><SectionTitle eyebrow="Guide" title="How to run a release review." subtitle="Use this guide to understand the release review flow, the decision pipeline, the regulation engine, and the governance tools available after a run." /></div></section>
       <section className="px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Quick start" title="Run a review in four steps." /><ol className="divide-y divide-slate-200 border-y border-slate-200">{quickStart.map(([number, title, body]) => <li key={title} className="grid gap-4 py-6 md:grid-cols-[56px_220px_1fr]"><span className="text-sm font-bold text-blue-600">{number}</span><h3 className="text-lg font-semibold">{title}</h3><p className="text-sm leading-7 text-slate-600">{body}</p></li>)}</ol></div></section>
-      <section className="bg-slate-50 px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Review Stages" title="Each stage owns a different part of the release decision." /><div className="grid gap-4 md:grid-cols-3">{agents.map(([name, items]) => <div key={name} className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm"><h3 className="text-lg font-semibold">{name}</h3><ul className="mt-5 space-y-3">{items.map((item) => <li key={item} className="text-sm text-slate-600">→ {item}</li>)}</ul></div>)}</div></div></section>
+      <section className="bg-slate-50 px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Review Stages" title="Each stage owns a different part of the release decision." /><div className="grid gap-4 md:grid-cols-3">{agents.map(([name, items]) => <div key={name} className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm"><h3 className="text-lg font-semibold">{name}</h3><ul className="mt-5 space-y-3">{items.map((item) => <li key={item} className="text-sm text-slate-600">/ {item}</li>)}</ul></div>)}</div></div></section>
     </main>
   );
 }
@@ -396,9 +396,9 @@ function AppDashboard({ onOpenNewCheck, onOpenSession }) {
   const totalRisks = useMemo(() => SESSIONS.reduce((sum, session) => sum + session.risks, 0), []);
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><h1 className="text-4xl font-semibold tracking-tight text-white">Dashboard</h1><p className="mt-2 text-slate-400">Release readiness overview, recent sessions, and governance status.</p></div><Button variant="violet" onClick={onOpenNewCheck}>+ New Release Review</Button></div>
-      <div className="grid gap-4 md:grid-cols-4">{[[SESSIONS.length, "Sessions"], [avgScore, "Avg score"], [totalRisks, "Total risks"], [FRAMEWORKS.length, "Frameworks"]].map(([value, label]) => <div key={label} className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center"><p className="text-3xl font-bold text-blue-400">{value}</p><p className="mt-1 text-sm text-slate-400">{label}</p></div>)}</div>
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]"><DarkCard title="Recent sessions">{SESSIONS.map((session) => <button key={session.title} type="button" onClick={onOpenSession} className="flex w-full items-center justify-between border-b border-slate-800 py-4 text-left last:border-b-0"><div><p className="font-semibold text-white">{session.title}</p><p className="text-sm text-slate-500">{session.date} · {session.risks} risks</p></div><span className="rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-bold text-emerald-400">{session.score}</span></button>)}</DarkCard><DarkCard title="Governance status"><div className="space-y-4"><StatusBlock color="blue" title="Production Release Gate" body="3 sessions analysed" /><StatusBlock color="green" title="Drift Monitor" body="0 regressions detected" /><StatusBlock color="amber" title="Pending sign-offs" body="PM, Legal, QA, Security" /></div></DarkCard></div>
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><h1 className="text-4xl font-semibold tracking-tight text-white">Release Operations</h1><p className="mt-2 text-slate-400">Portfolio view of release decisions, controls, sign-offs, and governance status.</p></div><Button variant="violet" onClick={onOpenNewCheck}>+ New Release Review</Button></div>
+      <div className="grid gap-4 md:grid-cols-4">{[[SESSIONS.length, "Reviews"], [avgScore, "Avg score"], [totalRisks, "Total risks"], [FRAMEWORKS.length, "Frameworks"]].map(([value, label]) => <div key={label} className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center"><p className="text-3xl font-bold text-blue-400">{value}</p><p className="mt-1 text-sm text-slate-400">{label}</p></div>)}</div>
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]"><DarkCard title="Recent reviews">{SESSIONS.map((session) => <button key={session.title} type="button" onClick={onOpenSession} className="flex w-full items-center justify-between border-b border-slate-800 py-4 text-left last:border-b-0"><div><p className="font-semibold text-white">{session.title}</p><p className="text-sm text-slate-500">{session.date} · {session.risks} risks</p></div><span className="rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-bold text-emerald-400">{session.score}</span></button>)}</DarkCard><DarkCard title="Governance status"><div className="space-y-4"><StatusBlock color="blue" title="Production Release Gate" body="3 reviews analysed" /><StatusBlock color="green" title="Drift Monitor" body="0 regressions detected" /><StatusBlock color="amber" title="Pending sign-offs" body="PM, Legal, QA, Security" /></div></DarkCard></div>
     </div>
   );
 }
@@ -409,16 +409,16 @@ function StatusBlock({ color, title, body }) {
 }
 
 function NewCheckPage({ onClose }) {
-  return <div className="mx-auto max-w-3xl"><button type="button" onClick={onClose} className="mb-6 text-sm font-semibold text-slate-400 hover:text-white">← Back to dashboard</button><DarkCard title="New Release Review"><form className="space-y-6" onSubmit={(event) => event.preventDefault()}><div><label className="text-sm font-semibold text-white">Industry preset</label><select className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200"><option>Finance / Fintech</option><option>Customer Support</option><option>HR</option><option>Healthcare</option></select></div><div><label className="text-sm font-semibold text-white">Title</label><input className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="AI customer support refund assistant" /></div><div><label className="text-sm font-semibold text-white">Feature description</label><textarea className="mt-2 min-h-40 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="Customer support AI agent that inspects customer profile data, reviews transaction history, classifies complaints, recommends refunds, drafts responses, and escalates high-risk cases." /></div><div><label className="text-sm font-semibold text-white">Release type</label><div className="mt-3 flex flex-wrap gap-3">{["Prototype", "Beta", "Production"].map((type) => <span key={type} className={cn("rounded-md border px-3.5 py-2 text-sm font-semibold", type === "Production" ? "border-white bg-white text-slate-950" : "border-slate-700 text-slate-400")}>{type}</span>)}</div></div><Button variant="violet" type="submit">Run Release Review</Button></form></DarkCard></div>;
+  return <div className="mx-auto max-w-3xl"><button type="button" onClick={onClose} className="mb-6 text-sm font-semibold text-slate-400 hover:text-white">← Back to release operations</button><DarkCard title="New Release Review"><form className="space-y-6" onSubmit={(event) => event.preventDefault()}><div><label className="text-sm font-semibold text-white">Industry preset</label><select className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200"><option>Finance / Fintech</option><option>Customer Support</option><option>HR</option><option>Healthcare</option></select></div><div><label className="text-sm font-semibold text-white">Title</label><input className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="AI customer support refund assistant" /></div><div><label className="text-sm font-semibold text-white">Feature description</label><textarea className="mt-2 min-h-40 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="Customer support AI agent that inspects customer profile data, reviews transaction history, classifies complaints, recommends refunds, drafts responses, and escalates high-risk cases." /></div><div><label className="text-sm font-semibold text-white">Release type</label><div className="mt-3 flex flex-wrap gap-3">{["Prototype", "Beta", "Production"].map((type) => <span key={type} className={cn("rounded-md border px-3.5 py-2 text-sm font-semibold", type === "Production" ? "border-white bg-white text-slate-950" : "border-slate-700 text-slate-400")}>{type}</span>)}</div></div><Button variant="violet" type="submit">Run Release Review</Button></form></DarkCard></div>;
 }
 
 function SessionDetailPage({ onBack }) {
   const [activeTab, setActiveTab] = useState("Overview");
-  return <div className="space-y-6"><button type="button" onClick={onBack} className="text-sm font-semibold text-slate-400 hover:text-white">← Back to dashboard</button><div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div><h1 className="text-4xl font-semibold tracking-tight text-white">{ACTIVE_SESSION.title}</h1><p className="mt-2 max-w-3xl text-slate-400">{ACTIVE_SESSION.description}</p><div className="mt-4 flex flex-wrap gap-2"><Pill tone="dark">{ACTIVE_SESSION.status}</Pill><Pill tone="dark">{ACTIVE_SESSION.date}</Pill><Pill tone="dark">{ACTIVE_SESSION.risks} risks</Pill><Pill tone="green">{ACTIVE_SESSION.score}/100</Pill></div></div><div className="flex flex-wrap gap-2">{["Re-analyze", "Package", "Certificate", "Share"].map((action) => <span key={action} className="rounded-md border border-slate-700 bg-transparent px-3.5 py-2 text-sm text-slate-200">{action}</span>)}</div></div><div className="flex gap-2 overflow-x-auto rounded-md border border-slate-800 bg-slate-900 p-2">{SESSION_TABS.map((tab) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={cn("shrink-0 rounded-md px-3.5 py-2 text-sm font-semibold", activeTab === tab ? "bg-white text-slate-950" : "text-slate-400 hover:text-white")}>{tab}</button>)}</div>{activeTab === "Overview" ? <OverviewTab /> : null}{activeTab === "Spec & Risks" ? <SpecRisksTab /> : null}{activeTab === "Tests & Guardrails" ? <TestsGuardrailsTab /> : null}{activeTab === "Docs & Launch" ? <DocsLaunchTab /> : null}{activeTab === "Regulation" ? <RegulationTab /> : null}{activeTab === "Governance" ? <GovernanceTab /> : null}</div>;
+  return <div className="space-y-6"><button type="button" onClick={onBack} className="text-sm font-semibold text-slate-400 hover:text-white">← Back to release operations</button><div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div><h1 className="text-4xl font-semibold tracking-tight text-white">{ACTIVE_SESSION.title}</h1><p className="mt-2 max-w-3xl text-slate-400">{ACTIVE_SESSION.description}</p><div className="mt-4 flex flex-wrap gap-2"><Pill tone="dark">{ACTIVE_SESSION.status}</Pill><Pill tone="dark">{ACTIVE_SESSION.date}</Pill><Pill tone="dark">{ACTIVE_SESSION.risks} risks</Pill><Pill tone="green">{ACTIVE_SESSION.score}/100</Pill></div></div><div className="flex flex-wrap gap-2">{["Re-analyze", "Package", "Certificate", "Share"].map((action) => <span key={action} className="rounded-md border border-slate-700 bg-transparent px-3.5 py-2 text-sm text-slate-200">{action}</span>)}</div></div><div className="flex gap-2 overflow-x-auto rounded-md border border-slate-800 bg-slate-900 p-2">{SESSION_TABS.map((tab) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={cn("shrink-0 rounded-md px-3.5 py-2 text-sm font-semibold", activeTab === tab ? "bg-white text-slate-950" : "text-slate-400 hover:text-white")}>{tab}</button>)}</div>{activeTab === "Overview" ? <OverviewTab /> : null}{activeTab === "Spec & Risks" ? <SpecRisksTab /> : null}{activeTab === "Tests & Guardrails" ? <TestsGuardrailsTab /> : null}{activeTab === "Docs" ? <DocsLaunchTab /> : null}{activeTab === "Regulation" ? <RegulationTab /> : null}{activeTab === "Governance" ? <GovernanceTab /> : null}</div>;
 }
 
 function OverviewTab() {
-  return <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]"><DarkCard title="Readiness score"><div className="flex flex-col gap-6 md:flex-row md:items-center"><div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full border-4 border-emerald-500 text-4xl font-bold text-emerald-400">{ACTIVE_SESSION.score}</div><div className="flex-1 space-y-3">{ACTIVE_SESSION.scoreBreakdown.map(([label, value]) => <ProgressRow key={label} label={label} value={value} />)}</div></div></DarkCard><DarkCard title="Must-do before launch"><ul className="space-y-3 text-sm text-slate-300">{ACTIVE_SESSION.checklist.map((item) => <li key={item}>□ {item}</li>)}</ul></DarkCard><DarkCard title="Risk severity"><RiskList /></DarkCard><DarkCard title="Version history"><div className="space-y-3 text-sm text-slate-300"><p>v3 · Current analysis complete</p><p>v2 · Risk register updated</p><p>v1 · Initial release review created</p></div></DarkCard></div>;
+  return <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]"><DarkCard title="Readiness score"><div className="flex flex-col gap-6 md:flex-row md:items-center"><div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full border-4 border-emerald-500 text-4xl font-bold text-emerald-400">{ACTIVE_SESSION.score}</div><div className="flex-1 space-y-3">{ACTIVE_SESSION.scoreBreakdown.map(([label, value]) => <ProgressRow key={label} label={label} value={value} />)}</div></div></DarkCard><DarkCard title="Required controls"><ul className="space-y-3 text-sm text-slate-300">{ACTIVE_SESSION.checklist.map((item) => <li key={item}>□ {item}</li>)}</ul></DarkCard><DarkCard title="Risk severity"><RiskList /></DarkCard><DarkCard title="Version history"><div className="space-y-3 text-sm text-slate-300"><p>v3 · Current analysis complete</p><p>v2 · Risk register updated</p><p>v1 · Initial release review created</p></div></DarkCard></div>;
 }
 
 function ProgressRow({ label, value }) {
@@ -434,11 +434,11 @@ function SpecRisksTab() {
 }
 
 function TestsGuardrailsTab() {
-  return <div className="space-y-6"><DarkCard title="Traceability chain"><div className="flex flex-wrap items-center gap-3 text-sm text-slate-300"><Pill tone="dark">Risk</Pill><span>→</span><Pill tone="dark">Test case</Pill><span>→</span><Pill tone="dark">Guardrail</Pill><span>→</span><Pill tone="dark">Implementation hook</Pill></div></DarkCard><div className="grid gap-6 lg:grid-cols-2"><DarkCard title="Test cases"><div className="space-y-4">{ACTIVE_SESSION.tests.map(([name, detail, type]) => <div key={name} className="rounded-xl bg-slate-800 p-4"><div className="flex items-center justify-between gap-4"><p className="font-semibold text-white">{name}</p><Pill tone="blue">{type}</Pill></div><p className="mt-2 text-sm text-slate-400">{detail}</p></div>)}</div></DarkCard><DarkCard title="Guardrails"><ul className="space-y-3 text-sm text-slate-300">{ACTIVE_SESSION.guardrails.map((item) => <li key={item}>✓ {item}</li>)}</ul></DarkCard></div></div>;
+  return <div className="space-y-6"><DarkCard title="Traceability chain"><div className="flex flex-wrap items-center gap-3 text-sm text-slate-300"><Pill tone="dark">Risk</Pill><span>/</span><Pill tone="dark">Test case</Pill><span>/</span><Pill tone="dark">Guardrail</Pill><span>/</span><Pill tone="dark">Implementation hook</Pill></div></DarkCard><div className="grid gap-6 lg:grid-cols-2"><DarkCard title="Test cases"><div className="space-y-4">{ACTIVE_SESSION.tests.map(([name, detail, type]) => <div key={name} className="rounded-xl bg-slate-800 p-4"><div className="flex items-center justify-between gap-4"><p className="font-semibold text-white">{name}</p><Pill tone="blue">{type}</Pill></div><p className="mt-2 text-sm text-slate-400">{detail}</p></div>)}</div></DarkCard><DarkCard title="Guardrails"><ul className="space-y-3 text-sm text-slate-300">{ACTIVE_SESSION.guardrails.map((item) => <li key={item}>{item}</li>)}</ul></DarkCard></div></div>;
 }
 
 function DocsLaunchTab() {
-  return <div className="grid gap-6 lg:grid-cols-3"><DarkCard title="Release notes"><p className="text-sm leading-7 text-slate-300">{ACTIVE_SESSION.releaseNotes}</p></DarkCard><DarkCard title="GTM page"><p className="text-sm leading-7 text-slate-300">{ACTIVE_SESSION.gtmPage}</p></DarkCard><DarkCard title="Pitch deck outline"><ul className="space-y-3 text-sm text-slate-300">{ACTIVE_SESSION.pitchDeck.map((item) => <li key={item}>→ {item}</li>)}</ul></DarkCard></div>;
+  return <div className="grid gap-6 lg:grid-cols-3"><DarkCard title="Release notes"><p className="text-sm leading-7 text-slate-300">{ACTIVE_SESSION.releaseNotes}</p></DarkCard><DarkCard title="Market page"><p className="text-sm leading-7 text-slate-300">{ACTIVE_SESSION.gtmPage}</p></DarkCard><DarkCard title="Stakeholder brief outline"><ul className="space-y-3 text-sm text-slate-300">{ACTIVE_SESSION.pitchDeck.map((item) => <li key={item}>/ {item}</li>)}</ul></DarkCard></div>;
 }
 
 function RegulationTab() {
@@ -446,7 +446,7 @@ function RegulationTab() {
 }
 
 function GovernanceTab() {
-  return <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]"><DarkCard title="Sign-offs"><div className="grid gap-3 sm:grid-cols-2">{["Product Manager", "QA Lead", "Legal / Compliance", "Security"].map((role) => <div key={role} className="rounded-xl bg-slate-800 p-4"><div className="flex items-center justify-between"><p className="font-semibold text-white">{role}</p><span className="text-xs text-amber-300">Pending</span></div><button type="button" className="mt-4 w-full rounded-md border border-white bg-white px-3 py-2 text-sm font-bold text-slate-950">Sign off</button></div>)}</div></DarkCard><DarkCard title="Certificates and audit"><div className="space-y-4 text-sm text-slate-300"><p>Generate auditor-ready PDF with review evidence.</p><button type="button" className="rounded-md border border-white bg-white px-5 py-2 text-sm font-bold text-slate-950">Download certificate</button><div className="rounded-xl bg-slate-800 p-4"><p className="font-semibold text-white">Audit trail</p><p className="mt-1 text-slate-400">Created → Analysed → Reviewed → Certificate requested</p></div></div></DarkCard><DarkCard title="Quality gates"><div className="space-y-3 text-sm text-slate-300"><p>Release score threshold: 80</p><p>High risk blocker: enabled</p><p>Required sign-offs: PM, QA, Legal, Security</p></div></DarkCard><DarkCard title="Integrations"><div className="flex flex-wrap gap-2">{["Slack", "Jira", "GitHub PR", "Linear", "Webhook"].map((item) => <Pill key={item} tone="dark">{item}</Pill>)}</div></DarkCard></div>;
+  return <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]"><DarkCard title="Sign-offs"><div className="grid gap-3 sm:grid-cols-2">{["Product Manager", "QA Lead", "Legal / Compliance", "Security"].map((role) => <div key={role} className="rounded-xl bg-slate-800 p-4"><div className="flex items-center justify-between"><p className="font-semibold text-white">{role}</p><span className="text-xs text-amber-300">Pending</span></div><button type="button" className="mt-4 w-full rounded-md border border-white bg-white px-3 py-2 text-sm font-bold text-slate-950">Sign off</button></div>)}</div></DarkCard><DarkCard title="Certificates and audit"><div className="space-y-4 text-sm text-slate-300"><p>Generate auditor-ready PDF with review evidence.</p><button type="button" className="rounded-md border border-white bg-white px-5 py-2 text-sm font-bold text-slate-950">Download certificate</button><div className="rounded-xl bg-slate-800 p-4"><p className="font-semibold text-white">Audit trail</p><p className="mt-1 text-slate-400">Created / Analysed / Reviewed / Certificate requested</p></div></div></DarkCard><DarkCard title="Quality gates"><div className="space-y-3 text-sm text-slate-300"><p>Release score threshold: 80</p><p>High risk blocker: enabled</p><p>Required sign-offs: PM, QA, Legal, Security</p></div></DarkCard><DarkCard title="Integrations"><div className="flex flex-wrap gap-2">{["Slack", "Jira", "GitHub PR", "Linear", "Webhook"].map((item) => <Pill key={item} tone="dark">{item}</Pill>)}</div></DarkCard></div>;
 }
 
 function SettingsPage() {
@@ -499,7 +499,7 @@ function AuthModal({ mode, form, error, loading, onClose, onSubmit, onFormChange
 function IntegratedAppHeader({ page, user, isAdmin, showGuide, onNavigate, onNewCheck, onToggleGuide, onLogout }) {
   const navItems = [
     ["Dashboard", "dash"],
-    ["Sessions", "sessions"],
+    ["Reviews", "sessions"],
     ...(isAdmin ? [["Admin", "admin"]] : []),
     ["Settings", "settings"],
   ];

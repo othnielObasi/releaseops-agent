@@ -8,7 +8,7 @@ import { auth as authAPI, sessions as sessionsAPI } from "./services/api";
 import { transformSessionList, transformSession } from "./services/transform";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
-import SessionsList from "./pages/SessionsList";
+import ReviewsList from "./pages/ReviewsList";
 import SessionDetail from "./pages/SessionDetail";
 import CompareView from "./pages/CompareView";
 import Admin from "./pages/Admin";
@@ -29,16 +29,16 @@ export default function App() {
   const [showGuide, setShowGuide] = useState(false);
   const [compareA, setCompareA] = useState(null);
   const [compareB, setCompareB] = useState(null);
-  const [sessions, setSessions] = useState([]);
-  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessions, setReviews] = useState([]);
+  const [sessionsLoading, setReviewsLoading] = useState(false);
 
-  const fetchSessions = useCallback(async () => {
-    setSessionsLoading(true);
+  const fetchReviews = useCallback(async () => {
+    setReviewsLoading(true);
     try {
       const raw = await sessionsAPI.list();
-      setSessions(transformSessionList(raw));
+      setReviews(transformSessionList(raw));
     } catch { /* ignore — user may not be authed yet */ }
-    finally { setSessionsLoading(false); }
+    finally { setReviewsLoading(false); }
   }, []);
 
   useEffect(() => {
@@ -48,10 +48,10 @@ export default function App() {
         setUser(u);
         setAuthenticated(true);
         setPage("dash");
-        fetchSessions();
+        fetchReviews();
       }).catch(() => { localStorage.removeItem("releaseops_token"); });
     }
-  }, [fetchSessions]);
+  }, [fetchReviews]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -67,7 +67,7 @@ export default function App() {
       setAuthMode(null);
       setAuthForm({ name: "", email: "", password: "" });
       setPage("dash");
-      fetchSessions();
+      fetchReviews();
     } catch (err) {
       setAuthError(err.message || "Authentication failed");
     } finally {
@@ -89,7 +89,7 @@ export default function App() {
 
   const navItems = [
     { k: "dash", l: "Dashboard", i: "📊" },
-    { k: "sessions", l: "Sessions", i: "📋" },
+    { k: "sessions", l: "Reviews", i: "📋" },
     ...(isAdmin ? [{ k: "admin", l: "Admin", i: "🔒" }] : []),
     { k: "settings", l: "Settings", i: "⚙" },
   ];
@@ -103,7 +103,7 @@ export default function App() {
       <nav className="glass-strong sticky top-0 z-50 px-4 py-2 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-1.5 cursor-pointer group" onClick={() => authenticated ? navigate("dash") : navigate("landing")}>
-          <span className="text-accent-yellow text-sm group-hover:animate-pulse">⚡</span>
+          <span className="text-accent-yellow text-sm group-hover:animate-pulse"></span>
           <span className="text-sm font-bold text-tx tracking-tight">ReleaseOps</span>
         </div>
 
@@ -129,7 +129,7 @@ export default function App() {
                   </button>
                 );
               })}
-              <Button variant="primary" size="xs" onClick={() => setShowNew(true)} className="ml-2">+ New Check</Button>
+              <Button variant="primary" size="xs" onClick={() => setShowNew(true)} className="ml-2">+ New Release Review</Button>
               <button
                 onClick={() => setShowGuide((p) => !p)}
                 className={`ml-1.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium font-sans transition-all duration-200 cursor-pointer border
@@ -217,20 +217,20 @@ export default function App() {
       <main className="relative z-10 px-4 pb-10 md:px-6">
         {page === "landing" && <Landing onLogin={() => { setAuthMode("signup"); setAuthError(""); }} />}
         {page === "dash" && <Dashboard sessions={sessions} loading={sessionsLoading} onNew={() => setShowNew(true)} onOpen={openSession} />}
-        {page === "sessions" && <SessionsList sessions={sessions} loading={sessionsLoading} onOpen={openSession} onNew={() => setShowNew(true)} onCompare={(a, b) => { setCompareA(a); setCompareB(b); setPage("compare"); }} />}
-        {page === "detail" && sessionId && <SessionDetail sessionId={sessionId} fallback={session} onBack={() => navigate("sessions")} onOpenSession={openSession} onRefreshSessions={fetchSessions} />}
+        {page === "sessions" && <ReviewsList sessions={sessions} loading={sessionsLoading} onOpen={openSession} onNew={() => setShowNew(true)} onCompare={(a, b) => { setCompareA(a); setCompareB(b); setPage("compare"); }} />}
+        {page === "detail" && sessionId && <SessionDetail sessionId={sessionId} fallback={session} onBack={() => navigate("sessions")} onOpenSession={openSession} onRefreshReviews={fetchReviews} />}
         {page === "compare" && compareA && compareB && <CompareView sessions={sessions} idA={compareA} idB={compareB} onBack={() => navigate("sessions")} />}
         {page === "admin" && isAdmin && <Admin />}
         {page === "settings" && <Settings />}
       </main>
 
       {/* ── Modals / Panels ── */}
-      {showNew && <NewCheck onClose={() => setShowNew(false)} onComplete={(id) => { setShowNew(false); fetchSessions().then(() => openSession(id)); }} />}
+      {showNew && <NewCheck onClose={() => setShowNew(false)} onComplete={(id) => { setShowNew(false); fetchReviews().then(() => openSession(id)); }} />}
       {showGuide && <GuidePanel onClose={() => setShowGuide(false)} />}
 
       {/* ── Footer ── */}
       <footer className="relative z-10 text-center py-3 border-t border-lg-bd text-xs text-tx-4">
-        ⚡ ReleaseOps v3 — AI-generated outputs require human review. Regulation data is not legal advice.
+         ReleaseOps v3 — Decision-support outputs require human review. Regulation data is not legal advice.
       </footer>
     </div>
   );

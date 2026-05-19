@@ -103,7 +103,7 @@ Three specialized review stages orchestrated by [LangGraph](https://github.com/l
 |-------|------|--------|
 | **Release Analysis** | Enterprise Workflow Analysis | Product intent, affected users, personas, user stories, business workflow, initial risk areas, readiness checklist |
 | **Validation Planning** | Risk, Test & Guardrail Planning | Risk register, testing strategy, linked test cases, safety checks, runtime guardrail recommendations |
-| **Decision Packaging** | Decision Record & Stakeholder Packaging | Release notes, stakeholder summary, launch decision explanation, approval package, GTM materials |
+| **Decision Packaging** | Decision Record & Stakeholder Packaging | Release notes, stakeholder summary, launch decision explanation, approval package, market readiness materials |
 
 Each output is validated, scored using a 0–100 readiness grade, and persisted for audit.
 

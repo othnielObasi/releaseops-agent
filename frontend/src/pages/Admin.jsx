@@ -46,7 +46,7 @@ export default function Admin() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5 animate-fade-up-1">
         {[
           { l: "TOTAL USERS", v: stats.total_users, s: "registered accounts" },
-          { l: "TOTAL SESSIONS", v: stats.total_sessions, s: "analyses run" },
+          { l: "TOTAL REVIEWS", v: stats.total_sessions, s: "reviews run" },
           { l: "LOGINS TODAY", v: stats.logins_today, s: "successful" },
           { l: "FAILED TODAY", v: stats.failed_today, s: "failed attempts", c: "text-accent-red" },
         ].map((x, i) => (
@@ -60,7 +60,7 @@ export default function Admin() {
 
       {/* Tab buttons */}
       <div className="flex gap-1 mb-3.5 animate-fade-up-2">
-        {[{ k: "users", l: "👥 Users" }, { k: "history", l: "📋 Login History" }, { k: "regulations", l: "🏛 Regulation Updates" }].map((t) => (
+        {[{ k: "users", l: "Users" }, { k: "history", l: "Login History" }, { k: "regulations", l: "Regulation Updates" }].map((t) => (
           <Button key={t.k} variant={tab === t.k ? "primary" : "ghost"} size="xs" onClick={() => setTab(t.k)}>{t.l}</Button>
         ))}
       </div>
@@ -82,7 +82,7 @@ export default function Admin() {
               <div key={i} className="grid grid-cols-[100px_1fr_70px_110px_90px] px-4 py-2 border-b border-lg-bd">
                 <div className="text-sm text-tx-2 font-mono">{(r.timestamp || "").slice(11, 19)}</div>
                 <div className="text-sm text-tx">{r.email}</div>
-                <div><Badge color={r.success ? "gn" : "rd"} size="xs">{r.success ? "✓" : "✕"}</Badge></div>
+                <div><Badge color={r.success ? "gn" : "rd"} size="xs">{r.success ? "success" : "failed"}</Badge></div>
                 <div className="text-sm text-tx-2">{r.reason}</div>
                 <div className="text-xs text-tx-3 font-mono">{r.ip}</div>
               </div>
@@ -92,9 +92,9 @@ export default function Admin() {
             )}
           </div>
           <div className="flex justify-between px-4 py-2 border-t border-lg-bd">
-            <Button variant="ghost" size="xs" onClick={() => auditPage > 0 && loadAuditPage(auditPage - 1)} disabled={auditPage <= 0}>← Prev</Button>
+            <Button variant="ghost" size="xs" onClick={() => auditPage > 0 && loadAuditPage(auditPage - 1)} disabled={auditPage <= 0}>Prev</Button>
             <span className="text-sm text-tx-3">Page {auditPage + 1} of {Math.max(1, Math.ceil(auditTotal / 50))}</span>
-            <Button variant="ghost" size="xs" onClick={() => loadAuditPage(auditPage + 1)} disabled={(auditPage + 1) >= Math.ceil(auditTotal / 50)}>Next →</Button>
+            <Button variant="ghost" size="xs" onClick={() => loadAuditPage(auditPage + 1)} disabled={(auditPage + 1) >= Math.ceil(auditTotal / 50)}>Next</Button>
           </div>
         </Card>
       )}
@@ -110,7 +110,7 @@ export default function Admin() {
                 {u.name && <span className="text-xs text-tx-3 ml-2">({u.name})</span>}
               </div>
               <span className="text-sm text-tx-3 font-mono">{u.role || "user"}</span>
-              <span className="text-xs text-accent-blue2 font-semibold">{u.session_count || 0} sessions</span>
+              <span className="text-xs text-accent-blue2 font-semibold">{u.session_count || 0} reviews</span>
             </div>
           ))}
           {users.length === 0 && (
@@ -136,7 +136,7 @@ export default function Admin() {
               <div key={i} className="p-2.5 bg-lg-sf2 rounded-lg flex justify-between items-center">
                 <div>
                   <div className="text-xs font-bold text-tx">{f.name} <span className="font-normal text-tx-3">({f.version})</span></div>
-                  <div className="text-xs text-tx-4 mt-0.5">{f.jurisdiction} · {f.reqs} requirements</div>
+                  <div className="text-xs text-tx-4 mt-0.5">{f.jurisdiction} / {f.reqs} requirements</div>
                 </div>
                 <Badge color="gn" size="xs">Active</Badge>
               </div>

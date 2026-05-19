@@ -75,7 +75,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       {/* Stats Row */}
       <section className="workspace-section mb-4 grid grid-cols-2 overflow-hidden animate-fade-up-1 sm:grid-cols-3 xl:grid-cols-5">
         {[
-          { l: "Sessions", v: sessions.length },
+          { l: "Reviews", v: sessions.length },
           { l: "Avg Score", v: avg },
           { l: "Total Risks", v: totalRisks },
           { l: "Controls Required", v: controlsRequired },
@@ -100,10 +100,10 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
 
       {/* Two Columns */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        {/* Recent Sessions */}
+        {/* Recent Reviews */}
         <div>
           <div className="mb-2 flex items-center justify-between gap-3">
-            <Label>Recent Sessions</Label>
+            <Label>Recent Reviews</Label>
             {sessions.length > 4 && <span className="text-xs font-semibold text-tx-4">{sessions.length - 4} more stored</span>}
           </div>
           <div className="workspace-section overflow-hidden">

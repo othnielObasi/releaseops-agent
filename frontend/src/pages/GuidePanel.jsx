@@ -15,7 +15,7 @@ export default function GuidePanel({ onClose }) {
       {[
         { n: 1, t: "Click + New Release Review", d: "From anywhere in the app." },
         { n: 2, t: "Describe the AI workflow", d: "Include data access, actions, users, and production context." },
-        { n: 3, t: "Watch the review pipeline", d: "Release Analysis → Validation Planning → Decision Packaging." },
+        { n: 3, t: "Watch the review pipeline", d: "Release Analysis, Validation Planning, and Decision Packaging." },
         { n: 4, t: "Explore results", d: "6 tabs: Overview, Spec & Risks, Tests, Docs, Regulation, Governance." },
       ].map((s, i) => (
         <div key={i} className="flex gap-2 mb-2.5">
@@ -38,7 +38,7 @@ export default function GuidePanel({ onClose }) {
       ].map((a, i) => (
         <div key={i} className={`p-2 bg-lg-sf2 rounded-md border-l-[3px] ${a.c.split(" ")[0]} mb-1.5`}>
           <div className={`text-sm font-bold ${a.c.split(" ")[1]}`}>{a.n}</div>
-          {a.o.map((o, j) => <div key={j} className="text-xs text-tx-3 mt-px">→ {o}</div>)}
+          {a.o.map((o, j) => <div key={j} className="text-xs text-tx-3 mt-px">- {o}</div>)}
         </div>
       ))}
 

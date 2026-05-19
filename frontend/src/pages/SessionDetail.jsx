@@ -268,12 +268,12 @@ function OverviewTab({ s, st, versionHistory, currentSessionId, onOpenSession })
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm font-semibold text-tx">v{v.version}</span>
                         {isCurrent && <Badge color="pr" size="xs">(current)</Badge>}
-                        <Badge color={gradeColor} size="xs">{v.score}/100 — {v.grade}</Badge>
+                        <Badge color={gradeColor} size="xs">{v.score}/100 - {v.grade}</Badge>
                       </div>
                       <div className="text-xs text-tx-4 mt-0.5">{new Date(v.created_at).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
                     </div>
                     {!isCurrent && onOpenSession && (
-                      <button onClick={() => onOpenSession(v.session_id)} className="text-xs text-accent-purple2 hover:underline shrink-0 bg-transparent border-none cursor-pointer font-sans">View →</button>
+                      <button onClick={() => onOpenSession(v.session_id)} className="text-xs text-accent-purple2 hover:underline shrink-0 bg-transparent border-none cursor-pointer font-sans">View</button>
                     )}
                     {/* Score bar */}
                     <div className="w-[60px] shrink-0">
@@ -293,7 +293,7 @@ function OverviewTab({ s, st, versionHistory, currentSessionId, onOpenSession })
       {/* Readiness Score */}
       <Card className="animate-fade-up">
         <div className="flex justify-between">
-          <div className="flex items-center gap-1.5"><span>🏆</span><span className="text-base font-bold text-tx">Readiness Score</span></div>
+          <div className="flex items-center gap-1.5"><span className="text-base font-bold text-tx">Readiness Score</span></div>
           <span className="text-xs text-tx-3">Risk coverage, spec, tests, guardrails, checklist</span>
         </div>
         <div className="flex items-center gap-7 mt-3.5">
@@ -321,9 +321,8 @@ function OverviewTab({ s, st, versionHistory, currentSessionId, onOpenSession })
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 animate-fade-up-1">
-        {[{ i: "⚠️", v: st.risks, l: "Risks", c: "text-accent-orange" }, { i: "✅", v: st.check, l: "Checklist", c: "text-accent-green" }, { i: "✏️", v: st.tests, l: "Tests", c: "text-accent-teal" }, { i: "🛡", v: st.guard, l: "Guardrails", c: "text-accent-purple2" }].map((x, i) => (
+        {[{ v: st.risks, l: "Risks", c: "text-accent-orange" }, { v: st.check, l: "Checklist", c: "text-accent-green" }, { v: st.tests, l: "Tests", c: "text-accent-teal" }, { v: st.guard, l: "Guardrails", c: "text-accent-purple2" }].map((x, i) => (
           <Card key={i} className="text-center !p-3">
-            <div className="text-sm">{x.i}</div>
             <div className={`text-2xl font-extrabold ${x.c}`}>{x.v}</div>
             <div className="text-sm text-tx-3">{x.l}</div>
           </Card>
@@ -362,16 +361,16 @@ function OverviewTab({ s, st, versionHistory, currentSessionId, onOpenSession })
         ))}
       </Card>
 
-      {/* GTM Preview */}
+      {/* Market Readiness Preview */}
       <Card className="animate-fade-up-4">
-        <Label>📣 GTM Preview</Label>
+        <Label>Market Readiness Preview</Label>
         <div className="bg-lg-sf2 rounded-lg p-3">
           <div className="text-base font-bold text-accent-red2">{s.gtm.h}</div>
           <div className="text-sm text-tx-4 mt-0.5 italic">{s.gtm.t}</div>
           <div className="flex gap-1 mt-2">
-            <Badge color="bl" size="xs">✦ {s.gtm.b} Benefits</Badge>
-            <Badge color="tl" size="xs">◎ {s.gtm.f} Features</Badge>
-            <Badge color="or" size="xs">🔒 Trust</Badge>
+            <Badge color="bl" size="xs">{s.gtm.b} Benefits</Badge>
+            <Badge color="tl" size="xs">{s.gtm.f} Features</Badge>
+            <Badge color="or" size="xs">Trust</Badge>
           </div>
         </div>
       </Card>
@@ -385,7 +384,7 @@ function SpecTab({ s }) {
     <div className="space-y-3.5">
       {/* Compliance bar */}
       <div className="flex items-center gap-2 px-3.5 py-2.5 bg-lg-sf2 border border-lg-bd rounded-lg animate-fade-up">
-        <span className="text-sm text-tx-2 font-semibold">📋 Compliance:</span>
+        <span className="text-sm text-tx-2 font-semibold">Compliance:</span>
         {["GDPR", "SOC2", "HIPAA"].map((c) => (
           <button key={c} className="bg-lg-sf3 border border-lg-bd rounded-md px-2.5 py-1 text-sm font-semibold text-tx cursor-pointer font-sans hover:border-lg-bd2 transition-colors">{c}</button>
         ))}
@@ -394,7 +393,7 @@ function SpecTab({ s }) {
 
       {/* Risk Heatmap */}
       <Card className="animate-fade-up-1">
-        <Label>📊 Risk Heatmap — {s.risks.length} total: {s.sb[0]} High · {s.sb[1]} Medium · {s.sb[2]} Low</Label>
+        <Label>Risk Heatmap - {s.risks.length} total: {s.sb[0]} High / {s.sb[1]} Medium / {s.sb[2]} Low</Label>
         <Heatmap risks={s.risks} />
       </Card>
 
@@ -552,7 +551,7 @@ function TestsTab({ s, st }) {
                   {data.manual > 0 && <Badge color="or" size="xs">Manual: {data.manual}</Badge>}
                 </div>
                 <div className="text-[10px] text-tx-4 mt-1.5 font-semibold uppercase tracking-wider">
-                  Review: <span className={data.automated >= data.manual ? "text-accent-green" : "text-accent-orange"}>{data.automated >= data.manual ? "✓ Ready" : "⏳ Pending"}</span>
+                  Review: <span className={data.automated >= data.manual ? "text-accent-green" : "text-accent-orange"}>{data.automated >= data.manual ? "Ready" : "Pending"}</span>
                 </div>
               </div>
             ))}
@@ -592,21 +591,21 @@ function TestsTab({ s, st }) {
 
       {/* Guardrails & Risk Hooks */}
       <Card className="animate-fade-up-3">
-        <Label>🛡 Guardrails & Risk Hooks ({gr.length})</Label>
+        <Label>Guardrails & Risk Hooks ({gr.length})</Label>
         <div className="space-y-2.5 mt-1">
           {gr.map((g, i) => (
             <div key={g.id || i} className="bg-lg-sf2 rounded-lg border border-lg-bd overflow-hidden">
               <div className="flex justify-between items-start p-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-tx">• {g.name}</span>
+                    <span className="text-sm font-bold text-tx">{g.name}</span>
                     <Badge color={g.where_applied === "Runtime" ? "rd" : g.where_applied === "Pre-Deploy" ? "or" : "gn"} size="xs">{g.where_applied}</Badge>
                   </div>
                   <div className="text-xs text-tx-3 mt-1 leading-snug">{g.description}</div>
                   <div className="flex gap-1 mt-2 flex-wrap">
                     {(g.risk_ids || []).map((r) => {
                       const linkedRisk = risks.find((ri) => ri.id === r);
-                      return <Badge key={r} color={linkedRisk?.s === "High" ? "rd" : "or"} size="xs">→ {r}{linkedRisk ? `: ${linkedRisk.n}` : ""}</Badge>;
+                      return <Badge key={r} color={linkedRisk?.s === "High" ? "rd" : "or"} size="xs">{r}{linkedRisk ? `: ${linkedRisk.n}` : ""}</Badge>;
                     })}
                   </div>
                 </div>
@@ -634,9 +633,9 @@ function DocsTab({ s }) {
   return (
     <div className="space-y-3.5">
       <Card className="animate-fade-up">
-        <Label>📝 Release Notes</Label>
+        <Label>Release Notes</Label>
         <div className="p-3 bg-lg-sf2 rounded-lg text-sm text-tx-2 leading-relaxed">
-          <strong className="text-accent-purple2">{rn.version || "v1.0"} — {rn.title || s.title}</strong><br /><br />
+          <strong className="text-accent-purple2">{rn.version || "v1.0"} - {rn.title || s.title}</strong><br /><br />
           {rn.summary && <><strong className="text-tx">Summary:</strong> {rn.summary}<br /><br /></>}
           {(rn.whats_new || []).length > 0 && (
             <><strong className="text-tx">What's New:</strong>
@@ -653,26 +652,26 @@ function DocsTab({ s }) {
         </div>
       </Card>
       <Card className="animate-fade-up-1">
-        <Label>🌐 GTM Landing Page</Label>
+        <Label>Market Page</Label>
         <div className="p-4 bg-lg-sf2 rounded-lg">
           <div className="text-base font-extrabold text-tx text-center">{s.gtm.h}</div>
           <div className="text-sm text-tx-4 mt-1 italic text-center">{s.gtm.t}</div>
           {s.gtm.benefits.length > 0 && (
             <div className="mt-3">
               <div className="text-xs font-bold text-tx-2 mb-1">Key Benefits</div>
-              {s.gtm.benefits.map((b, i) => <div key={i} className="text-sm text-tx-3 py-0.5">✦ {b}</div>)}
+              {s.gtm.benefits.map((b, i) => <div key={i} className="text-sm text-tx-3 py-0.5">{b}</div>)}
             </div>
           )}
           {s.gtm.trust?.bullets?.length > 0 && (
             <div className="mt-2 p-2 bg-lg-sf3 rounded-md">
               <div className="text-xs font-bold text-tx-2 mb-0.5">{s.gtm.trust.headline || "Trust & Safety"}</div>
-              {s.gtm.trust.bullets.map((b, i) => <div key={i} className="text-xs text-tx-4">🔒 {b}</div>)}
+              {s.gtm.trust.bullets.map((b, i) => <div key={i} className="text-xs text-tx-4">{b}</div>)}
             </div>
           )}
         </div>
       </Card>
       <Card className="animate-fade-up-2">
-        <Label>📊 Pitch Deck ({slides.length} slides)</Label>
+        <Label>Stakeholder Brief ({slides.length} slides)</Label>
         {slides.length > 0 ? (
           <div className="space-y-1.5">
             {slides.map((sl) => (
@@ -686,7 +685,7 @@ function DocsTab({ s }) {
             ))}
           </div>
         ) : (
-          <div className="text-xs text-tx-2">7-slide outline: Problem → Solution → Architecture → Risk Mitigation → GTM → Roadmap → Ask</div>
+          <div className="text-xs text-tx-2">7-slide outline: Problem / Solution / Architecture / Risk Mitigation / Market Plan / Roadmap / Ask</div>
         )}
       </Card>
     </div>
@@ -764,7 +763,7 @@ function RegulationTab({ s }) {
 
       {/* OWASP */}
       <Card className="animate-fade-up-1">
-        <Label>🔐 OWASP Top 10 LLM — Triggered Vulnerabilities</Label>
+        <Label>OWASP Top 10 LLM - Triggered Vulnerabilities</Label>
         <div className="space-y-1">
           {s.owasp.map((id, i) => (
             <div key={i} className="p-2 bg-lg-sf2 rounded-lg flex justify-between items-center">
@@ -778,7 +777,7 @@ function RegulationTab({ s }) {
 
       {/* NIST */}
       <Card className="animate-fade-up-2">
-        <Label>📋 NIST AI RMF Mapping</Label>
+        <Label>NIST AI RMF Mapping</Label>
         <div className="space-y-1">
           {s.nist.map((id, i) => {
             const prefix = id.split("-")[0];
@@ -795,7 +794,7 @@ function RegulationTab({ s }) {
 
       {/* Risk-Framework Crosswalk */}
       <Card className="animate-fade-up-3">
-        <Label>📊 Risk-to-Framework Crosswalk</Label>
+        <Label>Risk-to-Framework Crosswalk</Label>
         <div className="space-y-1">
           {s.risks.map((r, i) => (
             <div key={i} className="p-2 bg-lg-sf2 rounded-lg flex justify-between items-center">
@@ -950,7 +949,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
 
       {/* Sign-offs */}
       <Card className="animate-fade-up-1">
-        <Label>✍️ Role-Based Sign-offs</Label>
+        <Label>Role-Based Sign-offs</Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {ROLES.map((role) => {
             const so = (signoffs || []).find((x) => x.role === role);
@@ -960,7 +959,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-bold text-tx">{ROLE_LABELS[role] || role}</div>
                   <Badge color={approved ? "gn" : "or"} size="xs">
-                    {approved ? "✓ Approved" : "⏳ Pending"}
+                    {approved ? "Approved" : "Pending"}
                   </Badge>
                 </div>
                 {(so?.signed_by || so?.user_email) && <div className="text-xs text-tx-3 mt-1">{so.signed_by || so.user_email} · {so.signed_at ? new Date(so.signed_at).toLocaleDateString() : ""}</div>}
@@ -977,9 +976,9 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
 
       {/* Gate Evaluation */}
       <Card className="animate-fade-up-2">
-        <Label>🚦 Gate Evaluation</Label>
+        <Label>Gate Evaluation</Label>
         {gatesList.length === 0 && !gateResult ? (
-          <div className="text-sm text-tx-3 py-2">No gates configured. Create one in Settings → Gates.</div>
+          <div className="text-sm text-tx-3 py-2">No gates configured. Create one in Settings / Gates.</div>
         ) : (
           <>
             {gatesList.map((g) => (
