@@ -831,11 +831,17 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
 
   const ROLES = ["pm", "qa", "legal", "security"];
   const ROLE_LABELS = { pm: "Product Manager", qa: "QA Lead", legal: "Legal / Compliance", security: "Security" };
+  const ROLE_REQUIREMENTS = {
+    pm: "Business owner confirms scope, launch intent, and customer impact.",
+    qa: "Quality owner confirms release tests and acceptance criteria are covered.",
+    legal: "Legal/compliance owner confirms regulatory and customer-impact controls.",
+    security: "Security owner confirms data access, abuse paths, and runtime guardrails.",
+  };
 
-  async function handleSignoff(role) {
-    setSigningRole(role);
+  async function handleSignoff(role, status = "approved") {
+    setSigningRole(`${role}:${status}`);
     try {
-      await governance.signoff(sessionId, { role, status: "approved" });
+      await governance.signoff(sessionId, { role, status });
       const fresh = await governance.signoffs(sessionId);
       setSignoffs(fresh?.sign_offs || (Array.isArray(fresh) ? fresh : []));
       const freshDecision = await governance.decision(sessionId).catch(() => null);
@@ -890,9 +896,14 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
   }
 
   const approvedRoles = (signoffs || []).filter((so) => so.status === "approved").map((so) => so.role);
+  const rejectedRoles = (signoffs || []).filter((so) => so.status === "rejected").map((so) => so.role);
+  const missingRoles = ROLES.filter((role) => !approvedRoles.includes(role));
   const blockers = (s.agentRun?.blockers || []).filter((b) => b.status !== "resolved");
   const openBlockers = blockers.filter((b) => b.status === "open");
   const releaseDecision = decision?.decision === "go" ? "GO" : "HOLD";
+  const scoreReady = (decision?.score ?? st.score) >= (decision?.min_score ?? 70);
+  const approvalReady = missingRoles.length === 0;
+  const blockersReady = openBlockers.length === 0;
 
   return (
     <div className="space-y-3.5">
@@ -901,13 +912,64 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
         <div className={`rounded-lg border p-3 ${releaseDecision === "GO" ? "border-accent-green/25 bg-accent-green/8" : "border-accent-orange/25 bg-accent-orange/8"}`}>
           <div className={`text-2xl font-extrabold ${releaseDecision === "GO" ? "text-accent-green" : "text-accent-orange"}`}>{releaseDecision}</div>
           <div className="mt-1 text-sm text-tx-2">
-            Score {decision?.score ?? st.score}/{decision?.min_score ?? 70} · {decision?.open_blockers ?? openBlockers.length} open blocker{(decision?.open_blockers ?? openBlockers.length) === 1 ? "" : "s"} · {(decision?.missing_signoffs || []).length} missing sign-off{(decision?.missing_signoffs || []).length === 1 ? "" : "s"}
+            Score {decision?.score ?? st.score}/{decision?.min_score ?? 70} / {openBlockers.length} open blocker{openBlockers.length === 1 ? "" : "s"} / {missingRoles.length} missing approval{missingRoles.length === 1 ? "" : "s"}
           </div>
-          {(decision?.missing_signoffs || []).length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {decision.missing_signoffs.map((role) => <Badge key={role} color="or" size="xs">Needs {ROLE_LABELS[role] || role}</Badge>)}
-            </div>
-          )}
+          <div className="mt-3 grid grid-cols-2 gap-2 text-sm lg:grid-cols-4">
+            {[
+              ["Score threshold", scoreReady, `${decision?.score ?? st.score}/${decision?.min_score ?? 70}`],
+              ["Role approvals", approvalReady, `${approvedRoles.length}/${ROLES.length}`],
+              ["Blockers", blockersReady, `${openBlockers.length} open`],
+              ["Gate decision", releaseDecision === "GO", releaseDecision],
+            ].map(([label, passed, value]) => (
+              <div key={label} className={`rounded-md border px-3 py-2 ${passed ? "border-accent-green/20 bg-accent-green/5" : "border-accent-orange/20 bg-accent-orange/5"}`}>
+                <div className={`font-extrabold ${passed ? "text-accent-green" : "text-accent-orange"}`}>{value}</div>
+                <div className="text-xs text-tx-4">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      <Card className="animate-fade-up-1">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <Label>Approval Matrix</Label>
+            <p className="-mt-2 mb-3 text-sm text-tx-3">Each production release requires accountable approval from product, quality, legal/compliance, and security.</p>
+          </div>
+          <Badge color={approvalReady ? "gn" : rejectedRoles.length ? "rd" : "or"} size="sm">{approvedRoles.length}/{ROLES.length} approved</Badge>
+        </div>
+        <div className="overflow-hidden rounded-lg border border-lg-bd">
+          {ROLES.map((role) => {
+            const so = (signoffs || []).find((x) => x.role === role);
+            const approved = so?.status === "approved";
+            const rejected = so?.status === "rejected";
+            return (
+              <div key={role} className="grid gap-3 border-b border-lg-bd p-3 last:border-b-0 lg:grid-cols-[180px_minmax(0,1fr)_190px] lg:items-center">
+                <div>
+                  <div className="text-sm font-extrabold text-tx">{ROLE_LABELS[role] || role}</div>
+                  <Badge color={approved ? "gn" : rejected ? "rd" : "or"} size="xs" className="mt-1">{approved ? "Approved" : rejected ? "Rejected" : "Pending"}</Badge>
+                </div>
+                <div>
+                  <div className="text-sm text-tx-2">{ROLE_REQUIREMENTS[role]}</div>
+                  {(so?.signed_by || so?.user_email) && (
+                    <div className="mt-1 text-xs text-tx-4">{so.signed_by || so.user_email} / {so.signed_at ? new Date(so.signed_at).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}</div>
+                  )}
+                </div>
+                <div className="flex gap-2 lg:justify-end">
+                  {!approved && (
+                    <Button variant="primary" size="xs" onClick={() => handleSignoff(role, "approved")} disabled={signingRole === `${role}:approved`}>
+                      {signingRole === `${role}:approved` ? "Approving..." : "Approve"}
+                    </Button>
+                  )}
+                  {!rejected && (
+                    <Button variant="ghost" size="xs" onClick={() => handleSignoff(role, "rejected")} disabled={signingRole === `${role}:rejected`}>
+                      {signingRole === `${role}:rejected` ? "Rejecting..." : "Reject"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Card>
 
@@ -917,21 +979,21 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
           <div className="space-y-2">
             {blockers.map((blocker) => (
               <div key={blocker.id} className={`rounded-lg border p-3 ${blocker.status === "accepted" ? "border-accent-purple/25 bg-accent-purple/8" : "border-accent-orange/25 bg-accent-orange/8"}`}>
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <div className="text-sm font-bold text-tx">{blocker.title}</div>
                     <div className="mt-1 text-xs leading-5 text-tx-3">{blocker.reason}</div>
                     <div className="mt-2 flex flex-wrap gap-1">
                       <Badge color={blocker.severity === "High" ? "rd" : "or"} size="xs">{blocker.severity}</Badge>
-                      <Badge color="bl" size="xs">{blocker.owner_role}</Badge>
+                      <Badge color="bl" size="xs">Owner: {blocker.owner_role}</Badge>
                       <Badge color={blocker.status === "accepted" ? "pr" : "or"} size="xs">{blocker.status}</Badge>
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-col gap-1">
+                  <div className="flex shrink-0 gap-2">
                     {blocker.status === "open" && (
                       <>
                         <Button variant="success" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => handleBlockerStatus(blocker, "resolved")}>Resolve</Button>
-                        <Button variant="ghost" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => handleBlockerStatus(blocker, "accepted")}>Accept</Button>
+                        <Button variant="ghost" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => handleBlockerStatus(blocker, "accepted")}>Accept risk</Button>
                       </>
                     )}
                     {blocker.status === "accepted" && (
@@ -947,45 +1009,17 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
         )}
       </Card>
 
-      {/* Sign-offs */}
-      <Card className="animate-fade-up-1">
-        <Label>Role-Based Sign-offs</Label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {ROLES.map((role) => {
-            const so = (signoffs || []).find((x) => x.role === role);
-            const approved = so?.status === "approved";
-            return (
-              <div key={role} className={`p-2.5 bg-lg-sf2 rounded-lg border ${approved ? "border-accent-green/20" : "border-accent-orange/20"}`}>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm font-bold text-tx">{ROLE_LABELS[role] || role}</div>
-                  <Badge color={approved ? "gn" : "or"} size="xs">
-                    {approved ? "Approved" : "Pending"}
-                  </Badge>
-                </div>
-                {(so?.signed_by || so?.user_email) && <div className="text-xs text-tx-3 mt-1">{so.signed_by || so.user_email} · {so.signed_at ? new Date(so.signed_at).toLocaleDateString() : ""}</div>}
-                {!approved && (
-                  <Button variant="primary" size="xs" className="mt-2 w-full" onClick={() => handleSignoff(role)} disabled={signingRole === role}>
-                    {signingRole === role ? "Signing…" : "Sign Off"}
-                  </Button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-
-      {/* Gate Evaluation */}
       <Card className="animate-fade-up-2">
         <Label>Gate Evaluation</Label>
         {gatesList.length === 0 && !gateResult ? (
-          <div className="text-sm text-tx-3 py-2">No gates configured. Create one in Settings / Gates.</div>
+          <div className="rounded-lg border border-lg-bd bg-lg-sf2 p-3 text-sm text-tx-3">No gates configured. Create one in Settings / Gates to enforce score thresholds, required approvals, and framework coverage.</div>
         ) : (
           <>
             {gatesList.map((g) => (
-              <div key={g.id} className="flex justify-between items-center p-2 bg-lg-sf2 rounded-lg mb-1.5">
+              <div key={g.id} className="mb-1.5 flex flex-col gap-2 rounded-lg bg-lg-sf2 p-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="text-sm font-bold text-tx">{g.name || "Gate"}</div>
-                  <div className="text-xs text-tx-3">Min score: {g.min_score} · Required sign-offs: {g.required_signoffs}</div>
+                  <div className="text-xs text-tx-3">Min score: {g.min_score} / Required sign-offs: {String(g.required_signoffs || "[]").replaceAll("[", "").replaceAll("]", "").replaceAll('"', "")}</div>
                 </div>
                 <Button variant="primary" size="xs" onClick={() => handleEvaluate(g.id)}>Evaluate</Button>
               </div>
@@ -993,7 +1027,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
             {gateResult && (
               <div className={`mt-2 p-3 rounded-lg ${gateResult.passed ? "bg-accent-green/8 border border-accent-green/25" : "bg-accent-red/8 border border-accent-red/25"}`}>
                 <div className={`text-base font-extrabold ${gateResult.passed ? "text-accent-green" : "text-accent-red"}`}>{gateResult.passed ? "PASS" : "FAIL"}</div>
-                <div className="text-xs text-tx mt-1">Score: {st.score} · Approved sign-offs: {approvedRoles.length}</div>
+                <div className="text-xs text-tx mt-1">Score: {st.score} / Approved sign-offs: {approvedRoles.length}</div>
                 {gateResult.missing_signoffs?.length > 0 && <div className="text-sm text-tx-3 mt-1">Missing sign-offs: {gateResult.missing_signoffs.join(", ")}</div>}
                 {gateResult.open_blockers > 0 && <div className="text-sm text-tx-3 mt-1">Open blockers: {gateResult.open_blockers}</div>}
                 {gateResult.missing_frameworks?.length > 0 && <div className="text-sm text-tx-3 mt-1">Missing frameworks: {gateResult.missing_frameworks.join(", ")}</div>}
@@ -1002,7 +1036,6 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
           </>
         )}
       </Card>
-
       {/* Compliance Certificate */}
       <Card className="animate-fade-up-3">
         <Label>Integrations</Label>
