@@ -9,8 +9,9 @@ from app.deps import (
     verify_token, require_admin, sessions, get_db, audit, send_email, logger,
     normalize_session, SESSIONS_DIR,
 )
-from app.models.schemas import SignOffRequest, GateCreate, GateEvaluateRequest
+from app.models.schemas import SignOffRequest, GateCreate, GateEvaluateRequest, BlockerUpdateRequest
 from app.domain.regulation_engine import get_session_regulation_assessment
+from app.domain.agent_execution import build_release_decision, get_agent_run, update_blocker_status
 
 router = APIRouter(prefix="/api", tags=["governance"])
 
@@ -151,31 +152,40 @@ async def evaluate_gate(gate_id: str, body: GateEvaluateRequest, email: str = De
         session_score = score_data.get("score", 0) if isinstance(score_data, dict) else 0
         score_passed = session_score >= gate["min_score"]
 
-        required_signoffs = json.loads(gate["required_signoffs"]) if gate["required_signoffs"] else []
+        required_signoffs = [str(role).lower() for role in (json.loads(gate["required_signoffs"]) if gate["required_signoffs"] else [])]
         cur.execute(
         "SELECT role, status FROM governance_signoffs WHERE session_id=%s AND status='approved'",
         (body.session_id,)
         )
         sign_offs = cur.fetchall()
-        approved_roles = {so["role"] for so in sign_offs}
+        approved_roles = {str(so["role"]).lower() for so in sign_offs}
         missing_signoffs = [r for r in required_signoffs if r not in approved_roles]
         signoffs_passed = len(missing_signoffs) == 0
+
+        run = get_agent_run(body.session_id)
+        open_blockers = [b for b in run.get("blockers", []) if b.get("status") == "open"]
+        blockers_passed = len(open_blockers) == 0
 
         required_frameworks = json.loads(gate["required_frameworks"]) if gate["required_frameworks"] else []
         missing_frameworks = []
         if required_frameworks:
-            cur.execute(
-                """SELECT DISTINCT r.framework_id FROM risk_regulation_mappings rrm
-                   JOIN requirements r ON rrm.requirement_id = r.id
-                   WHERE rrm.session_id=%s""",
-                (body.session_id,)
-            )
-            existing_mappings = cur.fetchall()
+            cur.execute("SELECT to_regclass('public.risk_regulation_mappings') AS risk_map, to_regclass('public.requirements') AS requirements")
+            table_check = cur.fetchone() or {}
+            if table_check.get("risk_map") and table_check.get("requirements"):
+                cur.execute(
+                    """SELECT DISTINCT r.framework_id FROM risk_regulation_mappings rrm
+                       JOIN requirements r ON rrm.requirement_id = r.id
+                       WHERE rrm.session_id=%s""",
+                    (body.session_id,)
+                )
+                existing_mappings = cur.fetchall()
+            else:
+                existing_mappings = []
             assessed_fws = {m["framework_id"] for m in existing_mappings}
             missing_frameworks = [f for f in required_frameworks if f not in assessed_fws]
         frameworks_passed = len(missing_frameworks) == 0
 
-        passed = score_passed and signoffs_passed and frameworks_passed
+        passed = score_passed and signoffs_passed and frameworks_passed and blockers_passed
 
         cur.execute(
         """INSERT INTO gate_evaluations (id, gate_id, session_id, passed, score, missing_signoffs, missing_frameworks, evaluated_at)
@@ -196,10 +206,37 @@ async def evaluate_gate(gate_id: str, body: GateEvaluateRequest, email: str = De
         "score_passed": score_passed,
         "signoffs_passed": signoffs_passed,
         "missing_signoffs": missing_signoffs,
+        "blockers_passed": blockers_passed,
+        "open_blockers": len(open_blockers),
         "frameworks_passed": frameworks_passed,
         "missing_frameworks": missing_frameworks,
         "evaluated_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+@router.patch("/sessions/{session_id}/blockers/{blocker_id}")
+async def update_blocker(session_id: str, blocker_id: str, body: BlockerUpdateRequest, email: str = Depends(verify_token)):
+    s = _resolve_session(session_id)
+    if not s:
+        raise HTTPException(status_code=404, detail="Session not found")
+    _check_owner(s, email)
+    try:
+        blocker = update_blocker_status(session_id, blocker_id, body.status, email, body.comment)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    if not blocker:
+        raise HTTPException(status_code=404, detail="Blocker not found")
+    audit(email, "blocker_status_changed", session_id, metadata={"blocker_id": blocker_id, "status": body.status})
+    return {"blocker": blocker, "agent_run": get_agent_run(session_id), "decision": build_release_decision(session_id)}
+
+
+@router.get("/sessions/{session_id}/decision")
+async def get_release_decision(session_id: str, email: str = Depends(verify_token)):
+    s = _resolve_session(session_id)
+    if not s:
+        raise HTTPException(status_code=404, detail="Session not found")
+    _check_owner(s, email)
+    return build_release_decision(session_id)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -377,3 +414,62 @@ async def get_audit_log(limit: int = 100, email: str = Depends(require_admin)):
         rows = cur.fetchall()
         cur.close()
     return {"audit_log": [dict(r) for r in rows]}
+
+
+@router.get("/sessions/{session_id}/audit")
+async def get_session_audit_log(session_id: str, limit: int = 100, email: str = Depends(verify_token)):
+    s = _resolve_session(session_id)
+    if not s:
+        raise HTTPException(status_code=404, detail="Session not found")
+    _check_owner(s, email)
+    with get_db() as conn:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            """
+            SELECT email, action, resource_id, metadata, ip, created_at
+            FROM audit_log
+            WHERE resource_id=%s
+            ORDER BY created_at DESC
+            LIMIT %s
+            """,
+            (session_id, min(limit, 200)),
+        )
+        audit_rows = [dict(r) for r in cur.fetchall()]
+        cur.execute(
+            """
+            SELECT step_key, event_type AS action, message, metadata, created_at
+            FROM agent_execution_events
+            WHERE session_id=%s
+            ORDER BY created_at DESC
+            LIMIT %s
+            """,
+            (session_id, min(limit, 200)),
+        )
+        execution_rows = [dict(r) for r in cur.fetchall()]
+        cur.close()
+    events = []
+    for row in audit_rows:
+        metadata = row.get("metadata")
+        try:
+            metadata = json.loads(metadata) if isinstance(metadata, str) and metadata else {}
+        except Exception:
+            metadata = {}
+        events.append({**row, "metadata": metadata, "source": "audit"})
+    for row in execution_rows:
+        metadata = row.get("metadata")
+        try:
+            metadata = json.loads(metadata) if isinstance(metadata, str) and metadata else {}
+        except Exception:
+            metadata = {}
+        events.append({
+            "email": "releaseops-agent",
+            "action": row.get("action"),
+            "resource_id": session_id,
+            "metadata": metadata,
+            "message": row.get("message"),
+            "step_key": row.get("step_key"),
+            "created_at": row.get("created_at"),
+            "source": "execution",
+        })
+    events.sort(key=lambda item: item.get("created_at") or "", reverse=True)
+    return {"session_id": session_id, "events": events[: min(limit, 200)]}

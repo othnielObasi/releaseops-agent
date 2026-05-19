@@ -54,6 +54,10 @@ class GateCreate(BaseModel):
 class GateEvaluateRequest(BaseModel):
     session_id: str
 
+class BlockerUpdateRequest(BaseModel):
+    status: str = "resolved"  # open | resolved | accepted
+    comment: Optional[str] = None
+
 
 # ── Regulation ────────────────────────────────────────────────────────────────
 class ComplianceApplyRequest(BaseModel):

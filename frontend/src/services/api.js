@@ -131,6 +131,18 @@ export const governance = {
       body: JSON.stringify(payload),
     }),
 
+  updateBlocker: (sessionId, blockerId, payload) =>
+    request(`/sessions/${encodeURIComponent(sessionId)}/blockers/${encodeURIComponent(blockerId)}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+
+  audit: (sessionId) =>
+    request(`/sessions/${encodeURIComponent(sessionId)}/audit`),
+
+  decision: (sessionId) =>
+    request(`/sessions/${encodeURIComponent(sessionId)}/decision`),
+
   gates: () => request("/gates"),
 
   evaluateGate: (sessionId) =>

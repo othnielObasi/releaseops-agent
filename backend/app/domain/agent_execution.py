@@ -290,3 +290,71 @@ def get_agent_run(session_id: str) -> dict:
         "blockers": [{**dict(row), "source_ref": _parse(row.get("source_ref"), {})} for row in blockers],
         "events": [{**dict(row), "metadata": _parse(row.get("metadata"), {})} for row in events],
     }
+
+
+def update_blocker_status(session_id: str, blocker_id: str, status: str, actor_email: str, comment: str | None = None) -> dict:
+    normalized = (status or "").strip().lower()
+    if normalized not in {"open", "resolved", "accepted"}:
+        raise ValueError("status must be one of: open, resolved, accepted")
+    now = utc_now()
+    resolved_at = now if normalized in {"resolved", "accepted"} else None
+    with get_db() as conn:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("SELECT * FROM agent_blockers WHERE id=%s AND session_id=%s", (blocker_id, session_id))
+        blocker = cur.fetchone()
+        if not blocker:
+            cur.close()
+            return {}
+        source_ref = _parse(blocker.get("source_ref"), {})
+        history = source_ref.get("history") if isinstance(source_ref.get("history"), list) else []
+        history.append({"status": normalized, "actor": actor_email, "comment": comment, "at": now})
+        source_ref["history"] = history
+        cur.execute(
+            """
+            UPDATE agent_blockers
+            SET status=%s, resolved_at=%s, updated_at=%s, source_ref=%s
+            WHERE id=%s AND session_id=%s
+            RETURNING *
+            """,
+            (normalized, resolved_at, now, _json(source_ref), blocker_id, session_id),
+        )
+        updated = cur.fetchone()
+        cur.close()
+    add_event(session_id, updated.get("step_key"), "blocker_status_changed", f"Blocker {updated.get('title')} marked {normalized}.", {
+        "blocker_id": blocker_id,
+        "status": normalized,
+        "actor": actor_email,
+        "comment": comment,
+    })
+    return {**dict(updated), "source_ref": _parse(updated.get("source_ref"), {})}
+
+
+def build_release_decision(session_id: str, required_signoffs: list[str] | None = None, min_score: int = 70) -> dict:
+    run = get_agent_run(session_id)
+    open_blockers = [b for b in run.get("blockers", []) if b.get("status") == "open"]
+    with get_db() as conn:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("SELECT readiness_score, status FROM sessions_db WHERE id=%s", (session_id,))
+        session = cur.fetchone() or {}
+        cur.execute("SELECT role, status, user_email, signed_at FROM governance_signoffs WHERE session_id=%s", (session_id,))
+        signoffs = cur.fetchall()
+        cur.close()
+    score_data = _parse(session.get("readiness_score"), {}) if session else {}
+    score = score_data.get("score", 0) if isinstance(score_data, dict) else 0
+    required = required_signoffs or ["pm", "legal", "qa", "security"]
+    approved = {row["role"] for row in signoffs if row.get("status") == "approved"}
+    missing = [role for role in required if role not in approved]
+    status = session.get("status") or "unknown"
+    passed = status == "complete" and score >= min_score and not open_blockers and not missing
+    return {
+        "decision": "go" if passed else "hold",
+        "passed": passed,
+        "session_status": status,
+        "score": score,
+        "min_score": min_score,
+        "open_blockers": len(open_blockers),
+        "missing_signoffs": missing,
+        "approved_signoffs": sorted(approved),
+        "run_status": run.get("status"),
+        "generated_at": utc_now(),
+    }

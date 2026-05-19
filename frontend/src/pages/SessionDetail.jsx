@@ -29,6 +29,8 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
   const [gatesList, setGatesList] = useState([]);
   const [integrations, setIntegrations] = useState(EMPTY_INTEGRATIONS);
   const [versionHistory, setVersionHistory] = useState([]);
+  const [auditEvents, setAuditEvents] = useState([]);
+  const [decision, setDecision] = useState(null);
   const [showReanalyzeModal, setShowReanalyzeModal] = useState(false);
   const [reanalyzeTitle, setReanalyzeTitle] = useState("");
   const [reanalyzeDesc, setReanalyzeDesc] = useState("");
@@ -42,6 +44,12 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
     }).catch(() => {}).finally(() => setLoading(false));
   };
 
+  const refreshGovernanceState = () => {
+    if (!sessionId) return;
+    governance.audit(sessionId).then((r) => setAuditEvents(r.events || [])).catch(() => {});
+    governance.decision(sessionId).then((r) => setDecision(r)).catch(() => {});
+  };
+
   useEffect(() => {
     fetchDetail();
     if (sessionId) {
@@ -49,6 +57,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
       gatesAPI.list().then((r) => setGatesList(r.gates || [])).catch(() => {});
       sessionsAPI.integrations(sessionId).then((r) => setIntegrations({ ...EMPTY_INTEGRATIONS, ...(r.integrations || {}) })).catch(() => setIntegrations(EMPTY_INTEGRATIONS));
       versionsAPI.list(sessionId).then((r) => setVersionHistory(r.versions || [])).catch(() => {});
+      refreshGovernanceState();
     }
   }, [sessionId]);
 
@@ -173,7 +182,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
       {tab === "tests" && <TestsTab s={s} st={st} />}
       {tab === "docs" && <DocsTab s={s} />}
       {tab === "regulation" && <RegulationTab s={s} />}
-      {tab === "governance" && <GovernanceTab s={s} st={st} sessionId={sessionId} signoffs={signoffs} setSignoffs={setSignoffs} gatesList={gatesList} gateResult={gateResult} setGateResult={setGateResult} integrations={integrations} setIntegrations={setIntegrations} />}
+      {tab === "governance" && <GovernanceTab s={s} st={st} sessionId={sessionId} signoffs={signoffs} setSignoffs={setSignoffs} gatesList={gatesList} gateResult={gateResult} setGateResult={setGateResult} integrations={integrations} setIntegrations={setIntegrations} auditEvents={auditEvents} decision={decision} setDecision={setDecision} setActionMsg={setActionMsg} onRefreshGovernance={refreshGovernanceState} onRefreshSession={fetchDetail} />}
     </div>
   );
 }
@@ -706,8 +715,9 @@ function RegulationTab({ s }) {
 }
 
 /* ── Governance ── */
-function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gateResult, setGateResult, integrations, setIntegrations }) {
+function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gateResult, setGateResult, integrations, setIntegrations, auditEvents = [], decision, setDecision, setActionMsg, onRefreshGovernance, onRefreshSession }) {
   const [signingRole, setSigningRole] = useState(null);
+  const [updatingBlocker, setUpdatingBlocker] = useState(null);
   const [savingIntegrations, setSavingIntegrations] = useState(false);
   const [integrationMsg, setIntegrationMsg] = useState("");
 
@@ -720,6 +730,9 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
       await governance.signoff(sessionId, { role, status: "approved" });
       const fresh = await governance.signoffs(sessionId);
       setSignoffs(fresh?.sign_offs || (Array.isArray(fresh) ? fresh : []));
+      const freshDecision = await governance.decision(sessionId).catch(() => null);
+      if (freshDecision) setDecision(freshDecision);
+      onRefreshGovernance?.();
     } catch { /* silent */ } finally { setSigningRole(null); }
   }
 
@@ -727,7 +740,22 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
     try {
       const res = await gatesAPI.evaluate(gateId, sessionId);
       setGateResult(res);
+      onRefreshGovernance?.();
     } catch { /* silent */ }
+  }
+
+  async function handleBlockerStatus(blocker, status) {
+    setUpdatingBlocker(blocker.id);
+    try {
+      const res = await governance.updateBlocker(sessionId, blocker.id, { status });
+      if (res.decision) setDecision(res.decision);
+      onRefreshSession?.();
+      onRefreshGovernance?.();
+    } catch (err) {
+      setIntegrationMsg(err.message || "Failed to update blocker.");
+    } finally {
+      setUpdatingBlocker(null);
+    }
   }
 
   function updateIntegration(field, value) {
@@ -754,11 +782,65 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
   }
 
   const approvedRoles = (signoffs || []).filter((so) => so.status === "approved").map((so) => so.role);
+  const blockers = (s.agentRun?.blockers || []).filter((b) => b.status !== "resolved");
+  const openBlockers = blockers.filter((b) => b.status === "open");
+  const releaseDecision = decision?.decision === "go" ? "GO" : "HOLD";
 
   return (
     <div className="space-y-3.5">
-      {/* Sign-offs */}
       <Card className="animate-fade-up">
+        <Label>Production Decision</Label>
+        <div className={`rounded-lg border p-3 ${releaseDecision === "GO" ? "border-accent-green/25 bg-accent-green/8" : "border-accent-orange/25 bg-accent-orange/8"}`}>
+          <div className={`text-2xl font-extrabold ${releaseDecision === "GO" ? "text-accent-green" : "text-accent-orange"}`}>{releaseDecision}</div>
+          <div className="mt-1 text-sm text-tx-2">
+            Score {decision?.score ?? st.score}/{decision?.min_score ?? 70} · {decision?.open_blockers ?? openBlockers.length} open blocker{(decision?.open_blockers ?? openBlockers.length) === 1 ? "" : "s"} · {(decision?.missing_signoffs || []).length} missing sign-off{(decision?.missing_signoffs || []).length === 1 ? "" : "s"}
+          </div>
+          {(decision?.missing_signoffs || []).length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {decision.missing_signoffs.map((role) => <Badge key={role} color="or" size="xs">Needs {ROLE_LABELS[role] || role}</Badge>)}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Card className="animate-fade-up">
+        <Label>Release Blockers</Label>
+        {blockers.length > 0 ? (
+          <div className="space-y-2">
+            {blockers.map((blocker) => (
+              <div key={blocker.id} className={`rounded-lg border p-3 ${blocker.status === "accepted" ? "border-accent-purple/25 bg-accent-purple/8" : "border-accent-orange/25 bg-accent-orange/8"}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-bold text-tx">{blocker.title}</div>
+                    <div className="mt-1 text-xs leading-5 text-tx-3">{blocker.reason}</div>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      <Badge color={blocker.severity === "High" ? "rd" : "or"} size="xs">{blocker.severity}</Badge>
+                      <Badge color="bl" size="xs">{blocker.owner_role}</Badge>
+                      <Badge color={blocker.status === "accepted" ? "pr" : "or"} size="xs">{blocker.status}</Badge>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-col gap-1">
+                    {blocker.status === "open" && (
+                      <>
+                        <Button variant="success" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => handleBlockerStatus(blocker, "resolved")}>Resolve</Button>
+                        <Button variant="ghost" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => handleBlockerStatus(blocker, "accepted")}>Accept</Button>
+                      </>
+                    )}
+                    {blocker.status === "accepted" && (
+                      <Button variant="ghost" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => handleBlockerStatus(blocker, "open")}>Reopen</Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-accent-green/20 bg-accent-green/5 p-3 text-sm text-tx-2">No active blockers remain.</div>
+        )}
+      </Card>
+
+      {/* Sign-offs */}
+      <Card className="animate-fade-up-1">
         <Label>✍️ Role-Based Sign-offs</Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {ROLES.map((role) => {
@@ -785,7 +867,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
       </Card>
 
       {/* Gate Evaluation */}
-      <Card className="animate-fade-up-1">
+      <Card className="animate-fade-up-2">
         <Label>🚦 Gate Evaluation</Label>
         {gatesList.length === 0 && !gateResult ? (
           <div className="text-sm text-tx-3 py-2">No gates configured. Create one in Settings → Gates.</div>
@@ -805,6 +887,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
                 <div className={`text-base font-extrabold ${gateResult.passed ? "text-accent-green" : "text-accent-red"}`}>{gateResult.passed ? "PASS" : "FAIL"}</div>
                 <div className="text-xs text-tx mt-1">Score: {st.score} · Approved sign-offs: {approvedRoles.length}</div>
                 {gateResult.missing_signoffs?.length > 0 && <div className="text-sm text-tx-3 mt-1">Missing sign-offs: {gateResult.missing_signoffs.join(", ")}</div>}
+                {gateResult.open_blockers > 0 && <div className="text-sm text-tx-3 mt-1">Open blockers: {gateResult.open_blockers}</div>}
                 {gateResult.missing_frameworks?.length > 0 && <div className="text-sm text-tx-3 mt-1">Missing frameworks: {gateResult.missing_frameworks.join(", ")}</div>}
               </div>
             )}
@@ -813,7 +896,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
       </Card>
 
       {/* Compliance Certificate */}
-      <Card className="animate-fade-up-2">
+      <Card className="animate-fade-up-3">
         <Label>🔌 Integrations</Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <input value={integrations.slack_webhook || ""} onChange={(e) => updateIntegration("slack_webhook", e.target.value)} placeholder="Slack webhook URL" className="input-glass text-sm" />
@@ -833,7 +916,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
         {integrationMsg && <div className="text-sm text-tx-3 mt-2">{integrationMsg}</div>}
       </Card>
 
-      <Card className="animate-fade-up-3">
+      <Card className="animate-fade-up-4">
         <Label>📜 Compliance Certificate</Label>
         <div className="p-3.5 bg-lg-sf2 rounded-lg text-center">
           <div className="text-base font-bold text-tx">Generate Auditor-Ready Certificate</div>
@@ -848,14 +931,13 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
       {/* Audit Trail */}
       <Card className="animate-fade-up-4">
         <Label>🔒 Audit Trail</Label>
-        {[
-          { a: "Session created", t: s.date, u: "system" },
-          { a: "Pipeline completed", t: s.date, u: "analysis-svc" },
-          ...(signoffs || []).filter((so) => so.status === "approved").map((so) => ({ a: `${so.role} sign-off: approved`, t: so.signed_at ? new Date(so.signed_at).toLocaleDateString() : s.date, u: so.signed_by || so.user_email || "user" })),
-        ].map((e, i) => (
+        {(auditEvents.length ? auditEvents : [
+          { action: "Session created", created_at: s.date, email: "system" },
+          { action: "Pipeline completed", created_at: s.date, email: "releaseops-agent" },
+        ]).slice(0, 12).map((e, i) => (
           <div key={i} className="flex justify-between py-1.5 border-b border-lg-bd text-sm">
-            <span className="text-tx-2">{e.a}</span>
-            <span className="text-tx-4 font-mono">{e.u} · {e.t}</span>
+            <span className="text-tx-2">{e.message || String(e.action || "").replaceAll("_", " ")}</span>
+            <span className="text-tx-4 font-mono">{e.email || "system"} · {e.created_at ? new Date(e.created_at).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}</span>
           </div>
         ))}
       </Card>
