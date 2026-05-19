@@ -163,6 +163,32 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
 
       <Pipeline phase={3} />
 
+      <Card className="my-3 animate-fade-up-1">
+        <div className="grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <div className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent-purple">What judges should see</div>
+            <h2 className="mt-2 text-xl font-extrabold tracking-tight text-tx">This is one persisted release decision, not a static report.</h2>
+            <p className="mt-2 text-sm leading-6 text-tx-2">
+              The agent run produced risk evidence, validation work, governance blockers, and an approval path for this
+              feature. Open the tabs below to inspect each artifact behind the decision.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[
+              ["Spec & Risks", `${st.risks} risks mapped to release context`],
+              ["Tests & Guardrails", `${st.tests} tests and ${st.guard} guardrails generated`],
+              ["Regulation", `${s.owasp.length + s.nist.length} framework mappings available`],
+              ["Governance", "Blockers, sign-offs, gates, and audit events drive GO/NO-GO"],
+            ].map(([title, body]) => (
+              <div key={title} className="rounded-xl border border-lg-bd bg-lg-sf2 p-3">
+                <div className="text-sm font-bold text-tx">{title}</div>
+                <div className="mt-1 text-xs leading-5 text-tx-3">{body}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
       {/* AI Warning */}
       <div className="bg-accent-orange/8 border border-accent-orange/20 rounded-md px-3 py-1.5 my-2 text-sm text-accent-orange2 animate-fade-up-1">
         ⚠ AI-generated — requires human review before production use.

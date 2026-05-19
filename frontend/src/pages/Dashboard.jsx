@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Badge, Card, Button, CircularScore, Label } from "../components/ui";
 import { governance } from "../services/api";
 
-const C = { bl: "#3b82f6", or: "#f59e0b", rd: "#ef4444", gn: "#22c55e", pr: "#7c3aed", sf: "#11131b", bd: "#1d2234" };
+const C = { bl: "#2563eb", or: "#d97706", rd: "#dc2626", gn: "#059669", pr: "#7c3aed", sf: "#ffffff", bd: "#cbd5e1" };
 
 function deriveRunState(session) {
   const run = session.agentRun || {};
@@ -107,10 +107,53 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       <div className="flex justify-between items-center mb-5 pt-6 animate-fade-up">
         <div>
           <h1 className="text-3xl font-extrabold text-tx">Dashboard</h1>
-          <p className="text-sm text-tx-3 mt-1">Release readiness overview</p>
+          <p className="text-sm text-tx-3 mt-1">Autonomous AI release review, evidence, blockers, and go-live governance.</p>
         </div>
         <Button variant="primary" size="md" onClick={onNew}>+ New Readiness Check</Button>
       </div>
+
+      <Card className="mb-4 animate-fade-up">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent-purple">Judge briefing</div>
+            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-tx">ReleaseOps Agent decides whether an AI feature is ready to ship.</h2>
+            <p className="mt-2 text-sm leading-6 text-tx-2">
+              The system turns a feature description into a persisted agent run: it plans the review, identifies risks,
+              generates tests and guardrails, packages evidence, and blocks production until owners resolve or accept
+              release blockers.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button variant="primary" size="sm" onClick={onNew}>Run live review</Button>
+            {sessions[0] && <Button variant="ghost" size="sm" onClick={() => onOpen(sessions[0].id)}>Open latest evidence</Button>}
+          </div>
+        </div>
+        <div className="mt-4 grid gap-2 md:grid-cols-4">
+          {[
+            ["1. Intake", "Feature title and release context enter the backend."],
+            ["2. Reason", "Agent models risks, tests, guardrails, and regulatory impact."],
+            ["3. Govern", "Open blockers prevent a GO decision until handled."],
+            ["4. Prove", "Audit trail, evidence pack, certificate, and run history persist."],
+          ].map(([title, body]) => (
+            <div key={title} className="rounded-xl border border-lg-bd bg-lg-sf2 p-3">
+              <div className="text-sm font-extrabold text-tx">{title}</div>
+              <div className="mt-1 text-xs leading-5 text-tx-3">{body}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          {[
+            ["Enterprise value", "Stops unsafe AI releases before production and creates auditor-ready evidence."],
+            ["Agentic workflow", "Multi-step execution state is stored, inspectable, and tied to release decisions."],
+            ["Vultr deployment", "Frontend, API, and Postgres run as the production system of record on Vultr."],
+          ].map(([title, body]) => (
+            <div key={title} className="rounded-lg bg-accent-purple/5 px-3 py-2">
+              <div className="text-xs font-bold text-accent-purple">{title}</div>
+              <div className="mt-1 text-xs leading-5 text-tx-2">{body}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {actionMsg && (
         <div className="mb-3 rounded-md border border-lg-bd bg-lg-sf2 px-3 py-2 text-sm text-tx-2">
