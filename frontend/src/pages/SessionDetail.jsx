@@ -121,7 +121,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
     return (
       <div className="max-w-[960px] mx-auto pt-10 text-center">
         <div className="text-tx-3 text-sm">Session not found.</div>
-        <Button variant="ghost" size="sm" onClick={onBack} className="mt-3">← Back to Sessions</Button>
+        <Button variant="ghost" size="sm" onClick={onBack} className="mt-3">Back to reviews</Button>
       </div>
     );
   }
@@ -133,12 +133,12 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
       {/* Header */}
       <div className="flex flex-wrap justify-between items-center gap-2 pt-4 mb-1 animate-fade-up">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="xs" onClick={onBack}>← Back</Button>
+          <Button variant="ghost" size="xs" onClick={onBack}>Back</Button>
           <span className="text-xl">{s.icon}</span>
           <div>
             <div className="text-lg font-bold text-tx flex items-center gap-1.5">
               {s.title}
-              <Badge color={s.type === "demo" ? "or" : "bl"} size="xs">{s.type}</Badge>
+              <Badge color={s.type === "demo" ? "or" : "bl"} size="xs">{s.type === "demo" ? "sample" : s.type}</Badge>
               <Badge color="pr" size="xs">{s.frameworkCount || 7} frameworks</Badge>
               <Badge color={s.mappedFrameworkCount > 0 ? "gn" : "or"} size="xs">{s.mappedFrameworkCount || 0} mapped</Badge>
             </div>
@@ -146,11 +146,11 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
           </div>
         </div>
         <div className="flex gap-1 flex-wrap">
-          <Button variant="danger" size="xs" disabled={reanalyzing} onClick={() => { setReanalyzeTitle(s.title); setReanalyzeDesc(s.desc); setShowReanalyzeModal(true); }}>{reanalyzing ? "⏳ Re-analyzing..." : "🔄 Re-analyze"}</Button>
-          <Button variant="success" size="xs" onClick={async () => { setActionMsg("Generating..."); try { await exportsAPI.evidencePack(sessionId); setActionMsg("Evidence pack downloaded."); } catch (e) { setActionMsg(e.message || "Evidence pack failed."); } }}>⬇ Package</Button>
-          <Button variant="primary" size="xs" onClick={async () => { setActionMsg("Generating certificate..."); try { const cert = await exportsAPI.certificate(sessionId); if (cert.html) { const blob = new Blob([cert.html], { type: "text/html" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `releaseops-certificate-${sessionId.slice(0,8)}.html`; a.click(); URL.revokeObjectURL(url); } setActionMsg(`Certificate ${cert.certificate_id?.slice(0, 8)} issued — score: ${cert.readiness_score ?? "N/A"}, grade: ${cert.grade ?? "N/A"}.`); } catch (e) { setActionMsg(e.message || "Certificate failed."); } }}>📜 Certificate</Button>
-          <Button variant="ghost" size="xs" onClick={async () => { try { const res = await exportsAPI.share(sessionId); await navigator.clipboard?.writeText(res.share_url || window.location.href); setActionMsg("Share link copied!"); } catch { setActionMsg("Share link failed."); } }}>🔗 Share</Button>
-          <Badge color="gn">✓ COMPLETE</Badge>
+          <Button variant="danger" size="xs" disabled={reanalyzing} onClick={() => { setReanalyzeTitle(s.title); setReanalyzeDesc(s.desc); setShowReanalyzeModal(true); }}>{reanalyzing ? "Re-analyzing..." : "Re-analyze"}</Button>
+          <Button variant="success" size="xs" onClick={async () => { setActionMsg("Generating..."); try { await exportsAPI.evidencePack(sessionId); setActionMsg("Evidence pack downloaded."); } catch (e) { setActionMsg(e.message || "Evidence pack failed."); } }}>Export package</Button>
+          <Button variant="primary" size="xs" onClick={async () => { setActionMsg("Generating certificate..."); try { const cert = await exportsAPI.certificate(sessionId); if (cert.html) { const blob = new Blob([cert.html], { type: "text/html" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `releaseops-certificate-${sessionId.slice(0,8)}.html`; a.click(); URL.revokeObjectURL(url); } setActionMsg(`Certificate ${cert.certificate_id?.slice(0, 8)} issued - score: ${cert.readiness_score ?? "N/A"}, grade: ${cert.grade ?? "N/A"}.`); } catch (e) { setActionMsg(e.message || "Certificate failed."); } }}>Certificate</Button>
+          <Button variant="ghost" size="xs" onClick={async () => { try { const res = await exportsAPI.share(sessionId); await navigator.clipboard?.writeText(res.share_url || window.location.href); setActionMsg("Share link copied!"); } catch { setActionMsg("Share link failed."); } }}>Share</Button>
+          <Badge color="gn">Complete</Badge>
         </div>
       </div>
 
@@ -165,7 +165,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
       {showReanalyzeModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowReanalyzeModal(false)}>
           <div className="bg-lg-sf border border-lg-bd rounded-xl p-5 w-full max-w-md shadow-2xl animate-fade-up" onClick={(e) => e.stopPropagation()}>
-            <div className="text-lg font-bold text-tx mb-3">🔄 Re-analyze Feature</div>
+            <div className="text-lg font-bold text-tx mb-3">Re-analyze release review</div>
             <div className="text-sm text-tx-3 mb-3">Edit the title or description before re-running the full analysis pipeline. A new version will be created.</div>
             <label className="text-xs font-semibold text-tx-2 block mb-1">Feature Title</label>
             <input value={reanalyzeTitle} onChange={(e) => setReanalyzeTitle(e.target.value)} className="input-glass text-sm w-full mb-3" />
@@ -176,12 +176,12 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
               <Button variant="primary" size="sm" disabled={reanalyzing} onClick={async () => {
                 setShowReanalyzeModal(false);
                 setReanalyzing(true);
-                setActionMsg("Re-analysing — running full Release Analysis → Validation Planning → Decision Packaging pipeline...");
+                setActionMsg("Re-analysing - running Release Analysis, Validation Planning, and Decision Packaging...");
                 try {
                   const res = await analysisAPI.run(sessionId, { feature_title: reanalyzeTitle, feature_description: reanalyzeDesc });
                   const newId = res.session_id;
                   const newVersion = res.version;
-                  setActionMsg(`v${newVersion} created — waiting for pipeline to complete...`);
+                  setActionMsg(`v${newVersion} created - waiting for pipeline to complete...`);
                   // Poll for completion
                   const poll = setInterval(async () => {
                     try {
@@ -204,7 +204,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
                   // Safety timeout: stop polling after 2 minutes
                   setTimeout(() => { clearInterval(poll); setReanalyzing(false); }, 120000);
                 } catch (e) { setReanalyzing(false); setActionMsg(e.message || "Re-analysis failed."); }
-              }}>🚀 Run Analysis</Button>
+              }}>Run analysis</Button>
             </div>
           </div>
         </div>
@@ -216,7 +216,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
 
       {/* AI Warning */}
       <div className="bg-accent-orange/8 border border-accent-orange/20 rounded-md px-3 py-1.5 my-2 text-sm text-accent-orange2 animate-fade-up-1">
-        ⚠ AI-generated — requires human review before production use.
+        Decision-support output. Accountable human approval is required before production release.
       </div>
 
       {/* Tabs */}
@@ -400,15 +400,15 @@ function SpecTab({ s }) {
 
       {/* Release Spec */}
       <Card className="animate-fade-up-2">
-        <Label>📋 Release Spec</Label>
+        <Label>Release Spec</Label>
         <div className="text-sm text-tx-2 leading-relaxed"><strong className="text-tx">Problem:</strong> {s.desc}</div>
       </Card>
 
       {/* Risk Register */}
       <Card className="animate-fade-up-3">
         <div className="flex justify-between mb-2.5">
-          <Label>⚠️ Risk Register</Label>
-          <Button variant="ghost" size="xs">📋 Copy Markdown</Button>
+          <Label>Risk Register</Label>
+          <Button variant="ghost" size="xs">Copy Markdown</Button>
         </div>
         <div className="grid grid-cols-[35px_1fr_80px_70px_65px_65px_55px] px-0 py-1.5 border-b border-lg-bd">
           {["ID", "TITLE", "CATEGORY", "LIKELIHOOD", "IMPACT", "SEVERITY", "TEST"].map((h) => (
@@ -430,7 +430,7 @@ function SpecTab({ s }) {
 
       {/* Checklist */}
       <Card className="animate-fade-up-4">
-        <Label>✅ Readiness Checklist</Label>
+        <Label>Release Checklist</Label>
         {s.cl.map((c, i) => (
           <div key={i} className="flex items-center gap-2 py-1.5 border-b border-lg-bd">
             <div className="w-3.5 h-3.5 rounded-sm border-[1.5px] border-lg-bd2 shrink-0" />
@@ -473,7 +473,6 @@ function TestsTab({ s, st }) {
   });
   const strategyEntries = Object.entries(strategyMap);
 
-  const STRATEGY_ICONS = { Functional: "🧪", Security: "🔒", Performance: "⚡", Privacy: "🛡", Safety: "⚠️", Integration: "🔗", "Edge Case": "🔀", UX: "🎨" };
   const STRATEGY_COLORS = { Functional: "bl", Security: "rd", Performance: "or", Privacy: "pk", Safety: "rd", Integration: "tl", "Edge Case": "pr", UX: "gn" };
 
   return (
@@ -543,7 +542,6 @@ function TestsTab({ s, st }) {
             {strategyEntries.map(([cat, data]) => (
               <div key={cat} className="p-2.5 bg-lg-sf2 rounded-lg border border-lg-bd">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <span className="text-sm">{STRATEGY_ICONS[cat] || "📋"}</span>
                   <span className="text-sm font-bold text-tx">{cat}</span>
                 </div>
                 <div className="text-xs text-tx-3 leading-snug mb-2">
@@ -1008,7 +1006,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
 
       {/* Compliance Certificate */}
       <Card className="animate-fade-up-3">
-        <Label>🔌 Integrations</Label>
+        <Label>Integrations</Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <input value={integrations.slack_webhook || ""} onChange={(e) => updateIntegration("slack_webhook", e.target.value)} placeholder="Slack webhook URL" className="input-glass text-sm" />
           <input value={integrations.jira_url || ""} onChange={(e) => updateIntegration("jira_url", e.target.value)} placeholder="Jira base URL" className="input-glass text-sm" />
@@ -1028,20 +1026,20 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
       </Card>
 
       <Card className="animate-fade-up-4">
-        <Label>📜 Compliance Certificate</Label>
+        <Label>Compliance Certificate</Label>
         <div className="p-3.5 bg-lg-sf2 rounded-lg text-center">
           <div className="text-base font-bold text-tx">Generate Auditor-Ready Certificate</div>
           <div className="text-sm text-tx-3 mt-1">Includes: analysis summary, risk assessment, regulation mappings, sign-offs, timestamps.</div>
           <div className="flex justify-center gap-1.5 mt-2.5">
-            <Button variant="primary" size="sm" onClick={async () => { try { const cert = await exportsAPI.certificate(sessionId); if (cert.html) { const blob = new Blob([cert.html], { type: "text/html" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `releaseops-certificate-${sessionId.slice(0,8)}.html`; a.click(); URL.revokeObjectURL(url); } setActionMsg(`Certificate ${cert.certificate_id?.slice(0,8)} issued — ${cert.readiness_score ?? 0}/100, Grade ${cert.grade ?? "?"}, ${cert.decision ?? "N/A"}.`); } catch (e) { setActionMsg(e.message || "Certificate generation failed."); } }}>📜 Download Certificate (HTML)</Button>
-            <Button variant="ghost" size="sm" onClick={async () => { try { const cert = await exportsAPI.certificate(sessionId); const { html, ...jsonCert } = cert; const blob = new Blob([JSON.stringify(jsonCert, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `releaseops-certificate-${sessionId.slice(0,8)}.json`; a.click(); URL.revokeObjectURL(url); setActionMsg("JSON certificate downloaded."); } catch (e) { setActionMsg(e.message || "Certificate generation failed."); } }}>📋 JSON</Button>
+            <Button variant="primary" size="sm" onClick={async () => { try { const cert = await exportsAPI.certificate(sessionId); if (cert.html) { const blob = new Blob([cert.html], { type: "text/html" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `releaseops-certificate-${sessionId.slice(0,8)}.html`; a.click(); URL.revokeObjectURL(url); } setActionMsg(`Certificate ${cert.certificate_id?.slice(0,8)} issued - ${cert.readiness_score ?? 0}/100, Grade ${cert.grade ?? "?"}, ${cert.decision ?? "N/A"}.`); } catch (e) { setActionMsg(e.message || "Certificate generation failed."); } }}>Download Certificate (HTML)</Button>
+            <Button variant="ghost" size="sm" onClick={async () => { try { const cert = await exportsAPI.certificate(sessionId); const { html, ...jsonCert } = cert; const blob = new Blob([JSON.stringify(jsonCert, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `releaseops-certificate-${sessionId.slice(0,8)}.json`; a.click(); URL.revokeObjectURL(url); setActionMsg("JSON certificate downloaded."); } catch (e) { setActionMsg(e.message || "Certificate generation failed."); } }}>JSON</Button>
           </div>
         </div>
       </Card>
 
       {/* Audit Trail */}
       <Card className="animate-fade-up-4">
-        <Label>🔒 Audit Trail</Label>
+        <Label>Audit Trail</Label>
         {(auditEvents.length ? auditEvents : [
           { action: "Session created", created_at: s.date, email: "system" },
           { action: "Pipeline completed", created_at: s.date, email: "releaseops-agent" },

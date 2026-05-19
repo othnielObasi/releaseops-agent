@@ -43,14 +43,14 @@ export default function Pipeline({ phase, showLogs = false }) {
             <div key={i} className="flex items-center">
               {i > 0 && <div className={`w-10 h-0.5 transition-all duration-400 ${done ? "bg-lg-bd2" : "bg-lg-bd"}`} />}
               <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all ${done ? `border-${a.color}/50 bg-${a.color}/5` : active ? `border-${a.color} bg-${a.color}/5 animate-glow-pulse` : "border-lg-bd bg-transparent"}`}>
-                {done && <span className="text-accent-green text-sm font-bold">✓</span>}
+                {done && <span className="text-accent-green text-xs font-bold">Done</span>}
                 {active && <Spinner size={11} color={a.hex} />}
                 <div className={`text-xs font-semibold ${done || active ? `text-${a.color}` : "text-tx-4"}`}>{a.name}</div>
               </div>
             </div>
           );
         })}
-        {phase >= 3 && <Badge color="gn" className="ml-2.5">✓ COMPLETE</Badge>}
+        {phase >= 3 && <Badge color="gn" className="ml-2.5">Complete</Badge>}
       </div>
 
       {showLogs && logs.length > 0 && (

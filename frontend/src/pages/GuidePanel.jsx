@@ -6,12 +6,12 @@ export default function GuidePanel({ onClose }) {
   return (
     <div className="fixed top-0 right-0 bottom-0 w-[360px] bg-lg-sf border-l border-lg-bd z-[150] overflow-auto px-5 py-[18px] shadow-[-6px_0_24px_rgba(0,0,0,.4)]">
       <div className="flex justify-between items-center mb-[18px]">
-        <div className="text-base font-bold text-tx">📖 Guide</div>
+        <div className="text-base font-bold text-tx">Guide</div>
         <button onClick={onClose} className="bg-transparent border-none text-tx-3 text-base cursor-pointer hover:text-tx">×</button>
       </div>
 
       {/* Quick Start */}
-      <Label>⚡ Quick Start</Label>
+      <Label>Quick Start</Label>
       {[
         { n: 1, t: "Click + New Release Review", d: "From anywhere in the app." },
         { n: 2, t: "Describe the AI workflow", d: "Include data access, actions, users, and production context." },
@@ -45,7 +45,7 @@ export default function GuidePanel({ onClose }) {
       <div className="h-px bg-lg-bd my-3.5" />
 
       {/* Regulation Engine */}
-      <Label>🏛 Regulation Engine</Label>
+      <Label>Regulation Engine</Label>
       <div className="text-xs text-tx-2 leading-relaxed">
         Maps risks to 7 frameworks: EU AI Act, OWASP Top 10 LLM, NIST AI RMF, ISO 42001, GDPR, SOC 2, HIPAA.
         EU tiering is one lens; the full crosswalk covers security, privacy, management, audit, and sector controls.
@@ -54,13 +54,13 @@ export default function GuidePanel({ onClose }) {
       <div className="h-px bg-lg-bd my-3.5" />
 
       {/* Governance */}
-      <Label>⚙️ Governance</Label>
+      <Label>Governance</Label>
       {[
-        { l: "✍️ Sign-offs", d: "PM, Legal, QA, Security approvals" },
-        { l: "🚦 Gates", d: "CI/CD + PR score threshold enforcement" },
-        { l: "📜 Certificates", d: "Auditor-ready PDF with all evidence" },
-        { l: "📡 Drift Monitor", d: "Weekly re-scan for regression" },
-        { l: "⚡ Compare", d: "Side-by-side session diff" },
+        { l: "Sign-offs", d: "PM, Legal, QA, Security approvals" },
+        { l: "Gates", d: "CI/CD + PR score threshold enforcement" },
+        { l: "Certificates", d: "Auditor-ready PDF with all evidence" },
+        { l: "Drift Monitor", d: "Weekly re-scan for regression" },
+        { l: "Compare", d: "Side-by-side session diff" },
       ].map((a, i) => (
         <div key={i} className={`flex justify-between py-1 ${i < 4 ? "border-b border-lg-bd" : ""}`}>
           <span className="text-xs text-tx">{a.l}</span>

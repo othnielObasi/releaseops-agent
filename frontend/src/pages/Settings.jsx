@@ -329,7 +329,7 @@ export default function Settings() {
             ) : (
               <>
                 <IntegrationCard
-                  icon="💬" title="Slack" subtitle="Webhook on complete"
+                  icon="SL" title="Slack" subtitle="Webhook on complete"
                   description="Post a rich summary to a Slack channel when analysis completes."
                   fields={[
                     { key: "slack_webhook", label: "Webhook URL", placeholder: "https://hooks.slack.com/services/...", type: "url" },
@@ -338,7 +338,7 @@ export default function Settings() {
                   onChange={updateIntegrationDefault}
                 />
                 <IntegrationCard
-                  icon="🎫" title="Jira" subtitle="Auto-create Must-Do issues"
+                  icon="JI" title="Jira" subtitle="Auto-create Must-Do issues"
                   description="Create Jira tasks for each Must-priority checklist item."
                   fields={[
                     { key: "jira_url", label: "Jira Base URL", placeholder: "https://your-org.atlassian.net" },
@@ -349,7 +349,7 @@ export default function Settings() {
                   onChange={updateIntegrationDefault}
                 />
                 <IntegrationCard
-                  icon="🐙" title="GitHub" subtitle="PR risk comment"
+                  icon="GH" title="GitHub" subtitle="PR risk comment"
                   description="Post a risk summary comment on a GitHub pull request."
                   fields={[
                     { key: "github_repo", label: "Repository", placeholder: "owner/repo" },
@@ -360,7 +360,7 @@ export default function Settings() {
                   onChange={updateIntegrationDefault}
                 />
                 <IntegrationCard
-                  icon="📐" title="Linear" subtitle="GraphQL checklist issues"
+                  icon="LN" title="Linear" subtitle="GraphQL checklist issues"
                   description="Create Linear issues for Must-priority checklist items."
                   fields={[
                     { key: "linear_team_id", label: "Team ID", placeholder: "your-team-uuid" },
@@ -370,7 +370,7 @@ export default function Settings() {
                   onChange={updateIntegrationDefault}
                 />
                 <IntegrationCard
-                  icon="🔗" title="Webhook" subtitle="Custom HMAC-signed payload"
+                  icon="WH" title="Webhook" subtitle="Custom HMAC-signed payload"
                   description="POST analysis results to any URL with an HMAC-SHA256 signature header."
                   fields={[
                     { key: "webhook_url", label: "Endpoint URL", placeholder: "https://your-api.com/hooks/ReleaseOps" },

@@ -66,8 +66,8 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
       {/* Header */}
       <div className="flex flex-col gap-3 pt-6 mb-5 animate-fade-up sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-tx">Dashboard</h1>
-          <p className="text-sm text-tx-3 mt-1">Autonomous AI release review, evidence, blockers, and multi-framework governance.</p>
+          <h1 className="text-3xl font-extrabold text-tx">Release Operations</h1>
+          <p className="text-sm text-tx-3 mt-1">Portfolio view of release decisions, controls, sign-offs, and governance state.</p>
         </div>
         <Button variant="primary" size="md" onClick={onNew} className="w-full sm:w-auto">+ New Release Review</Button>
       </div>
@@ -93,7 +93,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
         <ReadinessTrend sessions={sessions} onOpen={onOpen} />
       ) : (
       <section className="workspace-section mb-4 animate-fade-up-2 p-8 text-center">
-        <div className="text-tx-3 text-sm">No sessions yet. Run your first readiness check to see trends.</div>
+        <div className="text-tx-3 text-sm">No release reviews yet. Run the first review to start building an operational record.</div>
         <Button variant="primary" size="sm" onClick={onNew} className="mt-3">+ New Release Review</Button>
       </section>
       )}
@@ -140,11 +140,11 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
           <Label>Governance Status</Label>
           <div className="workspace-section overflow-hidden">
           <div className="workspace-row border-l-[3px] border-l-accent-purple p-3">
-            <div className="text-sm font-bold text-tx">🚦 Production Release Gate</div>
+            <div className="text-sm font-bold text-tx">Production Release Gate</div>
             <div className="text-sm text-tx-3 mt-1">{sessions.length} sessions analyzed · Configure gates in Settings</div>
           </div>
           <div className={`workspace-row border-l-[3px] p-3 ${driftAlerts > 0 ? "border-l-accent-red" : "border-l-accent-green"}`}>
-            <div className="text-sm font-bold text-tx">📡 Drift Monitor</div>
+            <div className="text-sm font-bold text-tx">Drift Monitor</div>
             <div className="text-sm text-tx-3 mt-1">
               {sessions.filter((s) => s.drift?.active).length} active monitors · {driftAlerts} regressions detected
             </div>
@@ -153,7 +153,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
             ))}
           </div>
           <div className={`workspace-row border-l-[3px] p-3 ${pendingSignoffs > 0 ? "border-l-accent-orange" : "border-l-accent-green"}`}>
-            <div className="text-sm font-bold text-tx">✍️ Pending Sign-offs</div>
+            <div className="text-sm font-bold text-tx">Pending Sign-offs</div>
             {sessions.filter((s) => s.signoffs.some((x) => x.status === "pending")).slice(0, 3).map((s) => (
               <div key={s.id} className="text-sm text-accent-orange2 mt-1">
                 {s.title}: {s.signoffs.filter((x) => x.status === "pending").map((x) => x.role).join(", ")}

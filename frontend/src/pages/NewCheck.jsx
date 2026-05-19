@@ -73,7 +73,7 @@ export default function NewCheck({ onClose, onComplete }) {
       <div onClick={(e) => e.stopPropagation()} className="glass-strong rounded-xl p-6 w-[520px] max-h-[90vh] overflow-auto animate-fade-up">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
-          <div className="text-base font-bold text-tx">🚀 New Release Review</div>
+          <div className="text-base font-bold text-tx">New Release Review</div>
           {!running && <button onClick={onClose} className="bg-transparent border-none text-tx-3 text-lg cursor-pointer hover:text-tx transition-colors">×</button>}
         </div>
 
@@ -132,7 +132,7 @@ export default function NewCheck({ onClose, onComplete }) {
 
         {/* Run Button */}
         <Button variant="cta" size="lg" onClick={run} disabled={running} className="w-full">
-          {running ? `Processing... ${["Release Analysis", "Validation Planning", "Decision Packaging", "Done"][Math.min(phase, 3)]}` : "Run Release Review →"}
+          {running ? `Processing... ${["Release Analysis", "Validation Planning", "Decision Packaging", "Done"][Math.min(phase, 3)]}` : "Run Release Review"}
         </Button>
       </div>
     </div>

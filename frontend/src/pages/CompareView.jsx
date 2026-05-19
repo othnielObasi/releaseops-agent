@@ -10,8 +10,8 @@ export default function CompareView({ sessions = [], idA, idB, onBack }) {
   return (
     <div className="max-w-[960px] mx-auto pt-5">
       <div className="flex items-center gap-2.5 mb-5 animate-fade-up">
-        <Button variant="ghost" size="xs" onClick={onBack}>← Back</Button>
-        <h1 className="text-xl font-extrabold text-tx">⚡ Session Comparison</h1>
+        <Button variant="ghost" size="xs" onClick={onBack}>Back</Button>
+        <h1 className="text-xl font-extrabold text-tx">Review Comparison</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 animate-fade-up-1">
@@ -26,7 +26,7 @@ export default function CompareView({ sessions = [], idA, idB, onBack }) {
             </div>
             <div className="text-center mb-3"><CircularScore score={s.st.score} size={70} /></div>
             <div className="grid grid-cols-4 gap-1.5 mb-3">
-              {[{ l: "Risks", v: s.st.risks, c: "text-accent-orange" }, { l: "Tests", v: s.st.tests, c: "text-accent-teal" }, { l: "Guards", v: s.st.guard, c: "text-accent-purple2" }, { l: "Check", v: s.st.check, c: "text-accent-green" }].map((x, j) => (
+              {[{ l: "Risks", v: s.st.risks, c: "text-accent-orange" }, { l: "Tests", v: s.st.tests, c: "text-accent-teal" }, { l: "Controls", v: s.st.guard, c: "text-accent-purple2" }, { l: "Checklist", v: s.st.check, c: "text-accent-green" }].map((x, j) => (
                 <div key={j} className="text-center p-1.5 bg-lg-sf2 rounded-md">
                   <div className={`text-base font-extrabold ${x.c}`}>{x.v}</div>
                   <div className="text-xs text-tx-4">{x.l}</div>

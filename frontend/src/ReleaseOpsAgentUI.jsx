@@ -263,7 +263,7 @@ function LandingPage({ onNavigate }) {
             <h1 className="max-w-5xl text-5xl font-semibold tracking-[-0.06em] md:text-7xl">Is your AI feature actually ready to ship?</h1>
             <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-600">ReleaseOps Agent reviews an AI feature before launch and returns the evidence your team needs: release spec, risks, tests, guardrails, regulation mapping, and a go-live decision.</p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={() => onNavigate("Dashboard")}>Open app demo <Icon name="arrow" className="h-4 w-4" /></Button>
+              <Button onClick={() => onNavigate("Dashboard")}>Open workspace <Icon name="arrow" className="h-4 w-4" /></Button>
               <Button variant="secondary" onClick={() => onNavigate("Product")}>Explore product</Button>
             </div>
             <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">

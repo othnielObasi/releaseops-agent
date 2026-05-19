@@ -20,15 +20,15 @@ export default function SessionsList({ sessions = [], loading, onOpen, onNew, on
       {/* Header */}
       <div className="flex justify-between items-center pt-6 mb-4 animate-fade-up">
         <div>
-          <h1 className="text-3xl font-extrabold text-tx">Sessions</h1>
-          <p className="text-sm text-tx-3 mt-1">{sessions.length} checks</p>
+          <h1 className="text-3xl font-extrabold text-tx">Release Reviews</h1>
+          <p className="text-sm text-tx-3 mt-1">{sessions.length} reviews</p>
         </div>
         <div className="flex gap-1.5">
           {compareMode && selected.length === 2 && (
             <Button variant="primary" size="sm" onClick={() => { onCompare(selected[0], selected[1]); setCompareMode(false); setSelected([]); }}>Compare Selected</Button>
           )}
           <Button variant={compareMode ? "danger" : "ghost"} size="sm" onClick={() => { setCompareMode(!compareMode); setSelected([]); }}>
-            {compareMode ? "Cancel" : "⚡ Compare"}
+            {compareMode ? "Cancel" : "Compare"}
           </Button>
           <Button variant="primary" size="sm" onClick={onNew}>+ New Release Review</Button>
         </div>
@@ -36,7 +36,7 @@ export default function SessionsList({ sessions = [], loading, onOpen, onNew, on
 
       {/* Filters */}
       <div className="flex gap-1 mb-3 animate-fade-up-1">
-        {[{ k: "all", l: "All" }, { k: "live", l: "Live" }, { k: "demo", l: "Demos" }].map((f) => (
+        {[{ k: "all", l: "All" }, { k: "live", l: "Live" }, { k: "demo", l: "Samples" }].map((f) => (
           <Button key={f.k} variant={filter === f.k ? "primary" : "ghost"} size="xs" onClick={() => setFilter(f.k)}>{f.l}</Button>
         ))}
       </div>
@@ -46,7 +46,7 @@ export default function SessionsList({ sessions = [], loading, onOpen, onNew, on
         {/* Header Row */}
         <div className={`grid ${compareMode ? "grid-cols-[30px_2fr_70px_50px_50px_50px_70px_60px]" : "grid-cols-[2fr_70px_50px_50px_50px_70px_60px]"} px-3.5 py-2 bg-lg-sf2 border-b border-lg-bd`}>
           {compareMode && <div />}
-          {["Session", "Score", "Risks", "Tests", "Guards", "Date", "Type"].map((h) => (
+          {["Review", "Score", "Risks", "Tests", "Controls", "Date", "Source"].map((h) => (
             <div key={h} className="text-xs font-bold text-tx-3 tracking-wide uppercase">{h}</div>
           ))}
         </div>
@@ -61,9 +61,7 @@ export default function SessionsList({ sessions = [], loading, onOpen, onNew, on
             {/* Checkbox */}
             {compareMode && (
               <div className="flex items-center">
-                <div className={`w-3.5 h-3.5 rounded-sm border-2 flex items-center justify-center text-xs text-white ${selected.includes(s.id) ? "border-accent-purple bg-accent-purple" : "border-lg-bd2 bg-transparent"}`}>
-                  {selected.includes(s.id) && "✓"}
-                </div>
+                <div className={`w-3.5 h-3.5 rounded-sm border-2 ${selected.includes(s.id) ? "border-accent-purple bg-accent-purple" : "border-lg-bd2 bg-transparent"}`} />
               </div>
             )}
             {/* Session info */}
@@ -79,7 +77,7 @@ export default function SessionsList({ sessions = [], loading, onOpen, onNew, on
             <div className="flex items-center text-sm font-semibold text-accent-teal">{s.st.tests}</div>
             <div className="flex items-center text-sm font-semibold text-accent-purple2">{s.st.guard}</div>
             <div className="flex items-center text-xs text-tx-3 font-mono">{s.date.split(",")[0]}</div>
-            <div className="flex items-center"><Badge color={s.type === "demo" ? "or" : "bl"} size="xs">{s.type}</Badge></div>
+            <div className="flex items-center"><Badge color={s.type === "demo" ? "or" : "bl"} size="xs">{s.type === "demo" ? "sample" : s.type}</Badge></div>
           </div>
         ))}
       </div>

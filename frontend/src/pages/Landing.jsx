@@ -5,7 +5,7 @@ import { Badge, Card, Button, CircularScore } from "../components/ui";
 import { REG_FRAMEWORKS } from "../data/regulations";
 import Pipeline from "../components/Pipeline";
 
-/* ── Playground demo data ── */
+/* ── Product preview data ── */
 const DEMO_FEATURE = {
   title: "AI-Powered Customer Support Reply Suggester",
   desc: "An LLM-based feature that reads incoming support tickets and suggests draft replies for agents. Agents can edit and send. Trained on historical ticket data.",
@@ -32,7 +32,7 @@ const DEMO_RESULT = {
   guardrails: 6,
 };
 
-/* ── Playground Demo Component ── */
+/* ── Product Preview Component ── */
 function PlaygroundDemo({ onLogin }) {
   const [stage, setStage] = useState("idle"); // idle | running | done
   const [phase, setPhase] = useState(-1);
@@ -52,9 +52,9 @@ function PlaygroundDemo({ onLogin }) {
 
   return (
     <section className="mt-14">
-      <h2 className="text-xl font-bold text-tx mb-2">Try It — Watch the Agents Run</h2>
+      <h2 className="text-xl font-bold text-tx mb-2">Release Review Preview</h2>
       <p className="text-[13px] text-tx-2 leading-relaxed mb-5">
-        Click run to watch Navigator → Sentinel → Herald analyse a sample AI feature in real time. This is the actual multi-agent pipeline — not a simulation.
+        Run a sample review to see how Release Analysis, Validation Planning, and Decision Packaging convert an AI workflow into a decision record.
       </p>
 
       <Card className="!p-0 overflow-hidden">
@@ -160,7 +160,7 @@ function PlaygroundDemo({ onLogin }) {
         {stage === "idle" && (
           <div className="p-4">
             <Button variant="cta" size="lg" onClick={runDemo} className="w-full">
-              Run Readiness Check
+              Run Release Review
             </Button>
           </div>
         )}
@@ -231,15 +231,15 @@ export default function Landing({ onLogin }) {
 
       {/* ── The Solution ── */}
       <section className="mt-16 animate-fade-up-3">
-        <h2 className="text-xl font-bold text-tx mb-3">The Agentic Pipeline — Three specialised AI agents</h2>
+        <h2 className="text-xl font-bold text-tx mb-3">The Release Review Pipeline</h2>
         <p className="text-[13px] text-tx-2 leading-relaxed mb-6">
-          ReleaseOps isn't a single LLM prompt. It's a <strong className="text-tx">multi-agent orchestration engine</strong> — three purpose-built AI agents that run in sequence, each handing verified output to the next. Provider-agnostic across OpenAI and Anthropic with automatic failover.
+          ReleaseOps is not a single LLM prompt. It is a structured decision workflow where each stage produces validated output for the next step. Provider-agnostic across OpenAI and Anthropic with automatic failover.
         </p>
         <div className="space-y-2">
           {[
-            { num: "1", name: "Navigator", sub: "Specification Agent", c: "accent-green", bc: "border-accent-green", bg: "bg-accent-green", desc: "Parses your feature description and generates a structured release spec — personas, user stories, acceptance criteria, success metrics, risk register, and a readiness checklist. Hands the full spec to Sentinel." },
-            { num: "2", name: "Sentinel", sub: "Risk & Testing Agent", c: "accent-purple2", bc: "border-accent-purple2", bg: "bg-accent-purple", desc: "Receives the spec and performs adversarial analysis — safety, security, privacy, bias, and operational risks scored by severity. Generates edge-case test plans, guardrail rules, and maps every finding to real regulation articles. Hands to Herald." },
-            { num: "3", name: "Herald", sub: "Launch Docs Agent", c: "accent-orange2", bc: "border-accent-orange2", bg: "bg-accent-orange", desc: "Takes the spec and risk analysis and produces release notes, a GTM landing page with trust & safety copy, and a stakeholder pitch deck — all traceable back to the original findings." },
+            { num: "1", name: "Release Analysis", sub: "Workflow review", c: "accent-green", bc: "border-accent-green", bg: "bg-accent-green", desc: "Parses the feature description and generates a structured release spec: personas, user stories, acceptance criteria, success metrics, risk register, and readiness checklist." },
+            { num: "2", name: "Validation Planning", sub: "Risk and controls", c: "accent-purple2", bc: "border-accent-purple2", bg: "bg-accent-purple", desc: "Reviews safety, security, privacy, fairness, and operational risks. Generates edge-case tests, guardrail rules, and framework mappings." },
+            { num: "3", name: "Decision Packaging", sub: "Decision record", c: "accent-orange2", bc: "border-accent-orange2", bg: "bg-accent-orange", desc: "Packages the release notes, stakeholder summary, decision explanation, approval requirements, and audit-ready evidence." },
           ].map((a, i) => (
             <div key={i}>
               <Card className={`!p-4 !border-l-[3px] ${a.bc}`}>
@@ -366,7 +366,7 @@ export default function Landing({ onLogin }) {
 
         <Card className="!p-4 !border-l-[3px] !border-accent-purple mt-5">
           <div className="text-[12px] text-tx leading-relaxed">
-            <strong>Architectural difference:</strong> ReleaseOps is a <em>multi-agent orchestration engine</em> — Navigator builds the spec, Sentinel stress-tests it, Herald writes the launch docs. Each agent's output is verified before handoff. Provider-agnostic across OpenAI and Anthropic with automatic failover. This is purpose-built AI governance infrastructure, not a chatbot wrapper.
+            <strong>Architectural difference:</strong> ReleaseOps is a structured release decision system: one stage builds the release spec, one stage plans validation and controls, and one stage packages the decision record. Each output is verified before handoff. Provider-agnostic across OpenAI and Anthropic with automatic failover.
           </div>
         </Card>
       </section>
@@ -379,7 +379,7 @@ export default function Landing({ onLogin }) {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { t: "Multi-Agent Orchestration", d: "Three specialised AI agents (Navigator → Sentinel → Herald) execute in sequence. Each validates its output schema before handing off to the next.", c: "border-accent-purple" },
+            { t: "Structured Review Workflow", d: "Release Analysis, Validation Planning, and Decision Packaging execute in sequence. Each validates its output schema before handing off to the next stage.", c: "border-accent-purple" },
             { t: "Provider-Agnostic LLM Layer", d: "Runs on OpenAI (GPT-4o) and Anthropic (Claude) with automatic failover. No single-vendor lock-in. Configurable per-agent.", c: "border-accent-blue" },
             { t: "Real-Time Regulation Engine", d: "7 regulatory frameworks (EU AI Act, OWASP, NIST, ISO 42001, GDPR, SOC 2, HIPAA) mapped automatically — not hallucinated, cited by article.", c: "border-accent-green" },
             { t: "Persistent Governance State", d: "Every session, score, sign-off, and compliance certificate is stored, versioned, and diffable. Full audit trail across your entire AI portfolio.", c: "border-accent-orange" },
@@ -400,7 +400,7 @@ export default function Landing({ onLogin }) {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { step: "1", title: "Describe your feature", desc: "Paste a one-paragraph feature description — that's it. No templates, no forms.", c: "border-accent-green", tc: "text-accent-green" },
-            { step: "2", title: "Watch three agents work", desc: "Navigator specs it, Sentinel stress-tests it, Herald writes launch docs — all in under 60 seconds with live progress logs.", c: "border-accent-purple2", tc: "text-accent-purple2" },
+            { step: "2", title: "Run the review workflow", desc: "ReleaseOps builds the spec, identifies risks, maps controls, and packages the decision record with live progress logs.", c: "border-accent-purple2", tc: "text-accent-purple2" },
             { step: "3", title: "Ship with confidence", desc: "Export compliance certificates, share with stakeholders, and integrate with your CI/CD pipeline.", c: "border-accent-orange2", tc: "text-accent-orange2" },
           ].map((s, i) => (
             <Card key={i} className={`!p-5 !border-t-[3px] ${s.c}`}>
@@ -412,7 +412,7 @@ export default function Landing({ onLogin }) {
         </div>
       </section>
 
-      {/* ── Interactive Playground ── */}
+      {/* ── Product preview ── */}
       <PlaygroundDemo onLogin={onLogin} />
 
       {/* ── CTA ── */}
@@ -423,7 +423,7 @@ export default function Landing({ onLogin }) {
         <div className="relative">
           <div className="text-2xl md:text-3xl font-extrabold text-tx text-balance">Ready to ship with confidence?</div>
           <p className="text-[13px] text-tx-2 mt-3 text-balance">Describe your feature and get a production-ready analysis — spec, risks, tests, regulation mapping, and launch docs — in under 60 seconds.</p>
-          <Button variant="cta" size="lg" onClick={onLogin} className="mt-5 animate-glow-pulse">✦ Try It Now</Button>
+          <Button variant="cta" size="lg" onClick={onLogin} className="mt-5">Open Workspace</Button>
         </div>
       </section>
     </div>

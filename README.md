@@ -50,25 +50,25 @@ A team submits an AI feature proposal, PRD, or workflow description. ReleaseOps 
 
 ---
 
-## Vultr Hackathon Challenge Alignment
+## Enterprise Deployment Alignment
 
-ReleaseOps Agent is designed for the Vultr challenge: **Build a Web-Based Enterprise Agent Deployed on Vultr**.
+ReleaseOps Agent is designed as a production-style release review workspace for teams that need repeatable, auditable AI go-live decisions.
 
-| Vultr Requirement | ReleaseOps Agent Alignment |
-|------------------|----------------------------|
-| **Web-based enterprise agent** | Browser-based AI release decision workflow for enterprise teams |
-| **Real-world enterprise workflow** | Supports release review for AI workflows across customer support, operations, sales, marketing, HR, product, and compliance |
+| Enterprise Need | ReleaseOps Agent Alignment |
+|-----------------|----------------------------|
+| **Web-based workflow** | Browser-based AI release decision workspace for cross-functional teams |
+| **Real operational use case** | Supports release review for AI workflows across customer support, operations, sales, marketing, HR, product, and compliance |
 | **Operational decision system** | Produces structured launch decisions, not just suggestions |
-| **Agentic workflows** | Uses specialized agents for product analysis, risk review, test planning, guardrail mapping, and stakeholder packaging |
-| **Enterprise utility** | Helps teams reduce release ambiguity, improve review quality, and produce auditable launch records |
+| **Agentic workflow execution** | Uses staged analysis for product review, risk review, test planning, guardrail mapping, and stakeholder packaging |
+| **Governance utility** | Helps teams reduce release ambiguity, improve review quality, and produce auditable launch records |
 | **Measurable output** | Readiness score, risk count, generated tests, required controls, approval status, and launch recommendation |
-| **Vultr deployment** | Backend deployed on Vultr VM with persistent run records and production-style web access |
+| **Durable deployment** | Backend and database persist run records, approvals, audit logs, and decision history |
 
 ---
 
-## Reference Demo Scenario
+## Reference Workflow Scenario
 
-The reference demo evaluates a fintech customer support AI agent that can:
+The reference workflow evaluates a fintech customer support AI agent that can:
 
 - read customer profile data
 - inspect transaction history
@@ -139,14 +139,14 @@ This makes the agent suitable for real release operations: it can say **yes**, *
 
 ## Vultr as the System of Record
 
-The Vultr deployment is not just a demo host. It runs the central operational record for ReleaseOps:
+The Vultr deployment runs the central operational record for ReleaseOps:
 
 - **Postgres on Vultr:** users, tenants, release sessions, scores, approvals, gates, audit logs, share tokens, and integration settings.
 - **FastAPI backend on Vultr:** authenticated agent orchestration, session APIs, governance APIs, export APIs, and webhook triggers.
 - **Nginx/React frontend on Vultr:** browser-based release review workspace for product, engineering, compliance, and leadership users.
 - **Docker Compose deployment:** reproducible production-style services with private backend/database ports and public frontend access.
 
-This satisfies the enterprise-agent requirement that planning, coordination, execution, and decision history live in a durable backend system.
+This keeps planning, coordination, execution, and decision history in a durable backend system.
 
 ---
 

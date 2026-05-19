@@ -90,7 +90,7 @@ export function transformSession(raw) {
     id: sess.id,
     title: sess.feature_title || "Untitled",
     type: "live",
-    icon: "⚡",
+    icon: "R",
     date: new Date(sess.created_at).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }),
     bc: high >= 3 ? "rd" : high >= 1 ? "or" : "gn",
     desc: sess.feature_description || "",
