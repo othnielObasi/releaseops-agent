@@ -44,7 +44,9 @@ ReleaseOps/
 │   ├── index.html                      # SPA entry point
 │   ├── Dockerfile                      # Multi-stage: Node build → Nginx
 │   ├── nginx.conf                      # SPA fallback + API proxy
-│   ├── ReleaseOpsUI.jsx               # Original monolithic v3 UI (archived)
+│   ├── reference/
+│   │   ├── ReleaseOpsUI.jsx           # Original monolithic v3 UI (archived)
+│   │   └── release_ops_agent_landing.jsx # Original landing UI reference
 │   └── src/
 │       ├── main.jsx                    # React DOM entry
 │       ├── App.jsx                     # Navigation & layout
@@ -311,7 +313,7 @@ dist/assets/index-y2Ga56W-.js  261.05 kB │ gzip: 77.00 kB
 | Add React Router | Optional | Currently using state-based navigation |
 | Add error boundaries | Pending | No error handling on component failures |
 | Add loading states | Pending | No skeleton/loading UI during API calls |
-| Clean up old directories | Pending | `releaseops_codebase_prod_updated/`, `releaseops_codebase_v2_updated/`, root JSX files still present |
+| Clean up old directories | Pending | `releaseops_codebase_prod_updated/`, `releaseops_codebase_v2_updated/` still present |
 | CI/CD pipeline | Pending | No GitHub Actions workflow yet |
 | Environment-specific configs | Pending | No staging/production env differentiation |
 
