@@ -1,10 +1,74 @@
 /* ReleaseOps v3 — Dashboard Page (Tailwind) */
 
 import { useState } from "react";
-import { Badge, Card, Button, CircularScore, Label } from "../components/ui";
+import { Badge, Card, Button, Label } from "../components/ui";
 import { governance } from "../services/api";
 
-const C = { bl: "#2563eb", or: "#b45309", rd: "#b91c1c", gn: "#047857", pr: "#4f46e5", sf: "#ffffff", bd: "#d8d0c2" };
+const C = { bl: "#2563eb", or: "#b45309", rd: "#b91c1c", gn: "#047857", sf: "#ffffff", bd: "#d8d0c2", tx3: "#6b7280" };
+
+function scoreTone(score) {
+  if (score >= 80) return { grade: "B", text: "text-accent-green", bg: "bg-accent-green/10", border: "border-accent-green/20", fill: C.gn };
+  if (score >= 60) return { grade: "C", text: "text-accent-orange", bg: "bg-accent-orange/10", border: "border-accent-orange/20", fill: C.or };
+  return { grade: "D", text: "text-accent-red", bg: "bg-accent-red/10", border: "border-accent-red/20", fill: C.rd };
+}
+
+function ReadinessTrend({ sessions }) {
+  const width = 720;
+  const height = 180;
+  const padX = 54;
+  const padTop = 18;
+  const chartH = 112;
+  const plotW = width - padX - 20;
+  const visible = sessions.slice(0, 8).reverse();
+  const points = visible.map((session, i) => {
+    const x = padX + (visible.length === 1 ? plotW / 2 : i * (plotW / (visible.length - 1)));
+    const y = padTop + (100 - Math.max(0, Math.min(100, session.st.score))) * (chartH / 100);
+    return { x, y, session };
+  });
+  const path = points.map((p) => `${p.x},${p.y}`).join(" ");
+
+  return (
+    <Card className="mb-4 animate-fade-up-2">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <Label>Readiness Score Trends</Label>
+          <p className="text-sm text-tx-3 -mt-1">Last {visible.length} release reviews, scored from blocked to production-ready.</p>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs font-bold">
+          <span className="rounded-full bg-accent-green/10 px-2.5 py-1 text-accent-green">80+ Ready</span>
+          <span className="rounded-full bg-accent-orange/10 px-2.5 py-1 text-accent-orange">60-79 Needs controls</span>
+          <span className="rounded-full bg-accent-red/10 px-2.5 py-1 text-accent-red">0-59 Blocked</span>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" role="img" aria-label="Readiness score trend chart">
+        {[100, 80, 60, 40].map((score) => {
+          const y = padTop + (100 - score) * (chartH / 100);
+          return (
+            <g key={score}>
+              <text x="0" y={y + 4} fill={C.tx3} fontSize="12" fontWeight="700">{score}</text>
+              <line x1={padX} y1={y} x2={width - 20} y2={y} stroke={score === 80 ? C.gn : score === 60 ? C.or : C.bd} strokeWidth={score === 80 || score === 60 ? "1.3" : "0.8"} strokeDasharray={score === 80 || score === 60 ? "0" : "5 6"} />
+            </g>
+          );
+        })}
+        {points.length > 1 && <polyline points={path} fill="none" stroke={C.bl} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />}
+        {points.map(({ x, y, session }) => {
+          const tone = scoreTone(session.st.score);
+          return (
+            <g key={session.id}>
+              <circle cx={x} cy={y} r="7" fill={tone.fill} stroke={C.sf} strokeWidth="3" />
+              <text x={x} y={y - 14} textAnchor="middle" fill={tone.fill} fontSize="12" fontWeight="800">{session.st.score}</text>
+            </g>
+          );
+        })}
+        {points.map(({ x, session }) => (
+          <text key={`${session.id}-label`} x={x} y={height - 18} textAnchor="middle" fill={C.tx3} fontSize="11" fontWeight="700">
+            {session.date.split(",")[0]}
+          </text>
+        ))}
+      </svg>
+    </Card>
+  );
+}
 
 function deriveRunState(session) {
   const run = session.agentRun || {};
@@ -200,21 +264,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
 
       {/* Score Trends */}
       {sessions.length > 0 ? (
-      <Card className="mb-4 animate-fade-up-2">
-        <Label>📊 Readiness Score Trends</Label>
-        <svg viewBox="0 0 500 70" className="w-full" style={{ height: 80 }}>
-          {[0, 1, 2].map((i) => (
-            <line key={i} x1="0" y1={i * 30 + 5} x2="500" y2={i * 30 + 5} stroke={C.bd} strokeWidth=".4" strokeDasharray="3" />
-          ))}
-          <polyline
-            points={sessions.map((s, i) => `${i * (500 / Math.max(sessions.length - 1, 1))},${70 - ((s.st.score - 30) / 50) * 65}`).join(" ")}
-            fill="none" stroke={C.bl} strokeWidth="2" strokeLinejoin="round"
-          />
-          {sessions.map((s, i) => (
-            <circle key={i} cx={i * (500 / Math.max(sessions.length - 1, 1))} cy={70 - ((s.st.score - 30) / 50) * 65} r="4" fill={s.st.score >= 65 ? C.gn : C.or} stroke={C.sf} strokeWidth="2" />
-          ))}
-        </svg>
-      </Card>
+        <ReadinessTrend sessions={sessions} />
       ) : (
       <Card className="mb-4 animate-fade-up-2 text-center !py-8">
         <div className="text-tx-3 text-sm">No sessions yet. Run your first readiness check to see trends.</div>
@@ -246,8 +296,12 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen, onRef
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    <Badge color={s.st.score >= 80 ? "gn" : s.st.score >= 60 ? "or" : "rd"} size="xs">{s.st.score}/100</Badge>
-                    <CircularScore score={s.st.score} size={42} />
+                    <span className={`rounded-full border px-3 py-1 text-xs font-extrabold ${scoreTone(s.st.score).border} ${scoreTone(s.st.score).bg} ${scoreTone(s.st.score).text}`}>
+                      {s.st.score}/100
+                    </span>
+                    <span className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-extrabold ${scoreTone(s.st.score).border} ${scoreTone(s.st.score).bg} ${scoreTone(s.st.score).text}`}>
+                      {scoreTone(s.st.score).grade}
+                    </span>
                   </div>
                 </div>
               </Card>
