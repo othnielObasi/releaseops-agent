@@ -10,7 +10,7 @@ import LegacySettings from "./pages/Settings";
 import LegacyNewCheck from "./pages/NewCheck";
 import LegacyGuidePanel from "./pages/GuidePanel";
 
-const PAGES = ["Landing", "Product", "Guide", "Dashboard", "New Check", "Session Detail", "Settings"];
+const PAGES = ["Landing", "Product", "Guide", "Dashboard", "New Release Review", "Session Detail", "Settings"];
 const SESSION_TABS = ["Overview", "Spec & Risks", "Tests & Guardrails", "Docs & Launch", "Regulation", "Governance"];
 const SETTINGS_TABS = ["Profile", "Team", "API Keys", "Integrations", "Gates"];
 const FRAMEWORKS = ["EU AI Act", "OWASP Top 10 LLM", "NIST AI RMF", "ISO 42001", "GDPR", "SOC 2", "HIPAA"];
@@ -20,14 +20,14 @@ export const UI_TEST_CASES = [
   { page: "Product", expected: "product explanation renders" },
   { page: "Guide", expected: "quick-start guide renders" },
   { page: "Dashboard", expected: "authenticated dashboard renders" },
-  { page: "New Check", expected: "new review intake form renders" },
+  { page: "New Release Review", expected: "new review intake form renders" },
   { page: "Session Detail", expected: "session workspace tabs render" },
   { page: "Settings", expected: "settings tabs render" },
 ];
 
 export const INTERACTION_TEST_CASES = [
   { action: "click public Run review", expected: "Dashboard page opens" },
-  { action: "click dashboard New Release Review", expected: "New Check page opens" },
+  { action: "click dashboard New Release Review", expected: "New Release Review page opens" },
   { action: "click recent session", expected: "Session Detail page opens" },
   { action: "click each session tab", expected: "corresponding tab content renders" },
   { action: "click each settings tab", expected: "corresponding settings panel renders" },
@@ -38,12 +38,12 @@ export const INTERACTION_TEST_CASES = [
 
 const SESSIONS = [
   {
-    title: "Patient follow-up reminder assistant",
+    title: "AI customer support refund assistant",
     score: 86,
     risks: 5,
     date: "29 Apr 2026",
     status: "Complete",
-    description: "AI assistant that sends follow-up reminders to patients, summarizes appointment context, and escalates non-response to care coordinators.",
+    description: "Customer support AI agent that inspects customer profile data, reviews transaction history, classifies complaints, recommends refunds, drafts responses, and escalates high-risk cases.",
   },
   {
     title: "AI interviewer for PM Accelerator",
@@ -65,9 +65,9 @@ const SESSIONS = [
 
 const ACTIVE_SESSION = {
   ...SESSIONS[0],
-  industry: "Healthcare",
+  industry: "Finance / Fintech",
   releaseType: "Production",
-  decision: "Approve with safeguards",
+  decision: "Ship with controls",
   euRisk: "Limited risk",
   scoreBreakdown: [
     ["Risk coverage", 100],
@@ -77,27 +77,27 @@ const ACTIVE_SESSION = {
     ["Checklist", 70],
   ],
   risksDetailed: [
-    ["Data Privacy Breach", "High", "Patient information could be exposed through reminders, summaries, or logs."],
-    ["Missed Escalation", "Medium", "Non-response may not be escalated quickly enough for vulnerable patients."],
-    ["Over-reliance", "Medium", "Staff may rely on assistant summaries without verifying clinical context."],
+    ["Refund Misuse", "High", "The assistant could recommend refunds outside policy or above approval thresholds."],
+    ["PII Exposure", "High", "Customer profile and transaction data could be exposed through logs, prompts, or responses."],
+    ["Missed Escalation", "Medium", "Vulnerable customer complaints or account closure requests may not reach a human reviewer."],
   ],
   checklist: [
-    "Define interface requirements for the assistant.",
-    "Conduct user acceptance testing with providers.",
-    "Establish data privacy policy and security protocols.",
+    "Require human approval for refunds above GBP 50.",
+    "Log every customer profile and transaction lookup.",
+    "Block account closure actions and escalate them to a human.",
   ],
   tests: [
-    ["Consent boundary test", "Verify reminders are blocked when patient consent is missing.", "Privacy"],
-    ["Escalation fallback test", "Trigger escalation after repeated non-response.", "Reliability"],
-    ["Prompt injection test", "Ensure reminder content cannot override system instructions.", "Security"],
+    ["Refund threshold test", "Verify refunds above GBP 50 cannot proceed without human approval.", "Finance"],
+    ["PII logging test", "Verify customer and transaction data access is logged with user and purpose.", "Privacy"],
+    ["Moderation test", "Ensure drafted customer replies pass moderation before sending.", "Safety"],
   ],
   guardrails: [
-    "Do not send medical advice in reminder text.",
-    "Escalate urgent symptoms instead of generating a reply.",
-    "Mask protected health information in logs.",
+    "Human approval for refunds above GBP 50.",
+    "Account closure is blocked and escalated.",
+    "Mask PII in logs and customer-facing drafts.",
   ],
-  releaseNotes: "Adds controlled patient follow-up reminders with consent-aware messaging, escalation routing, and audit logging.",
-  gtmPage: "A safer reminder workflow for care teams that need follow-up automation without losing oversight.",
+  releaseNotes: "Adds controlled refund assistance with transaction review, approval thresholds, escalation routing, and audit logging.",
+  gtmPage: "A safer customer support refund workflow for financial teams that need automation without losing approval control.",
   pitchDeck: ["Problem", "Workflow", "Risk controls", "Validation results", "Launch decision"],
 };
 
@@ -221,7 +221,7 @@ function AppHeader({ onNavigate }) {
               {label}
             </button>
           ))}
-          <button type="button" onClick={() => onNavigate("New Check")} className="ml-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-bold text-white">
+          <button type="button" onClick={() => onNavigate("New Release Review")} className="ml-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-bold text-white">
             + New Release Review
           </button>
         </nav>
@@ -379,14 +379,14 @@ function ProductPage({ onNavigate }) {
 }
 
 function GuidePage({ onNavigate }) {
-  const quickStart = [["1", "Click + New Check", "Start from anywhere in the app."], ["2", "Describe your feature", "Add a title, description, and industry preset."], ["3", "Watch the pipeline", "Follow the live Release Analysis → Validation Planning → Decision Packaging logs."], ["4", "Explore results", "Review Overview, Spec & Risks, Tests, Docs, Regulation, and Governance."]];
+  const quickStart = [["1", "Click + New Release Review", "Start from anywhere in the app."], ["2", "Describe your feature", "Add a title, description, and industry preset."], ["3", "Watch the pipeline", "Follow the live Release Analysis → Validation Planning → Decision Packaging logs."], ["4", "Explore results", "Review Overview, Spec & Risks, Tests, Docs, Regulation, and Governance."]];
   const agents = [["Release Analysis", ["Release spec", "Risk register", "Readiness checklist"]], ["Validation Planning", ["Test strategy", "Test cases", "Guardrails"]], ["Decision Packaging", ["Release notes", "GTM page", "Pitch deck"]]];
   return (
     <main className="min-h-screen bg-white text-slate-950">
       <PublicHeader onNavigate={onNavigate} />
-      <section className="px-6 py-20 md:py-28 lg:px-8"><div className="mx-auto max-w-6xl"><SectionTitle eyebrow="Guide" title="How to run a release check." subtitle="Use this guide to understand the check flow, the three-agent pipeline, the regulation engine, and the governance tools available after a run." /></div></section>
-      <section className="px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Quick start" title="Run a check in four steps." /><ol className="divide-y divide-slate-200 border-y border-slate-200">{quickStart.map(([number, title, body]) => <li key={title} className="grid gap-4 py-6 md:grid-cols-[56px_220px_1fr]"><span className="text-sm font-bold text-blue-600">{number}</span><h3 className="text-lg font-semibold">{title}</h3><p className="text-sm leading-7 text-slate-600">{body}</p></li>)}</ol></div></section>
-      <section className="bg-slate-50 px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Three Agents" title="Each agent owns a different part of the check." /><div className="grid gap-4 md:grid-cols-3">{agents.map(([name, items]) => <div key={name} className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm"><h3 className="text-lg font-semibold">{name}</h3><ul className="mt-5 space-y-3">{items.map((item) => <li key={item} className="text-sm text-slate-600">→ {item}</li>)}</ul></div>)}</div></div></section>
+      <section className="px-6 py-20 md:py-28 lg:px-8"><div className="mx-auto max-w-6xl"><SectionTitle eyebrow="Guide" title="How to run a release review." subtitle="Use this guide to understand the release review flow, the decision pipeline, the regulation engine, and the governance tools available after a run." /></div></section>
+      <section className="px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Quick start" title="Run a review in four steps." /><ol className="divide-y divide-slate-200 border-y border-slate-200">{quickStart.map(([number, title, body]) => <li key={title} className="grid gap-4 py-6 md:grid-cols-[56px_220px_1fr]"><span className="text-sm font-bold text-blue-600">{number}</span><h3 className="text-lg font-semibold">{title}</h3><p className="text-sm leading-7 text-slate-600">{body}</p></li>)}</ol></div></section>
+      <section className="bg-slate-50 px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Review Stages" title="Each stage owns a different part of the release decision." /><div className="grid gap-4 md:grid-cols-3">{agents.map(([name, items]) => <div key={name} className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm"><h3 className="text-lg font-semibold">{name}</h3><ul className="mt-5 space-y-3">{items.map((item) => <li key={item} className="text-sm text-slate-600">→ {item}</li>)}</ul></div>)}</div></div></section>
     </main>
   );
 }
@@ -409,7 +409,7 @@ function StatusBlock({ color, title, body }) {
 }
 
 function NewCheckPage({ onClose }) {
-  return <div className="mx-auto max-w-3xl"><button type="button" onClick={onClose} className="mb-6 text-sm font-semibold text-slate-400 hover:text-white">← Back to dashboard</button><DarkCard title="New Release Review"><form className="space-y-6" onSubmit={(event) => event.preventDefault()}><div><label className="text-sm font-semibold text-white">Industry preset</label><select className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200"><option>Healthcare</option><option>Finance</option><option>Customer Support</option><option>HR</option></select></div><div><label className="text-sm font-semibold text-white">Title</label><input className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="Patient follow-up reminder assistant" /></div><div><label className="text-sm font-semibold text-white">Feature description</label><textarea className="mt-2 min-h-40 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="AI assistant that sends follow-up reminders to patients, summarizes appointment context, and escalates non-response to care coordinators." /></div><div><label className="text-sm font-semibold text-white">Release type</label><div className="mt-3 flex flex-wrap gap-3">{["Prototype", "Beta", "Production"].map((type) => <span key={type} className={cn("rounded-xl border px-4 py-3 text-sm font-semibold", type === "Production" ? "border-violet-500 bg-violet-500/10 text-violet-200" : "border-slate-700 text-slate-400")}>{type}</span>)}</div></div><Button variant="violet" type="submit">Run Release Review</Button></form></DarkCard></div>;
+  return <div className="mx-auto max-w-3xl"><button type="button" onClick={onClose} className="mb-6 text-sm font-semibold text-slate-400 hover:text-white">← Back to dashboard</button><DarkCard title="New Release Review"><form className="space-y-6" onSubmit={(event) => event.preventDefault()}><div><label className="text-sm font-semibold text-white">Industry preset</label><select className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200"><option>Finance / Fintech</option><option>Customer Support</option><option>HR</option><option>Healthcare</option></select></div><div><label className="text-sm font-semibold text-white">Title</label><input className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="AI customer support refund assistant" /></div><div><label className="text-sm font-semibold text-white">Feature description</label><textarea className="mt-2 min-h-40 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="Customer support AI agent that inspects customer profile data, reviews transaction history, classifies complaints, recommends refunds, drafts responses, and escalates high-risk cases." /></div><div><label className="text-sm font-semibold text-white">Release type</label><div className="mt-3 flex flex-wrap gap-3">{["Prototype", "Beta", "Production"].map((type) => <span key={type} className={cn("rounded-xl border px-4 py-3 text-sm font-semibold", type === "Production" ? "border-violet-500 bg-violet-500/10 text-violet-200" : "border-slate-700 text-slate-400")}>{type}</span>)}</div></div><Button variant="violet" type="submit">Run Release Review</Button></form></DarkCard></div>;
 }
 
 function SessionDetailPage({ onBack }) {
@@ -519,7 +519,7 @@ function IntegratedAppHeader({ page, user, isAdmin, showGuide, onNavigate, onNew
               </button>
             );
           })}
-          <button type="button" onClick={onNewCheck} className="ml-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-bold text-white hover:bg-violet-700">+ New Check</button>
+          <button type="button" onClick={onNewCheck} className="ml-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-bold text-white hover:bg-violet-700">+ New Release Review</button>
           <button type="button" onClick={onToggleGuide} className={cn("rounded-xl border px-4 py-2 text-sm font-semibold", showGuide ? "border-violet-500 bg-violet-600 text-white" : "border-[#e6e0d6] text-slate-600 hover:bg-[#fbfaf7] hover:text-slate-950")}>Guide</button>
         </nav>
         <div className="flex items-center gap-2">
@@ -646,7 +646,7 @@ export default function ReleaseOpsAgentUI() {
   };
 
   const publicNavigate = (target) => {
-    const map = { Landing: "landing", Product: "product", Guide: "guide", Dashboard: "dash" };
+    const map = { Landing: "landing", Product: "product", Guide: "guide", Dashboard: "dash", "New Release Review": "dash" };
     navigate(map[target] || target);
   };
 

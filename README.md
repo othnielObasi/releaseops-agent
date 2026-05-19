@@ -19,7 +19,7 @@ Autonomously evaluate enterprise AI workflows before launch — from feature int
 
 ## What is ReleaseOps Agent?
 
-ReleaseOps Agent is a web-based enterprise AI release decision agent built for teams launching AI-powered products, copilots, and autonomous workflows.
+ReleaseOps Agent is a web-based enterprise AI release decision agent built for teams launching AI-powered products, autonomous workflows, and enterprise AI systems.
 
 It helps product, engineering, operations, customer support, compliance, security, and leadership teams answer one critical question:
 
@@ -58,7 +58,7 @@ ReleaseOps Agent is designed for the Vultr challenge: **Build a Web-Based Enterp
 |------------------|----------------------------|
 | **Web-based enterprise agent** | Browser-based AI release decision workflow for enterprise teams |
 | **Real-world enterprise workflow** | Supports release review for AI workflows across customer support, operations, sales, marketing, HR, product, and compliance |
-| **Beyond copilots** | Produces structured launch decisions, not just suggestions |
+| **Operational decision system** | Produces structured launch decisions, not just suggestions |
 | **Agentic workflows** | Uses specialized agents for product analysis, risk review, test planning, guardrail mapping, and stakeholder packaging |
 | **Enterprise utility** | Helps teams reduce release ambiguity, improve review quality, and produce auditable launch records |
 | **Measurable output** | Readiness score, risk count, generated tests, required controls, approval status, and launch recommendation |
@@ -97,13 +97,13 @@ Example decision:
 
 ## Agentic Decision Workflow
 
-Three specialized AI agents orchestrated by [LangGraph](https://github.com/langchain-ai/langgraph) run in sequence:
+Three specialized review stages orchestrated by [LangGraph](https://github.com/langchain-ai/langgraph) run in sequence:
 
-| Agent | Role | Output |
+| Stage | Role | Output |
 |-------|------|--------|
-| **Navigator** | Enterprise Workflow Analyst | Product intent, affected users, personas, user stories, business workflow, initial risk areas, readiness checklist |
-| **Sentinel** | Risk, Test & Guardrail Planner | Risk register, testing strategy, linked test cases, safety checks, runtime guardrail recommendations |
-| **Herald** | Decision Record & Stakeholder Packager | Release notes, stakeholder summary, launch decision explanation, approval package, GTM materials |
+| **Release Analysis** | Enterprise Workflow Analysis | Product intent, affected users, personas, user stories, business workflow, initial risk areas, readiness checklist |
+| **Validation Planning** | Risk, Test & Guardrail Planning | Risk register, testing strategy, linked test cases, safety checks, runtime guardrail recommendations |
+| **Decision Packaging** | Decision Record & Stakeholder Packaging | Release notes, stakeholder summary, launch decision explanation, approval package, GTM materials |
 
 Each output is validated, scored using a 0–100 readiness grade, and persisted for audit.
 

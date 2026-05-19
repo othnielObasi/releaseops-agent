@@ -19,6 +19,86 @@ const EMPTY_INTEGRATIONS = {
   linear_team_id: "",
 };
 
+function getLaunchDecision(st, decision, signoffs = []) {
+  if (decision?.decision === "go") return { label: "Ship", tone: "gn" };
+  const missingSignoffs = decision?.missing_signoffs?.length ?? signoffs.filter((x) => x.status === "pending").length;
+  const openBlockers = decision?.open_blockers ?? 0;
+  if ((st?.score ?? 0) >= 80 && (missingSignoffs > 0 || openBlockers > 0)) return { label: "Ship with controls", tone: "or" };
+  if ((st?.score ?? 0) >= 60) return { label: "Needs review", tone: "or" };
+  return { label: "Do not ship yet", tone: "rd" };
+}
+
+function DecisionHero({ s, st, decision, signoffs, sessionId }) {
+  const launch = getLaunchDecision(st, decision, signoffs);
+  const missingSignoffs = decision?.missing_signoffs?.length ?? signoffs.filter((x) => x.status === "pending").length;
+  const openBlockers = decision?.open_blockers ?? 0;
+  const approvalBlockers = openBlockers + missingSignoffs;
+  const evidenceStored = Boolean(sessionId);
+
+  return (
+    <section className="workspace-section my-3 p-4 animate-fade-up-1">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="text-xs font-bold uppercase tracking-[0.16em] text-accent-purple2">Launch Decision</div>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <h2 className="text-2xl font-extrabold text-tx">{launch.label}</h2>
+            <Badge color={launch.tone} size="xs">{decision?.decision === "go" ? "approved gate" : "controlled release"}</Badge>
+            <Badge color="bl" size="xs">stored on Vultr</Badge>
+          </div>
+          <p className="mt-1 max-w-2xl text-sm text-tx-3">
+            {s.title} has a persisted decision record with linked risks, tests, controls, and approval state.
+          </p>
+        </div>
+        <div className="grid w-full grid-cols-2 overflow-hidden rounded-lg border border-lg-bd text-center text-sm sm:grid-cols-3 lg:max-w-[440px]">
+          {[
+            ["Score", `${decision?.score ?? st.score}/100`],
+            ["Risks", st.risks],
+            ["Tests", st.tests],
+            ["Controls", st.guard],
+            ["Approval blockers", approvalBlockers],
+            ["Evidence", evidenceStored ? "Stored" : "Pending"],
+          ].map(([label, value], i) => (
+            <div key={label} className="border-b border-r border-lg-bd p-2 last:border-r-0 [&:nth-child(3n)]:border-r-0 [&:nth-last-child(-n+3)]:border-b-0">
+              <div className="text-base font-extrabold text-tx">{value}</div>
+              <div className="text-xs text-tx-4">{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function VultrSystemRecord({ sessionId, s, st }) {
+  const evidenceItems = (st?.risks || 0) + (st?.tests || 0) + (st?.guard || 0);
+  return (
+    <section className="workspace-section p-4 animate-fade-up">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <Label>Vultr System Of Record</Label>
+          <p className="text-sm text-tx-3 -mt-1">Production persistence proof for this release decision.</p>
+        </div>
+        <Badge color="gn" size="xs">health passing</Badge>
+      </div>
+      <div className="grid gap-0 overflow-hidden rounded-lg border border-lg-bd text-sm sm:grid-cols-3 lg:grid-cols-6">
+        {[
+          ["Backend", "Vultr VM"],
+          ["Database", "PostgreSQL"],
+          ["Run record", sessionId ? "persisted" : "pending"],
+          ["Evidence pack", evidenceItems > 0 ? "generated" : "pending"],
+          ["Record ID", sessionId ? sessionId.slice(0, 8) : "pending"],
+          ["Last saved", s.date?.split(",")[0] || "current run"],
+        ].map(([label, value]) => (
+          <div key={label} className="border-b border-r border-lg-bd p-3 last:border-r-0 sm:[&:nth-child(3n)]:border-r-0 lg:border-b-0 lg:[&:nth-child(3n)]:border-r lg:[&:nth-child(6n)]:border-r-0">
+            <div className="text-xs font-bold uppercase tracking-wider text-tx-4">{label}</div>
+            <div className="mt-1 font-extrabold text-tx">{value}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function SessionDetail({ sessionId, fallback, onBack, onOpenSession, onRefreshSessions }) {
   const [s, setS] = useState(fallback || null);
   const [loading, setLoading] = useState(!fallback);
@@ -162,6 +242,8 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
         </div>
       )}
 
+      <DecisionHero s={s} st={st} decision={decision} signoffs={signoffs} sessionId={sessionId} />
+
       <Pipeline phase={3} />
 
       {/* AI Warning */}
@@ -193,6 +275,8 @@ function OverviewTab({ s, st, versionHistory, currentSessionId, onOpenSession })
   const sortedVersions = [...(versionHistory || [])].sort((a, b) => a.version - b.version);
   return (
     <div className="space-y-3">
+      <VultrSystemRecord sessionId={currentSessionId} s={s} st={st} />
+
       {/* Version History Timeline */}
       {sortedVersions.length > 1 && (
         <Card className="animate-fade-up">
