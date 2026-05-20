@@ -52,6 +52,7 @@ Create the root compose env:
 ```bash
 cat > .env <<'EOF'
 POSTGRES_PASSWORD=replace-with-a-long-random-password
+VITE_CLERK_PUBLISHABLE_KEY=pk_live_or_test_from_clerk
 EOF
 ```
 
@@ -75,6 +76,15 @@ DATABASE_URL=postgresql://releaseops:replace-with-a-long-random-password@postgre
 Use the same password in `.env` and `backend/.env`.
 
 For real LLM calls, set `DEMO_MODE=false` and provide either `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`.
+
+For Clerk authentication, set:
+
+```env
+CLERK_JWT_ISSUER=https://your-clerk-frontend-api.clerk.accounts.dev
+CLERK_SECRET_KEY=sk_live_or_test_from_clerk
+CLERK_WEBHOOK_SECRET=whsec_from_clerk_webhook
+PUBLIC_APP_URL=https://releaseops.nov-tia.com
+```
 
 ## 5. Start Backend and Frontend
 
@@ -102,7 +112,13 @@ The frontend container proxies `/api/*` to the backend container, so login/signu
 ReleaseOps Agent is currently deployed to:
 
 ```text
-http://45.32.176.216/
+https://releaseops.nov-tia.com/
+```
+
+Clerk webhook endpoint:
+
+```text
+https://releaseops.nov-tia.com/api/webhooks/clerk
 ```
 
 Vultr instance:

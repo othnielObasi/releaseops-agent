@@ -5,10 +5,23 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const BASE = "/api";
+let authTokenProvider = null;
+
+export function setAuthTokenProvider(provider) {
+  authTokenProvider = provider;
+}
+
+async function getAuthToken() {
+  if (authTokenProvider) {
+    const token = await authTokenProvider().catch(() => null);
+    if (token) return token;
+  }
+  return localStorage.getItem("releaseops_token");
+}
 
 /** Helper: fetch with JSON handling, auth header, and error normalisation */
 async function request(path, options = {}) {
-  const token = localStorage.getItem("releaseops_token");
+  const token = await getAuthToken();
   const headers = { ...options.headers };
   if (options.body !== undefined && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
@@ -30,7 +43,7 @@ async function request(path, options = {}) {
 }
 
 async function requestBlob(path, options = {}) {
-  const token = localStorage.getItem("releaseops_token");
+  const token = await getAuthToken();
   const headers = { ...options.headers };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 

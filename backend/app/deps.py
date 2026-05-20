@@ -14,11 +14,13 @@ from passlib.context import CryptContext
 
 import psycopg2
 import psycopg2.extras
+import requests
 
 from app.infra.config import (
     BASE_DIR, DATA_DIR, SESSIONS_DIR, MOCK_DIR, STATIC_DIR,
     JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRE_HOURS,
     ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_MODE, DATABASE_URL,
+    CLERK_JWT_ISSUER, CLERK_SECRET_KEY,
 )
 from app.domain.agent_execution import get_agent_run
 
@@ -230,7 +232,107 @@ def _decode_jwt_payload(credentials: HTTPAuthorizationCredentials) -> dict:
     try:
         return jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     except JWTError:
+        clerk_payload = _decode_clerk_jwt(credentials.credentials)
+        if clerk_payload:
+            return clerk_payload
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+_clerk_jwks_cache: dict[str, Any] = {"ts": 0.0, "keys": []}
+_clerk_user_cache: dict[str, Any] = {}
+_CLERK_CACHE_TTL = 300.0
+
+
+def _clerk_jwks() -> list[dict]:
+    if not CLERK_JWT_ISSUER:
+        return []
+    if _time.time() - _clerk_jwks_cache["ts"] < _CLERK_CACHE_TTL:
+        return _clerk_jwks_cache["keys"]
+    try:
+        resp = requests.get(f"{CLERK_JWT_ISSUER}/.well-known/jwks.json", timeout=5)
+        resp.raise_for_status()
+        keys = resp.json().get("keys", [])
+        _clerk_jwks_cache.update({"ts": _time.time(), "keys": keys})
+        return keys
+    except Exception as exc:
+        logger.warning(json.dumps({"event": "clerk_jwks_fetch_failed", "error": str(exc)}))
+        return []
+
+
+def _clerk_identity_from_user_id(user_id: str) -> dict:
+    if not user_id:
+        return {}
+    cached = _clerk_user_cache.get(user_id)
+    if cached and _time.time() - cached["ts"] < _CLERK_CACHE_TTL:
+        return cached["identity"]
+    if not CLERK_SECRET_KEY:
+        return {"email": user_id, "name": user_id}
+    try:
+        resp = requests.get(
+            f"https://api.clerk.com/v1/users/{user_id}",
+            headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"},
+            timeout=5,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        primary_id = data.get("primary_email_address_id")
+        email = None
+        for item in data.get("email_addresses", []):
+            if item.get("id") == primary_id:
+                email = item.get("email_address")
+                break
+        email = email or (data.get("email_addresses") or [{}])[0].get("email_address") or user_id
+        name = " ".join([data.get("first_name") or "", data.get("last_name") or ""]).strip() or data.get("username") or email
+        identity = {"email": email.lower(), "name": name}
+        _clerk_user_cache[user_id] = {"ts": _time.time(), "identity": identity}
+        return identity
+    except Exception as exc:
+        logger.warning(json.dumps({"event": "clerk_user_fetch_failed", "user_id": user_id, "error": str(exc)}))
+        return {"email": user_id, "name": user_id}
+
+
+def _ensure_clerk_user(payload: dict) -> str:
+    user_id = payload.get("sub")
+    identity = _clerk_identity_from_user_id(user_id)
+    email = identity.get("email") or user_id
+    users = load_users()
+    if email not in users:
+        users[email] = {
+            "name": identity.get("name", email),
+            "email": email,
+            "password_hash": "",
+            "role": Role.USER,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_seen": datetime.now(timezone.utc).isoformat(),
+            "notification_email": True,
+        }
+    else:
+        users[email]["name"] = identity.get("name") or users[email].get("name", "")
+        users[email]["last_seen"] = datetime.now(timezone.utc).isoformat()
+    save_users(users)
+    return email
+
+
+def _decode_clerk_jwt(token: str) -> Optional[dict]:
+    if not CLERK_JWT_ISSUER:
+        return None
+    try:
+        header = jwt.get_unverified_header(token)
+        kid = header.get("kid")
+        key = next((item for item in _clerk_jwks() if item.get("kid") == kid), None)
+        if not key:
+            return None
+        payload = jwt.decode(
+            token,
+            key,
+            algorithms=["RS256"],
+            issuer=CLERK_JWT_ISSUER,
+            options={"verify_aud": False},
+        )
+        email = _ensure_clerk_user(payload)
+        return {"sub": email, "role": Role.USER, "clerk_sub": payload.get("sub"), "clerk": payload}
+    except Exception:
+        return None
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
     payload = _decode_jwt_payload(credentials)

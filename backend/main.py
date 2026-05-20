@@ -31,6 +31,7 @@ from app.api.governance import router as governance_router
 from app.api.regulation import router as regulation_router
 from app.api.integrations import router as integrations_router, set_webhook_pipeline_runner
 from app.api.teams import router as teams_router
+from app.api.webhooks import router as webhooks_router
 
 # ── Pipeline (agents) ─────────────────────────────────────────────────────────
 from app.agents.pipeline import run_pipeline
@@ -138,6 +139,7 @@ app.include_router(governance_router)
 app.include_router(regulation_router)
 app.include_router(integrations_router)
 app.include_router(teams_router)
+app.include_router(webhooks_router)
 
 
 # ── Wire pipeline runners (avoids circular imports) ──────────────────────────

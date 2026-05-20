@@ -42,6 +42,10 @@ SMTP_PORT     = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER     = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 FROM_EMAIL    = os.getenv("FROM_EMAIL", "noreply@releaseops.dev")
+PUBLIC_APP_URL = os.getenv("PUBLIC_APP_URL", "").rstrip("/")
+CLERK_JWT_ISSUER = os.getenv("CLERK_JWT_ISSUER", "").rstrip("/")
+CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY", "")
+CLERK_WEBHOOK_SECRET = os.getenv("CLERK_WEBHOOK_SECRET", "")
 
 # ── LLM Provider ─────────────────────────────────────────────────────────────
 LLM_PROVIDER    = os.getenv("LLM_PROVIDER", "openai").lower()  # "openai" or "anthropic"

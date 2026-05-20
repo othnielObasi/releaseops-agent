@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { auth as authAPI, sessions as sessionsAPI } from "./services/api";
+import { SignIn, SignUp, UserButton, OrganizationSwitcher, useAuth, useUser } from "@clerk/clerk-react";
+import { auth as authAPI, sessions as sessionsAPI, setAuthTokenProvider } from "./services/api";
 import { transformSessionList } from "./services/transform";
 import LegacyDashboard from "./pages/Dashboard";
 import LegacySessionsList from "./pages/SessionsList";
@@ -477,22 +478,17 @@ function GateSettings() {
 function AuthModal({ mode, form, error, loading, onClose, onSubmit, onFormChange, onModeChange }) {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm" onClick={onClose}>
-      <form onSubmit={onSubmit} onClick={(event) => event.stopPropagation()} className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-7 shadow-2xl shadow-slate-200/80">
-        <h2 className="text-xl font-semibold text-slate-950">{mode === "signup" ? "Create account" : "Welcome back"}</h2>
-        <p className="mt-1 text-sm text-slate-600">{mode === "signup" ? "Create a real email-based account for your organization." : "Sign in with your work email address."}</p>
-        {error ? <div className="mt-4 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
-        <div className="mt-5 space-y-3">
-          {mode === "signup" ? <input type="text" required placeholder="Full name" value={form.name} onChange={(event) => onFormChange({ ...form, name: event.target.value })} className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-slate-500" /> : null}
-          <input type="email" required placeholder="Email address" value={form.email} onChange={(event) => onFormChange({ ...form, email: event.target.value })} className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-slate-500" />
-          <input type="password" required minLength={6} placeholder="Password (min 6 chars)" value={form.password} onChange={(event) => onFormChange({ ...form, password: event.target.value })} className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-slate-500" />
-        </div>
-        <button type="submit" disabled={loading} className="mt-5 w-full rounded-md border border-slate-950 bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60">
-          {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
-        </button>
-        <button type="button" onClick={() => onModeChange(mode === "signup" ? "login" : "signup")} className="mt-4 w-full text-center text-sm font-semibold text-violet-700 hover:text-violet-600">
+      <div onClick={(event) => event.stopPropagation()} className="relative w-full max-w-md">
+        <button type="button" onClick={onClose} className="absolute -right-2 -top-2 z-10 rounded-full bg-slate-950 px-3 py-1 text-sm font-bold text-white shadow-sm">Close</button>
+        {mode === "signup" ? (
+          <SignUp routing="virtual" signInUrl="#" afterSignUpUrl="/" />
+        ) : (
+          <SignIn routing="virtual" signUpUrl="#" afterSignInUrl="/" />
+        )}
+        <button type="button" onClick={() => onModeChange(mode === "signup" ? "login" : "signup")} className="mt-3 w-full rounded-md bg-white px-4 py-2 text-sm font-semibold text-violet-700 shadow-sm">
           {mode === "signup" ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
         </button>
-      </form>
+      </div>
     </div>
   );
 }
@@ -524,7 +520,11 @@ function IntegratedAppHeader({ page, user, isAdmin, showGuide, onNavigate, onNew
           <button type="button" onClick={onToggleGuide} className={cn("rounded-md border px-3.5 py-2 text-sm font-semibold transition-colors", showGuide ? "border-slate-950 bg-slate-950 text-white" : "border-transparent text-slate-600 hover:bg-[#fbfaf7] hover:text-slate-950")}>Guide</button>
         </nav>
         <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <OrganizationSwitcher afterCreateOrganizationUrl="/" afterSelectOrganizationUrl="/" afterLeaveOrganizationUrl="/" />
+          </div>
           <span className="hidden rounded-md bg-[#fbfaf7] px-3 py-2 text-sm text-slate-700 md:inline-flex">{user?.name || user?.email || "User"}</span>
+          <UserButton afterSignOutUrl="/" />
           <button type="button" onClick={onLogout} className="rounded-md border border-transparent px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50">Sign out</button>
         </div>
       </div>
@@ -542,6 +542,8 @@ function IntegratedAppLayout({ children, ...headerProps }) {
 }
 
 export default function ReleaseOpsAgentUI() {
+  const clerk = useAuth();
+  const { user: clerkUser } = useUser();
   const [page, setPage] = useState("landing");
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -570,6 +572,30 @@ export default function ReleaseOpsAgentUI() {
   }, []);
 
   useEffect(() => {
+    if (clerk?.getToken) {
+      setAuthTokenProvider(() => clerk.getToken());
+    }
+  }, [clerk?.getToken]);
+
+  useEffect(() => {
+    if (!clerk?.isLoaded) return;
+    if (!clerk.isSignedIn) {
+      setAuthenticated(false);
+      setUser(null);
+      setSessions([]);
+      return;
+    }
+    const primaryEmail = clerkUser?.primaryEmailAddress?.emailAddress || clerkUser?.emailAddresses?.[0]?.emailAddress || "";
+    const displayName = clerkUser?.fullName || clerkUser?.username || primaryEmail || "User";
+    setUser({ name: displayName, email: primaryEmail, role: "user" });
+    setAuthenticated(true);
+    setAuthMode(null);
+    if (page === "landing") setPage("dash");
+    fetchSessions();
+  }, [clerk?.isLoaded, clerk?.isSignedIn, clerkUser?.id, fetchSessions]);
+
+  useEffect(() => {
+    if (clerk?.isLoaded) return;
     const token = localStorage.getItem("releaseops_token");
     if (!token) return;
     authAPI.me().then((nextUser) => {
@@ -578,7 +604,7 @@ export default function ReleaseOpsAgentUI() {
       setPage("dash");
       fetchSessions();
     }).catch(() => localStorage.removeItem("releaseops_token"));
-  }, [fetchSessions]);
+  }, [fetchSessions, clerk?.isLoaded]);
 
   const beginAuth = (mode = "signup") => {
     setAuthMode(mode);
@@ -622,6 +648,7 @@ export default function ReleaseOpsAgentUI() {
 
   const logout = () => {
     localStorage.removeItem("releaseops_token");
+    clerk?.signOut?.();
     setAuthenticated(false);
     setUser(null);
     setPage("landing");
