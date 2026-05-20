@@ -1,15 +1,55 @@
 """Webhook receivers for external identity and integration events."""
+import base64
+import hashlib
+import hmac
 import json
+import time
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request
 import psycopg2.extras
-from svix.webhooks import Webhook, WebhookVerificationError
 
 from app.deps import get_db, load_users, save_users, Role, audit
 from app.infra.config import CLERK_WEBHOOK_SECRET
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
+
+
+def _verify_svix_payload(payload: bytes, headers: dict) -> dict:
+    svix_id = headers.get("svix-id")
+    svix_timestamp = headers.get("svix-timestamp")
+    svix_signature = headers.get("svix-signature")
+    if not svix_id or not svix_timestamp or not svix_signature:
+        raise HTTPException(status_code=400, detail="Missing webhook signature headers")
+
+    try:
+        timestamp = int(svix_timestamp)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid webhook timestamp")
+    if abs(time.time() - timestamp) > 300:
+        raise HTTPException(status_code=400, detail="Expired webhook timestamp")
+
+    secret = CLERK_WEBHOOK_SECRET
+    if secret.startswith("whsec_"):
+        secret = secret.split("_", 1)[1]
+    try:
+        secret_bytes = base64.b64decode(secret)
+    except Exception:
+        raise HTTPException(status_code=503, detail="Invalid Clerk webhook secret")
+
+    signed_content = f"{svix_id}.{svix_timestamp}.".encode("utf-8") + payload
+    expected = base64.b64encode(
+        hmac.new(secret_bytes, signed_content, hashlib.sha256).digest()
+    ).decode("utf-8")
+    signatures = []
+    for item in svix_signature.split(" "):
+        if "," in item:
+            version, signature = item.split(",", 1)
+            if version == "v1":
+                signatures.append(signature)
+    if not any(hmac.compare_digest(expected, signature) for signature in signatures):
+        raise HTTPException(status_code=400, detail="Invalid webhook signature")
+    return json.loads(payload.decode("utf-8"))
 
 
 def _primary_email(data: dict) -> str | None:
@@ -127,10 +167,7 @@ async def clerk_webhook(request: Request):
         raise HTTPException(status_code=503, detail="Clerk webhook secret is not configured")
 
     payload = await request.body()
-    try:
-        event = Webhook(CLERK_WEBHOOK_SECRET).verify(payload, dict(request.headers))
-    except WebhookVerificationError:
-        raise HTTPException(status_code=400, detail="Invalid webhook signature")
+    event = _verify_svix_payload(payload, dict(request.headers))
 
     event_type = event.get("type")
     data = event.get("data") or {}
