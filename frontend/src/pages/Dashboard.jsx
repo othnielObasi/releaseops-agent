@@ -59,7 +59,7 @@ function ReleaseSnapshot({ sessions, onOpen }) {
   );
 }
 
-export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
+export default function Dashboard({ sessions = [], loading, onOpen }) {
   const workflows = uniqueByTitle(sessions);
   const scores = sessions.map((s) => s.st.score);
   const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
@@ -79,12 +79,11 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <div className="flex flex-col gap-3 pt-6 mb-5 animate-fade-up sm:flex-row sm:items-end sm:justify-between">
+      <div className="pt-6 mb-5 animate-fade-up">
         <div>
           <h1 className="text-3xl font-extrabold text-tx">Release Operations</h1>
           <p className="text-sm text-tx-3 mt-1">Portfolio view of release decisions, controls, sign-offs, and governance state.</p>
         </div>
-        <Button variant="primary" size="md" onClick={onNew} className="w-full sm:w-auto">+ New Release Review</Button>
       </div>
 
       <section className="workspace-section mb-4 grid grid-cols-2 overflow-hidden animate-fade-up-1 sm:grid-cols-3 xl:grid-cols-5">
@@ -106,8 +105,7 @@ export default function Dashboard({ sessions = [], loading, onNew, onOpen }) {
         <ReleaseSnapshot sessions={sessions} onOpen={onOpen} />
       ) : (
         <section className="workspace-section mb-4 animate-fade-up-2 p-8 text-center">
-          <div className="text-tx-3 text-sm">No release reviews yet. Run the first review to start building an operational record.</div>
-          <Button variant="primary" size="sm" onClick={onNew} className="mt-3">+ New Release Review</Button>
+          <div className="text-tx-3 text-sm">No release reviews yet. Use the header action to start building an operational record.</div>
         </section>
       )}
 

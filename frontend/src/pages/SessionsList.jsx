@@ -23,7 +23,7 @@ function groupLatestByTitle(sessions) {
   return [...groups.values()].map((group) => ({ ...group.latest, versionCount: group.count }));
 }
 
-export default function SessionsList({ sessions = [], loading, onOpen, onNew, onCompare }) {
+export default function SessionsList({ sessions = [], loading, onOpen, onCompare }) {
   const [filter, setFilter] = useState("all");
   const [compareMode, setCompareMode] = useState(false);
   const [selected, setSelected] = useState([]);
@@ -58,7 +58,6 @@ export default function SessionsList({ sessions = [], loading, onOpen, onNew, on
           <Button variant={compareMode ? "danger" : "default"} size="sm" onClick={() => { setCompareMode(!compareMode); setSelected([]); }}>
             {compareMode ? "Cancel compare" : "Compare reviews"}
           </Button>
-          <Button variant="primary" size="sm" onClick={onNew}>+ New Release Review</Button>
         </div>
       </div>
 
