@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Depends
 import psycopg2.extras
 
 from app.deps import (
-    verify_token, get_db, audit, send_email, hash_api_key, logger,
+    verify_token, get_db, audit, send_email, send_email_detailed, hash_api_key, logger,
     load_users, save_users, hash_password, Role, sessions, normalize_session, SESSIONS_DIR,
 )
 from app.models.schemas import (
@@ -197,7 +197,7 @@ async def invite_member(team_id: str, body: TeamInvite, email: str = Depends(ver
         cur2.close()
     team_name = team_row["name"] if team_row else "a ReleaseOps workspace"
     invite_url = f"{PUBLIC_APP_URL}/join/{token}" if PUBLIC_APP_URL else f"/join/{token}"
-    email_sent = send_email(
+    email_result = send_email_detailed(
         body.email,
         f"You've been invited to join {team_name} on ReleaseOps",
         f"""<html><body style="font-family:Arial,sans-serif;color:#1e293b;max-width:520px;margin:0 auto;">
@@ -213,13 +213,16 @@ async def invite_member(team_id: str, body: TeamInvite, email: str = Depends(ver
             This link is single-use. If you did not expect this invitation, ignore this email.</p>
         </div></body></html>"""
     )
+    email_sent = bool(email_result.get("sent"))
     audit(email, "organization_member_invited", team_id, metadata={"invitee": _normalize_email(body.email), "role": invite_role})
     return {
         "status": "invited",
         "token": token,
         "invite_url": invite_url,
-        "email_sent": bool(email_sent),
+        "email_sent": email_sent,
         "email_status": "sent" if email_sent else "not_configured_or_failed",
+        "email_error": email_result.get("error") or "",
+        "email_provider": email_result.get("provider") or "",
     }
 
 

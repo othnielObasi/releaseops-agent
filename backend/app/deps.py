@@ -809,7 +809,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from app.infra.config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, FROM_EMAIL, RESEND_API_KEY
 
-def send_email(to_email: str, subject: str, html_body: str) -> bool:
+def send_email_detailed(to_email: str, subject: str, html_body: str) -> dict:
     if RESEND_API_KEY:
         try:
             resp = requests.post(
@@ -827,21 +827,23 @@ def send_email(to_email: str, subject: str, html_body: str) -> bool:
                 timeout=10,
             )
             if resp.status_code >= 400:
+                error = resp.text[:500]
                 logger.error(json.dumps({
                     "event": "email_failed",
                     "provider": "resend",
                     "status": resp.status_code,
-                    "error": resp.text[:500],
+                    "error": error,
                 }))
-                return False
+                return {"sent": False, "provider": "resend", "error": error}
             logger.info(json.dumps({"event": "email_sent", "provider": "resend", "to": to_email}))
-            return True
+            return {"sent": True, "provider": "resend", "error": ""}
         except Exception as e:
-            logger.error(json.dumps({"event": "email_failed", "provider": "resend", "error": str(e)}))
-            return False
+            error = str(e)
+            logger.error(json.dumps({"event": "email_failed", "provider": "resend", "error": error}))
+            return {"sent": False, "provider": "resend", "error": error}
     if not SMTP_HOST or not SMTP_USER:
         logger.warning(json.dumps({"event": "email_skipped", "reason": "SMTP not configured"}))
-        return False
+        return {"sent": False, "provider": "smtp", "error": "SMTP is not configured"}
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
@@ -853,7 +855,12 @@ def send_email(to_email: str, subject: str, html_body: str) -> bool:
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(FROM_EMAIL, [to_email], msg.as_string())
         logger.info(json.dumps({"event": "email_sent", "provider": "smtp", "to": to_email}))
-        return True
+        return {"sent": True, "provider": "smtp", "error": ""}
     except Exception as e:
-        logger.error(json.dumps({"event": "email_failed", "error": str(e)}))
-        return False
+        error = str(e)
+        logger.error(json.dumps({"event": "email_failed", "provider": "smtp", "error": error}))
+        return {"sent": False, "provider": "smtp", "error": error}
+
+
+def send_email(to_email: str, subject: str, html_body: str) -> bool:
+    return bool(send_email_detailed(to_email, subject, html_body).get("sent"))

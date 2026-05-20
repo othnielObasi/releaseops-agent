@@ -140,7 +140,7 @@ export default function Settings() {
       setInviteLink(res.invite_url || "");
       setMemberMsg(res.email_sent
         ? `Invitation sent to ${memberForm.email.trim()}.`
-        : "Email delivery is not configured yet. Use the invite link below.");
+        : `Email was not sent${res.email_error ? `: ${res.email_error}` : ""}. Use the invite link below.`);
       setMemberForm({ email: "", role: "member" });
       setMembers(await teamsAPI.members(teamId));
     } catch (e) { setMemberMsg(e.message); }
