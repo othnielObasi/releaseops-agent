@@ -245,31 +245,44 @@ function DarkCard({ title, children, className = "" }) {
 }
 
 function LandingPage({ onNavigate }) {
-  const metrics = [["3", "specialist review stages"], ["<60s", "from feature to decision"], ["7", "governance frameworks"], ["0", "manual release docs"]];
+  const metrics = [["4", "decision outcomes"], ["7", "governance frameworks"], ["4", "approval roles"], ["1", "audit record"]];
   const pipeline = [
-    ["01", "Release Analysis", "Turns the feature idea into a structured release spec, risk register, and readiness checklist."],
-    ["02", "Validation Planning", "Generates test strategy, linked test cases, and practical guardrails before rollout."],
-    ["03", "Decision Packaging", "Produces release notes, stakeholder summary, market readiness assets, and an approval-ready decision pack."],
+    ["01", "Release Analysis", "Converts a proposed AI workflow into a structured release spec, owners, data access, risky actions, and readiness checklist."],
+    ["02", "Validation Planning", "Links risks to tests, controls, guardrails, approval roles, and applicable frameworks."],
+    ["03", "Decision Packaging", "Stores the go-live decision, evidence pack, approval history, audit log, and integration outputs."],
   ];
-  const outputs = ["Readiness score", "Risk register", "Test plan", "Guardrails", "Regulation mapping", "Governance evidence"];
+  const outcomes = ["Ship", "Ship with controls", "Needs review", "Do not ship yet"];
+  const proof = [
+    ["Organizations and roles", "Invite team members, assign PM, QA, Legal, Security, Admin, and member roles."],
+    ["Approval workflow", "Required sign-offs, rejection reasons, risk acceptance rationale, and visible approval history."],
+    ["Evidence record", "Readiness score, risk register, generated tests, controls, certificates, and audit trail."],
+    ["Production deployment", "Clerk auth, tenant-aware access, FastAPI backend, Postgres persistence, and Vultr-hosted runtime."],
+  ];
+  const traceability = [
+    ["Refund misuse", "Threshold abuse test", "Human approval above limit", "Blocks launch if missing"],
+    ["PII exposure", "Access logging test", "Mask logs and track lookup purpose", "Requires Security approval"],
+    ["Unsafe customer reply", "Moderation test", "Review before sending", "Requires QA approval"],
+  ];
 
   return (
     <main className="min-h-screen bg-white text-slate-950">
       <PublicHeader onNavigate={onNavigate} />
-      <section className="relative overflow-hidden px-6 py-20 md:py-28 lg:px-8">
-        <div className="absolute inset-x-0 top-0 -z-10 h-[48rem] bg-[radial-gradient(circle_at_top_right,#dbeafe,transparent_34%),radial-gradient(circle_at_bottom_left,#ede9fe,transparent_30%),linear-gradient(180deg,#f8fafc,white)]" />
-        <div className="mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-[0.95fr_1.05fr]">
+      <section className="relative overflow-hidden px-6 py-16 md:py-24 lg:px-8">
+        <div className="absolute inset-x-0 top-0 -z-10 h-[46rem] bg-[radial-gradient(circle_at_top_right,#dbeafe,transparent_34%),radial-gradient(circle_at_bottom_left,#ecfdf5,transparent_30%),linear-gradient(180deg,#f8fafc,white)]" />
+        <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
-            <div className="mb-6 inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-600 shadow-sm">AI release readiness system</div>
-            <h1 className="max-w-5xl text-5xl font-semibold tracking-[-0.06em] md:text-7xl">Is your AI feature actually ready to ship?</h1>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-600">ReleaseOps Agent reviews an AI feature before launch and returns the evidence your team needs: release spec, risks, tests, guardrails, regulation mapping, and a go-live decision.</p>
+            <div className="mb-6 inline-flex rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-slate-600 shadow-sm">Enterprise AI go-live decision system</div>
+            <h1 className="max-w-5xl text-5xl font-semibold tracking-[-0.05em] md:text-7xl">Turn AI release reviews into auditable launch decisions.</h1>
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-600">
+              ReleaseOps Agent reviews proposed AI workflows, detects risky actions and data access, generates linked tests and controls, routes role-based approvals, and stores the go-live decision record.
+            </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Button onClick={() => onNavigate("Dashboard")}>Open workspace <Icon name="arrow" className="h-4 w-4" /></Button>
               <Button variant="secondary" onClick={() => onNavigate("Product")}>Explore product</Button>
             </div>
-            <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="mt-10 grid grid-cols-2 gap-0 overflow-hidden rounded-md border border-slate-200 bg-white/80 shadow-sm sm:grid-cols-4">
               {metrics.map(([value, label]) => (
-                <div key={label} className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm backdrop-blur">
+                <div key={label} className="border-b border-r border-slate-200 p-4 last:border-r-0 sm:border-b-0">
                   <p className="text-2xl font-semibold tracking-tight text-slate-950">{value}</p>
                   <p className="mt-1 text-xs leading-5 text-slate-500">{label}</p>
                 </div>
@@ -277,36 +290,37 @@ function LandingPage({ onNavigate }) {
             </div>
           </div>
           <aside className="relative" aria-label="ReleaseOps sample assessment">
-            <div className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-blue-100/70 blur-3xl" />
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-200/80 sm:p-6">
+            <div className="rounded-md border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/70 sm:p-6">
               <div className="flex items-start justify-between gap-6">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Release decision</p>
                   <h3 className="mt-2 text-xl font-semibold tracking-tight">AI customer support refund assistant</h3>
                 </div>
-                <Pill tone="green">Complete</Pill>
+                <Pill tone="amber">Ship with controls</Pill>
               </div>
-              <div className="mt-8 grid gap-5 md:grid-cols-[0.8fr_1.2fr]">
-                <div className="rounded-[1.5rem] bg-slate-950 p-5 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Readiness</p>
+              <div className="mt-8 grid gap-5 md:grid-cols-[0.75fr_1.25fr]">
+                <div className="rounded-md bg-slate-950 p-5 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Decision score</p>
                   <div className="mt-5 flex items-end gap-1"><span className="text-6xl font-semibold tracking-tight">86</span><span className="pb-2 text-sm font-semibold text-slate-400">/100</span></div>
-                  <p className="mt-3 text-sm text-blue-200">Ship with controls</p>
+                  <p className="mt-3 text-sm text-emerald-200">Evidence stored</p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-200 p-5">
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Required controls</p>
-                  <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-600">
-                    <li>Human approval for refunds above threshold</li>
-                    <li>PII access logging enabled</li>
-                    <li>Customer replies pass moderation</li>
-                  </ul>
+                <div className="rounded-md border border-slate-200 p-5">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Approvals required</p>
+                  <div className="mt-5 grid grid-cols-2 gap-2 text-sm">
+                    {["PM", "QA", "Legal", "Security"].map((role) => (
+                      <span key={role} className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 font-semibold text-amber-800">{role}</span>
+                    ))}
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-slate-600">Refunds above threshold and customer-facing replies are blocked until controls and sign-offs are complete.</p>
                 </div>
               </div>
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                {pipeline.map(([number, title, body]) => (
-                  <div key={title} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <p className="text-xs font-bold text-blue-600">{number}</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-950">{title}</p>
-                    <p className="mt-2 text-xs leading-5 text-slate-500">{body}</p>
+              <div className="mt-6 overflow-hidden rounded-md border border-slate-200">
+                <div className="grid grid-cols-[1.1fr_1.1fr_1.1fr_1fr] bg-slate-50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                  <span>Risk</span><span>Test</span><span>Control</span><span>Gate</span>
+                </div>
+                {traceability.map(([risk, test, control, gate]) => (
+                  <div key={risk} className="grid grid-cols-[1.1fr_1.1fr_1.1fr_1fr] border-t border-slate-200 px-3 py-3 text-xs leading-5 text-slate-700">
+                    <span className="font-semibold text-slate-950">{risk}</span><span>{test}</span><span>{control}</span><span>{gate}</span>
                   </div>
                 ))}
               </div>
@@ -316,25 +330,44 @@ function LandingPage({ onNavigate }) {
       </section>
       <section className="px-6 py-20 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-12 border-y border-slate-100 py-16 md:grid-cols-[0.85fr_1.15fr]">
-          <SectionTitle eyebrow="Why it matters" title="A prompt can draft suggestions. A release needs evidence." />
+          <SectionTitle eyebrow="Why it matters" title="A chat answer is not a release control." />
           <div className="space-y-6 text-lg leading-9 text-slate-600">
-            <p>AI features often move from idea to launch through scattered docs, manual checks, ad-hoc risk reviews, and late compliance evidence.</p>
-            <p className="border-l-4 border-blue-600 pl-6 font-medium text-slate-950">ReleaseOps Agent turns that fragmented review into one repeatable decision path: analyse the release, validate the risks, package the evidence, and make the go-live call.</p>
+            <p>Enterprise AI launches need more than generated suggestions. Teams need one operational record showing what was checked, which controls are required, who approved, and why a release can or cannot move forward.</p>
+            <p className="border-l-4 border-slate-950 pl-6 font-medium text-slate-950">ReleaseOps turns scattered release review into a repeatable decision workflow with tenant-aware access, role-based approvals, evidence packs, audit history, and release gates.</p>
           </div>
         </div>
       </section>
       <section className="bg-slate-950 px-6 py-20 text-white lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]">
-          <SectionTitle dark eyebrow="What you get" title="A complete release package, not another loose answer." />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {outputs.map((item) => (
-              <div key={item} className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-400/10 text-blue-300"><Icon name="check" className="h-4 w-4" /></span>
-                  <p className="font-semibold text-white">{item}</p>
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-12 md:grid-cols-[0.85fr_1.15fr]">
+            <SectionTitle dark eyebrow="System capability" title="Built for the work around a real production approval." />
+            <div className="divide-y divide-white/10 border-y border-white/10">
+              {proof.map(([title, body]) => (
+                <div key={title} className="grid gap-3 py-6 md:grid-cols-[210px_1fr]">
+                  <h3 className="text-sm font-semibold text-white">{title}</h3>
+                  <p className="text-sm leading-7 text-slate-300">{body}</p>
                 </div>
+              ))}
+            </div>
+          </div>
+          <div className="mt-16 grid gap-12 md:grid-cols-[0.85fr_1.15fr]">
+            <SectionTitle dark eyebrow="Decision workflow" title="Every run ends in a business-readable launch outcome." />
+            <div>
+              <div className="grid grid-cols-2 gap-2">
+                {outcomes.map((item) => (
+                  <div key={item} className="rounded-md border border-white/10 bg-white/5 p-4 text-sm font-semibold text-white">{item}</div>
+                ))}
               </div>
-            ))}
+              <div className="mt-6 space-y-3">
+                {pipeline.map(([number, title, body]) => (
+                  <div key={title} className="grid gap-3 border-t border-white/10 py-4 md:grid-cols-[48px_180px_1fr]">
+                    <p className="text-xs font-bold text-blue-300">{number}</p>
+                    <p className="text-sm font-semibold text-white">{title}</p>
+                    <p className="text-sm leading-6 text-slate-300">{body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
