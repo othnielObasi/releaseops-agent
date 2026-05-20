@@ -214,7 +214,13 @@ async def invite_member(team_id: str, body: TeamInvite, email: str = Depends(ver
         </div></body></html>"""
     )
     audit(email, "organization_member_invited", team_id, metadata={"invitee": _normalize_email(body.email), "role": invite_role})
-    return {"status": "invited", "token": token, "invite_url": invite_url, "email_sent": bool(email_sent)}
+    return {
+        "status": "invited",
+        "token": token,
+        "invite_url": invite_url,
+        "email_sent": bool(email_sent),
+        "email_status": "sent" if email_sent else "not_configured_or_failed",
+    }
 
 
 @router.get("/api/teams/invite/{token}")

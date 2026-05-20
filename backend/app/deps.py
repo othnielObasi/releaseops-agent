@@ -807,9 +807,38 @@ def save_share_tokens(tokens: dict):
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from app.infra.config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, FROM_EMAIL
+from app.infra.config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, FROM_EMAIL, RESEND_API_KEY
 
 def send_email(to_email: str, subject: str, html_body: str) -> bool:
+    if RESEND_API_KEY:
+        try:
+            resp = requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {RESEND_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": FROM_EMAIL,
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": html_body,
+                },
+                timeout=10,
+            )
+            if resp.status_code >= 400:
+                logger.error(json.dumps({
+                    "event": "email_failed",
+                    "provider": "resend",
+                    "status": resp.status_code,
+                    "error": resp.text[:500],
+                }))
+                return False
+            logger.info(json.dumps({"event": "email_sent", "provider": "resend", "to": to_email}))
+            return True
+        except Exception as e:
+            logger.error(json.dumps({"event": "email_failed", "provider": "resend", "error": str(e)}))
+            return False
     if not SMTP_HOST or not SMTP_USER:
         logger.warning(json.dumps({"event": "email_skipped", "reason": "SMTP not configured"}))
         return False
@@ -823,6 +852,7 @@ def send_email(to_email: str, subject: str, html_body: str) -> bool:
             server.starttls()
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(FROM_EMAIL, [to_email], msg.as_string())
+        logger.info(json.dumps({"event": "email_sent", "provider": "smtp", "to": to_email}))
         return True
     except Exception as e:
         logger.error(json.dumps({"event": "email_failed", "error": str(e)}))

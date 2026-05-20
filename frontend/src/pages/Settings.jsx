@@ -83,6 +83,7 @@ export default function Settings() {
   const [members, setMembers] = useState([]);
   const [memberForm, setMemberForm] = useState({ email: "", role: "member" });
   const [memberMsg, setMemberMsg] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
 
   /* ── API Keys state ── */
   const [keysList, setKeysList] = useState([]);
@@ -133,14 +134,22 @@ export default function Settings() {
   const inviteMember = async (teamId) => {
     if (!memberForm.email.trim()) return;
     setMemberMsg("");
+    setInviteLink("");
     try {
       const res = await teamsAPI.invite(teamId, memberForm.email.trim(), memberForm.role);
+      setInviteLink(res.invite_url || "");
       setMemberMsg(res.email_sent
         ? `Invitation sent to ${memberForm.email.trim()}.`
-        : `Invitation created. Share this link: ${res.invite_url}`);
+        : "Email delivery is not configured yet. Use the invite link below.");
       setMemberForm({ email: "", role: "member" });
       setMembers(await teamsAPI.members(teamId));
     } catch (e) { setMemberMsg(e.message); }
+  };
+
+  const copyInviteLink = async () => {
+    if (!inviteLink) return;
+    await navigator.clipboard?.writeText(inviteLink);
+    setMemberMsg("Invite link copied.");
   };
 
   const updateMemberRole = async (teamId, memberEmail, role) => {
@@ -287,6 +296,13 @@ export default function Settings() {
                             </div>
                           </div>
                           {memberMsg && <div className="text-xs text-tx-3 mt-2 break-all">{memberMsg}</div>}
+                          {inviteLink && (
+                            <div className="mt-2 rounded-md border border-lg-bd bg-[#fbfaf7] p-2">
+                              <div className="text-xs text-tx-4 mb-1">Invite link</div>
+                              <div className="break-all text-xs font-mono text-tx">{inviteLink}</div>
+                              <Button variant="ghost" size="xs" className="mt-2" onClick={copyInviteLink}>Copy link</Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
