@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { SignIn, SignUp, UserButton, OrganizationSwitcher, useAuth, useUser } from "@clerk/clerk-react";
-import { auth as authAPI, sessions as sessionsAPI, setAuthTokenProvider } from "./services/api";
+import { SignIn, SignUp, UserButton, useAuth, useUser } from "@clerk/clerk-react";
+import { auth as authAPI, sessions as sessionsAPI, teams as teamsAPI, setAuthTokenProvider } from "./services/api";
 import { transformSessionList } from "./services/transform";
 import LegacyDashboard from "./pages/Dashboard";
 import LegacySessionsList from "./pages/SessionsList";
@@ -520,9 +520,6 @@ function IntegratedAppHeader({ page, user, isAdmin, showGuide, onNavigate, onNew
           <button type="button" onClick={onToggleGuide} className={cn("rounded-md border px-3.5 py-2 text-sm font-semibold transition-colors", showGuide ? "border-slate-950 bg-slate-950 text-white" : "border-transparent text-slate-600 hover:bg-[#fbfaf7] hover:text-slate-950")}>Guide</button>
         </nav>
         <div className="flex items-center gap-2">
-          <div className="hidden md:block">
-            <OrganizationSwitcher afterCreateOrganizationUrl="/" afterSelectOrganizationUrl="/" afterLeaveOrganizationUrl="/" />
-          </div>
           <span className="hidden rounded-md bg-[#fbfaf7] px-3 py-2 text-sm text-slate-700 md:inline-flex">{user?.name || user?.email || "User"}</span>
           <UserButton afterSignOutUrl="/" />
           <button type="button" onClick={onLogout} className="rounded-md border border-transparent px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50">Sign out</button>
@@ -541,9 +538,85 @@ function IntegratedAppLayout({ children, ...headerProps }) {
   );
 }
 
+function JoinInvitation({ token, authenticated, onSignIn, onAccepted }) {
+  const [invite, setInvite] = useState(null);
+  const [status, setStatus] = useState("loading");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setStatus("loading");
+    teamsAPI.inviteInfo(token)
+      .then((data) => {
+        setInvite(data);
+        setStatus("ready");
+      })
+      .catch((err) => {
+        setMessage(err.message || "Invitation not found or already used.");
+        setStatus("error");
+      });
+  }, [token]);
+
+  const accept = async () => {
+    if (!authenticated) {
+      onSignIn();
+      return;
+    }
+    setStatus("accepting");
+    setMessage("");
+    try {
+      await teamsAPI.acceptInvite(token);
+      setStatus("accepted");
+      setMessage("Invitation accepted. Your organization access is now active.");
+      window.history.replaceState({}, "", "/");
+      setTimeout(onAccepted, 700);
+    } catch (err) {
+      setStatus("ready");
+      setMessage(err.message || "Could not accept this invitation.");
+    }
+  };
+
+  return (
+    <main className="releaseops-light-app min-h-screen bg-white text-slate-950">
+      <PublicHeader onNavigate={() => onAccepted()} />
+      <section className="mx-auto max-w-xl px-6 py-16">
+        <div className="rounded-md border border-[#e6e0d6] bg-white p-6 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Organization invitation</p>
+          <h1 className="mt-3 text-2xl font-bold text-slate-950">
+            {invite?.team_name || "ReleaseOps organization"}
+          </h1>
+          {status === "loading" ? (
+            <p className="mt-4 text-sm text-slate-600">Loading invitation...</p>
+          ) : status === "error" ? (
+            <p className="mt-4 text-sm text-red-700">{message}</p>
+          ) : (
+            <>
+              <p className="mt-4 text-sm leading-6 text-slate-600">
+                {invite?.inviter_email} invited {invite?.invitee_email} to join this organization.
+              </p>
+              {message ? <p className="mt-3 text-sm text-slate-700">{message}</p> : null}
+              <button
+                type="button"
+                onClick={accept}
+                disabled={status === "accepting" || status === "accepted"}
+                className="mt-6 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+              >
+                {status === "accepted" ? "Accepted" : status === "accepting" ? "Accepting..." : authenticated ? "Accept invitation" : "Sign in to accept"}
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export default function ReleaseOpsAgentUI() {
   const clerk = useAuth();
   const { user: clerkUser } = useUser();
+  const [joinToken, setJoinToken] = useState(() => {
+    const match = window.location.pathname.match(/^\/join\/([^/]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+  });
   const [page, setPage] = useState("landing");
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -680,6 +753,20 @@ export default function ReleaseOpsAgentUI() {
 
   return (
     <div className="min-h-screen bg-white">
+      {joinToken ? (
+        <JoinInvitation
+          token={joinToken}
+          authenticated={authenticated}
+          onSignIn={() => beginAuth("login")}
+          onAccepted={() => {
+            setJoinToken(null);
+            setPage("dash");
+            fetchSessions();
+          }}
+        />
+      ) : null}
+      {!joinToken ? (
+      <>
       {page === "landing" ? <LandingPage onNavigate={publicNavigate} /> : null}
       {page === "product" ? <ProductPage onNavigate={publicNavigate} /> : null}
       {page === "guide" ? <GuidePage onNavigate={publicNavigate} /> : null}
@@ -715,6 +802,8 @@ export default function ReleaseOpsAgentUI() {
       ) : null}
       {showNew ? <div className="releaseops-light-app"><LegacyNewCheck onClose={() => setShowNew(false)} onComplete={(id) => { setShowNew(false); fetchSessions().then(() => openSession(id)); }} /></div> : null}
       {showGuide ? <div className="releaseops-light-app"><LegacyGuidePanel onClose={() => setShowGuide(false)} /></div> : null}
+      </>
+      ) : null}
       {authMode ? <AuthModal mode={authMode} form={authForm} error={authError} loading={authLoading} onClose={() => setAuthMode(null)} onSubmit={handleAuth} onFormChange={setAuthForm} onModeChange={(mode) => { setAuthMode(mode); setAuthError(""); }} /> : null}
     </div>
   );

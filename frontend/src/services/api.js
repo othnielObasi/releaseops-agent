@@ -170,6 +170,8 @@ export const teams = {
   members: (teamId) => request(`/teams/${encodeURIComponent(teamId)}/members`),
   invite: (teamId, email, role = "member") =>
     request(`/teams/${encodeURIComponent(teamId)}/invite`, { method: "POST", body: JSON.stringify({ email, role }) }),
+  inviteInfo: (token) => request(`/teams/invite/${encodeURIComponent(token)}`),
+  acceptInvite: (token) => request(`/teams/accept/${encodeURIComponent(token)}`),
   addMember: (teamId, payload) =>
     request(`/teams/${encodeURIComponent(teamId)}/members`, { method: "POST", body: JSON.stringify(payload) }),
   updateMemberRole: (teamId, email, role) =>

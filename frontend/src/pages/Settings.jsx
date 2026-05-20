@@ -81,7 +81,7 @@ export default function Settings() {
   const [newTeamName, setNewTeamName] = useState("");
   const [expandedTeam, setExpandedTeam] = useState(null);
   const [members, setMembers] = useState([]);
-  const [memberForm, setMemberForm] = useState({ name: "", email: "", role: "member", password: "" });
+  const [memberForm, setMemberForm] = useState({ email: "", role: "member" });
   const [memberMsg, setMemberMsg] = useState("");
 
   /* ── API Keys state ── */
@@ -130,18 +130,15 @@ export default function Settings() {
     try { setMembers(await teamsAPI.members(teamId)); } catch { setMembers([]); }
   };
 
-  const addMember = async (teamId) => {
+  const inviteMember = async (teamId) => {
     if (!memberForm.email.trim()) return;
     setMemberMsg("");
     try {
-      const res = await teamsAPI.addMember(teamId, {
-        email: memberForm.email.trim(),
-        name: memberForm.name.trim(),
-        role: memberForm.role,
-        password: memberForm.password,
-      });
-      setMemberMsg(res.temporary_password ? `User added. Temporary password: ${res.temporary_password}` : "User added.");
-      setMemberForm({ name: "", email: "", role: "member", password: "" });
+      const res = await teamsAPI.invite(teamId, memberForm.email.trim(), memberForm.role);
+      setMemberMsg(res.email_sent
+        ? `Invitation sent to ${memberForm.email.trim()}.`
+        : `Invitation created. Share this link: ${res.invite_url}`);
+      setMemberForm({ email: "", role: "member" });
       setMembers(await teamsAPI.members(teamId));
     } catch (e) { setMemberMsg(e.message); }
   };
@@ -279,19 +276,17 @@ export default function Settings() {
                       )}
                       {["owner", "admin"].includes(t.role) && (
                         <div className="mt-3 rounded-lg border border-lg-bd bg-white p-3">
-                          <div className="text-sm font-bold text-tx mb-2">Add organization user</div>
+                          <div className="text-sm font-bold text-tx mb-2">Invite organization user</div>
                           <div className="grid grid-cols-1 gap-2">
-                            <input type="text" placeholder="Full name" value={memberForm.name} onChange={(e) => setMemberForm({ ...memberForm, name: e.target.value })} className="input-glass text-sm" />
                             <input type="email" placeholder="Email address" value={memberForm.email} onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })} className="input-glass text-sm" />
-                            <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+                            <div className="grid grid-cols-[1fr_auto] gap-2">
                               <select value={memberForm.role} onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value })} className="input-glass text-sm">
                                 {ORG_ROLES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                               </select>
-                              <input type="password" placeholder="Initial password or blank" value={memberForm.password} onChange={(e) => setMemberForm({ ...memberForm, password: e.target.value })} className="input-glass text-sm" />
-                              <Button variant="primary" size="xs" onClick={() => addMember(t.id)}>Add</Button>
+                              <Button variant="primary" size="xs" onClick={() => inviteMember(t.id)}>Invite</Button>
                             </div>
                           </div>
-                          {memberMsg && <div className="text-xs text-tx-3 mt-2">{memberMsg}</div>}
+                          {memberMsg && <div className="text-xs text-tx-3 mt-2 break-all">{memberMsg}</div>}
                         </div>
                       )}
                     </div>

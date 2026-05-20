@@ -15,7 +15,7 @@ from app.models.schemas import (
     TeamCreate, TeamInvite, BrandingUpdate, APIKeyCreate,
     TemplateCreate, AnnotationCreate, TeamMemberCreate, TeamMemberRoleUpdate,
 )
-from app.infra.config import DATA_DIR
+from app.infra.config import DATA_DIR, PUBLIC_APP_URL
 
 router = APIRouter(tags=["teams"])
 
@@ -196,7 +196,8 @@ async def invite_member(team_id: str, body: TeamInvite, email: str = Depends(ver
         team_row = cur2.fetchone()
         cur2.close()
     team_name = team_row["name"] if team_row else "a ReleaseOps workspace"
-    send_email(
+    invite_url = f"{PUBLIC_APP_URL}/join/{token}" if PUBLIC_APP_URL else f"/join/{token}"
+    email_sent = send_email(
         body.email,
         f"You've been invited to join {team_name} on ReleaseOps",
         f"""<html><body style="font-family:Arial,sans-serif;color:#1e293b;max-width:520px;margin:0 auto;">
@@ -204,7 +205,7 @@ async def invite_member(team_id: str, body: TeamInvite, email: str = Depends(ver
           <h2 style="margin:0;font-size:18px;">ReleaseOps — Team Invitation</h2></div>
         <div style="padding:24px;background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;">
           <p><strong>{email}</strong> has invited you to join <strong>{team_name}</strong>.</p>
-          <a href="/join/{token}"
+          <a href="{invite_url}"
              style="display:inline-block;background:#6366f1;color:white;padding:12px 28px;
                     border-radius:7px;text-decoration:none;font-weight:700;font-size:15px;">
             Accept Invitation</a>
@@ -212,7 +213,8 @@ async def invite_member(team_id: str, body: TeamInvite, email: str = Depends(ver
             This link is single-use. If you did not expect this invitation, ignore this email.</p>
         </div></body></html>"""
     )
-    return {"status": "invited", "token": token}
+    audit(email, "organization_member_invited", team_id, metadata={"invitee": _normalize_email(body.email), "role": invite_role})
+    return {"status": "invited", "token": token, "invite_url": invite_url, "email_sent": bool(email_sent)}
 
 
 @router.get("/api/teams/invite/{token}")
@@ -252,7 +254,9 @@ async def accept_invite(token: str, email: str = Depends(verify_token)):
             raise HTTPException(status_code=403, detail="This invitation was sent to a different email address")
         invite_role = _normalize_role(inv.get("role") or "member")
         cur.execute(
-        "INSERT INTO team_members (team_id,email,role,joined_at) VALUES (%s,%s,%s,%s) ON CONFLICT DO NOTHING",
+        """INSERT INTO team_members (team_id,email,role,joined_at)
+           VALUES (%s,%s,%s,%s)
+           ON CONFLICT (team_id,email) DO UPDATE SET role=EXCLUDED.role""",
         (inv["team_id"], email, invite_role, datetime.now(timezone.utc).isoformat())
         )
         cur.execute("UPDATE team_invites SET status='accepted' WHERE token=%s", (token,))
