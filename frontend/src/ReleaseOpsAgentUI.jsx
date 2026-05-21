@@ -474,6 +474,37 @@ function ProductPage({ onNavigate }) {
   );
 }
 
+function SystemFlowAnimation() {
+  const stages = [
+    ["Input", "AI workflow context"],
+    ["Analyze", "Risks and controls"],
+    ["Validate", "Tests and guardrails"],
+    ["Approve", "Role-based sign-offs"],
+    ["Record", "Auditable decision"],
+  ];
+
+  return (
+    <div className="releaseops-flow" aria-label="Animated ReleaseOps system flow">
+      <div className="releaseops-flow__rail" />
+      {stages.map(([label, detail], index) => (
+        <div key={label} className="releaseops-flow__stage" style={{ "--flow-index": index }}>
+          <div className="releaseops-flow__node">{index + 1}</div>
+          <div>
+            <h3>{label}</h3>
+            <p>{detail}</p>
+          </div>
+        </div>
+      ))}
+      <div className="releaseops-flow__packet releaseops-flow__packet--one">release brief</div>
+      <div className="releaseops-flow__packet releaseops-flow__packet--two">evidence</div>
+      <div className="releaseops-flow__decision">
+        <span>Decision</span>
+        <strong>Ship with controls</strong>
+      </div>
+    </div>
+  );
+}
+
 function GuidePage({ onNavigate }) {
   const quickStart = [["1", "Click + New Release Review", "Start from the global app header."], ["2", "Describe your feature", "Add a title, description, and industry preset."], ["3", "Watch the pipeline", "Follow the live Release Analysis, Validation Planning, and Decision Packaging logs."], ["4", "Work the decision", "Resolve blockers, collect sign-offs, export evidence, or accept risk with rationale."]];
   const agents = [["Release Analysis", ["Release spec", "Risk register", "Readiness checklist"]], ["Validation Planning", ["Test strategy", "Test cases", "Guardrails"]], ["Decision Packaging", ["Release notes", "Market page", "Stakeholder brief"]]];
@@ -482,6 +513,12 @@ function GuidePage({ onNavigate }) {
     <main className="min-h-screen bg-white text-slate-950">
       <PublicHeader onNavigate={onNavigate} />
       <section className="px-6 py-20 md:py-28 lg:px-8"><div className="mx-auto max-w-6xl"><SectionTitle eyebrow="Guide" title="How to operate ReleaseOps." subtitle="Use this page as the working guide: create a review, inspect the pipeline output, assign governance work, and close the decision record." /></div></section>
+      <section className="bg-slate-950 px-6 py-20 text-white lg:px-8">
+        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.8fr_1.2fr]">
+          <SectionTitle dark eyebrow="System flow" title="How a release review moves from feature context to launch decision." subtitle="The review is not a static report. It becomes a stored decision record with risks, controls, approvals, evidence, and audit history." />
+          <SystemFlowAnimation />
+        </div>
+      </section>
       <section className="px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Quick start" title="Run a review in four steps." /><ol className="divide-y divide-slate-200 border-y border-slate-200">{quickStart.map(([number, title, body]) => <li key={title} className="grid gap-4 py-6 md:grid-cols-[56px_220px_1fr]"><span className="text-sm font-bold text-blue-600">{number}</span><h3 className="text-lg font-semibold">{title}</h3><p className="text-sm leading-7 text-slate-600">{body}</p></li>)}</ol></div></section>
       <section className="bg-slate-50 px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Review Stages" title="Each stage owns a different part of the release decision." /><div className="grid gap-4 md:grid-cols-3">{agents.map(([name, items]) => <div key={name} className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm"><h3 className="text-lg font-semibold">{name}</h3><ul className="mt-5 space-y-3">{items.map((item) => <li key={item} className="text-sm text-slate-600">/ {item}</li>)}</ul></div>)}</div></div></section>
       <section className="px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Governance workflow" title="What to do after the review completes." /><dl className="divide-y divide-slate-200 border-y border-slate-200">{governance.map(([title, body]) => <div key={title} className="grid gap-3 py-6 md:grid-cols-[180px_1fr]"><dt className="text-sm font-semibold">{title}</dt><dd className="text-sm leading-7 text-slate-600">{body}</dd></div>)}</dl></div></section>
@@ -507,7 +544,38 @@ function StatusBlock({ color, title, body }) {
 }
 
 function NewCheckPage({ onClose }) {
-  return <div className="mx-auto max-w-3xl"><button type="button" onClick={onClose} className="mb-6 text-sm font-semibold text-slate-400 hover:text-white">← Back to release operations</button><DarkCard title="New Release Review"><form className="space-y-6" onSubmit={(event) => event.preventDefault()}><div><label className="text-sm font-semibold text-white">Industry preset</label><select className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200"><option>Finance / Fintech</option><option>Customer Support</option><option>HR</option><option>Healthcare</option></select></div><div><label className="text-sm font-semibold text-white">Title</label><input className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="AI customer support refund assistant" /></div><div><label className="text-sm font-semibold text-white">Feature description</label><textarea className="mt-2 min-h-40 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="Customer support AI agent that inspects customer profile data, reviews transaction history, classifies complaints, recommends refunds, drafts responses, and escalates high-risk cases." /></div><div><label className="text-sm font-semibold text-white">Release type</label><div className="mt-3 flex flex-wrap gap-3">{["Prototype", "Beta", "Production"].map((type) => <span key={type} className={cn("rounded-md border px-3.5 py-2 text-sm font-semibold", type === "Production" ? "border-white bg-white text-slate-950" : "border-slate-700 text-slate-400")}>{type}</span>)}</div></div><Button variant="violet" type="submit">Run Release Review</Button></form></DarkCard></div>;
+  return (
+    <div className="mx-auto max-w-3xl">
+      <button type="button" onClick={onClose} className="mb-6 text-sm font-semibold text-slate-400 hover:text-white">← Back to release operations</button>
+      <DarkCard title="New Release Review">
+        <form className="space-y-6" onSubmit={(event) => event.preventDefault()}>
+          <div>
+            <label className="text-sm font-semibold text-white">Industry preset</label>
+            <select className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200">
+              <option>No preset</option>
+              <option>Finance / Fintech</option>
+              <option>Customer Support</option>
+              <option>HR</option>
+              <option>Healthcare</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-white">Title</label>
+            <input className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" placeholder="e.g. AI customer support refund assistant" />
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-white">Feature description</label>
+            <textarea className="mt-2 min-h-40 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" placeholder="What AI workflow is being released? What data, tools, roles, and actions can it access?" />
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-white">Release type</label>
+            <div className="mt-3 flex flex-wrap gap-3">{["Prototype", "Beta", "Production"].map((type) => <span key={type} className={cn("rounded-md border px-3.5 py-2 text-sm font-semibold", type === "Production" ? "border-white bg-white text-slate-950" : "border-slate-700 text-slate-400")}>{type}</span>)}</div>
+          </div>
+          <Button variant="violet" type="submit">Run Release Review</Button>
+        </form>
+      </DarkCard>
+    </div>
+  );
 }
 
 function SessionDetailPage({ onBack }) {
