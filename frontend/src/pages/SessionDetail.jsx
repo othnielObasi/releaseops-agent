@@ -1,4 +1,4 @@
-/* ReleaseOps v3 — Session Detail Page (Tailwind) — wired to real API */
+/* ReleaseOps Session Detail - wired to real API */
 
 import { useState, useEffect } from "react";
 import { Badge, Card, Button, CircularScore, ProgressBar, Label } from "../components/ui";
@@ -157,7 +157,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
       {actionMsg && (
         <div className="bg-lg-sf2 border border-lg-bd rounded-md px-3 py-1.5 my-1 text-sm text-tx-2 flex justify-between animate-fade-up">
           <span>{actionMsg}</span>
-          <button onClick={() => setActionMsg("")} className="text-tx-4 cursor-pointer bg-transparent border-none font-sans">×</button>
+          <button onClick={() => setActionMsg("")} className="text-tx-4 cursor-pointer bg-transparent border-none font-sans">x</button>
         </div>
       )}
 
@@ -238,7 +238,7 @@ export default function SessionDetail({ sessionId, fallback, onBack, onOpenSessi
   );
 }
 
-/* ── Overview ── */
+/* Overview */
 function OverviewTab({ s, st, versionHistory, currentSessionId, onOpenSession }) {
   const sortedVersions = [...(versionHistory || [])].sort((a, b) => a.version - b.version);
   return (
@@ -247,7 +247,6 @@ function OverviewTab({ s, st, versionHistory, currentSessionId, onOpenSession })
       {sortedVersions.length > 1 && (
         <Card className="animate-fade-up">
           <div className="flex items-center gap-1.5 mb-2.5">
-            <span>📊</span>
             <span className="text-base font-bold text-tx">Version History</span>
             <span className="text-xs text-tx-3 ml-auto">{sortedVersions.length} versions</span>
           </div>
@@ -378,7 +377,7 @@ function OverviewTab({ s, st, versionHistory, currentSessionId, onOpenSession })
   );
 }
 
-/* ── Spec & Risks ── */
+/* Spec & Risks */
 function SpecTab({ s }) {
   return (
     <div className="space-y-3.5">
@@ -443,7 +442,7 @@ function SpecTab({ s }) {
   );
 }
 
-/* ── Tests & Guardrails ── */
+/* Tests & Guardrails */
 function TestsTab({ s, st }) {
   const tc = s.testCases || [];
   const gr = s.guardrails || [];
@@ -536,7 +535,7 @@ function TestsTab({ s, st }) {
       {/* Testing Strategy */}
       {strategyEntries.length > 0 && (
         <Card className="animate-fade-up-1">
-          <Label>🔬 Testing Strategy</Label>
+          <Label>Testing Strategy</Label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
             {strategyEntries.map(([cat, data]) => (
               <div key={cat} className="p-2.5 bg-lg-sf2 rounded-lg border border-lg-bd">
@@ -561,7 +560,7 @@ function TestsTab({ s, st }) {
 
       {/* Test Cases Table */}
       <Card className="animate-fade-up-2">
-        <Label>✏️ Test Cases ({tc.length})</Label>
+        <Label>Test Cases ({tc.length})</Label>
         {tc.length > 0 ? (
           <>
             <div className="grid grid-cols-[35px_1fr_80px_75px_80px_70px] px-1 py-1.5 border-b border-lg-bd">
@@ -625,7 +624,7 @@ function TestsTab({ s, st }) {
   );
 }
 
-/* ── Docs & Launch ── */
+/* Docs & Launch */
 function DocsTab({ s }) {
   const rn = s.releaseNotes || {};
   const po = s.pitchOutline || {};
@@ -692,13 +691,13 @@ function DocsTab({ s }) {
   );
 }
 
-/* ── Regulation ── */
+/* Regulation */
 const OWASP_LOOKUP = {
-  LLM01: "LLM01 — Prompt Injection", LLM02: "LLM02 — Insecure Output",
-  LLM03: "LLM03 — Training Data Poisoning", LLM04: "LLM04 — Model DoS",
-  LLM05: "LLM05 — Supply Chain", LLM06: "LLM06 — Sensitive Info Disclosure",
-  LLM07: "LLM07 — Insecure Plugin", LLM08: "LLM08 — Excessive Agency",
-  LLM09: "LLM09 — Overreliance", LLM10: "LLM10 — Model Theft",
+  LLM01: "LLM01 - Prompt Injection", LLM02: "LLM02 - Insecure Output",
+  LLM03: "LLM03 - Training Data Poisoning", LLM04: "LLM04 - Model DoS",
+  LLM05: "LLM05 - Supply Chain", LLM06: "LLM06 - Sensitive Info Disclosure",
+  LLM07: "LLM07 - Insecure Plugin", LLM08: "LLM08 - Excessive Agency",
+  LLM09: "LLM09 - Overreliance", LLM10: "LLM10 - Model Theft",
 };
 
 const NIST_LOOKUP = {
@@ -731,7 +730,7 @@ function RegulationTab({ s }) {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-sm font-bold text-tx">{framework.name}</div>
-                  <div className="mt-0.5 text-xs text-tx-3">{framework.jurisdiction} · {framework.riskCount} linked risk{framework.riskCount === 1 ? "" : "s"}</div>
+                  <div className="mt-0.5 text-xs text-tx-3">{framework.jurisdiction} / {framework.riskCount} linked risk{framework.riskCount === 1 ? "" : "s"}</div>
                 </div>
                 <Badge color={framework.status === "Mapped" ? "gn" : "bl"} size="xs">{framework.status}</Badge>
               </div>
@@ -742,7 +741,6 @@ function RegulationTab({ s }) {
           EU AI Act is one classification lens. ReleaseOps also maps security, privacy, operational risk, management controls, and audit requirements across OWASP, NIST, ISO 42001, GDPR, SOC 2, and HIPAA.
         </div>
       </Card>
-
       {/* EU AI Act */}
       <Card className="animate-fade-up">
         <Label>EU AI Act Detail</Label>
@@ -800,7 +798,7 @@ function RegulationTab({ s }) {
             <div key={i} className="p-2 bg-lg-sf2 rounded-lg flex justify-between items-center">
               <div>
                 <div className="text-sm font-semibold text-tx">{r.id}: {r.n}</div>
-                <div className="text-xs text-tx-4">{r.cat} · {r.s}</div>
+                <div className="text-xs text-tx-4">{r.cat} / {r.s}</div>
               </div>
               <div className="flex gap-1">
                 {r.cat === "Privacy" && <Badge color="pk" size="xs">GDPR</Badge>}
@@ -822,12 +820,71 @@ function RegulationTab({ s }) {
   );
 }
 
-/* ── Governance ── */
+/* Governance */
+function GovernanceActionModal({ action, onCancel, onConfirm, saving }) {
+  const [comment, setComment] = useState("");
+  if (!action) return null;
+
+  const requiresComment = action.kind === "reject" || action.kind === "accept_risk";
+  const title = action.kind === "approve"
+    ? `Approve ${action.label}`
+    : action.kind === "reject"
+      ? `Reject ${action.label}`
+      : action.kind === "resolve"
+        ? "Resolve blocker"
+        : action.kind === "reopen"
+          ? "Reopen blocker"
+          : "Accept risk";
+  const description = action.kind === "approve"
+    ? "This approval will be recorded with your user identity and included in the release audit trail."
+    : action.kind === "reject"
+      ? "Add the reason this release cannot be approved by this role yet."
+      : action.kind === "accept_risk"
+        ? "Risk acceptance requires a clear rationale. This does not remove the risk; it records accountable acceptance."
+        : action.kind === "resolve"
+          ? "Confirm that the blocker has been handled and can be removed from the active blocker list."
+          : "Move this accepted risk back into the active blocker list.";
+
+  return (
+    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={onCancel}>
+      <div className="w-full max-w-lg rounded-xl border border-lg-bd bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="mb-4">
+          <div className="text-lg font-extrabold text-tx">{title}</div>
+          <p className="mt-1 text-sm leading-6 text-tx-3">{description}</p>
+        </div>
+        {action.detail ? <div className="mb-4 rounded-lg border border-lg-bd bg-[#fbfaf7] p-3 text-sm leading-6 text-tx-2">{action.detail}</div> : null}
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-tx-3">{requiresComment ? "Required rationale" : "Comment"}</span>
+          <textarea
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            rows={4}
+            placeholder={requiresComment ? "Explain the reason for this decision." : "Optional note for the audit trail."}
+            className="input-glass resize-y text-sm"
+          />
+        </label>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={onCancel} disabled={saving}>Cancel</Button>
+          <Button
+            variant={action.kind === "reject" ? "danger" : action.kind === "accept_risk" ? "default" : "primary"}
+            size="sm"
+            disabled={saving || (requiresComment && !comment.trim())}
+            onClick={() => onConfirm(comment.trim())}
+          >
+            {saving ? "Saving..." : title}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gateResult, setGateResult, integrations, setIntegrations, auditEvents = [], decision, setDecision, setActionMsg, onRefreshGovernance, onRefreshSession }) {
   const [signingRole, setSigningRole] = useState(null);
   const [updatingBlocker, setUpdatingBlocker] = useState(null);
   const [savingIntegrations, setSavingIntegrations] = useState(false);
   const [integrationMsg, setIntegrationMsg] = useState("");
+  const [reviewAction, setReviewAction] = useState(null);
 
   const ROLES = ["pm", "qa", "legal", "security"];
   const ROLE_LABELS = { pm: "Product Manager", qa: "QA Lead", legal: "Legal / Compliance", security: "Security" };
@@ -838,11 +895,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
     security: "Security owner confirms data access, abuse paths, and runtime guardrails.",
   };
 
-  async function handleSignoff(role, status = "approved") {
-    const comment = status === "rejected"
-      ? window.prompt(`Reason for rejecting ${ROLE_LABELS[role] || role} approval:`)
-      : "";
-    if (status === "rejected" && !comment?.trim()) return;
+  async function submitSignoff(role, status = "approved", comment = "") {
     setSigningRole(`${role}:${status}`);
     try {
       await governance.signoff(sessionId, { role, status, comment });
@@ -856,6 +909,15 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
     } finally { setSigningRole(null); }
   }
 
+  function requestSignoff(role, status) {
+    setReviewAction({
+      kind: status === "approved" ? "approve" : "reject",
+      label: ROLE_LABELS[role] || role,
+      detail: ROLE_REQUIREMENTS[role],
+      onConfirm: (comment) => submitSignoff(role, status, comment),
+    });
+  }
+
   async function handleEvaluate(gateId) {
     try {
       const res = await gatesAPI.evaluate(gateId, sessionId);
@@ -864,9 +926,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
     } catch { /* silent */ }
   }
 
-  async function handleBlockerStatus(blocker, status) {
-    const comment = status === "accepted" ? window.prompt("Risk acceptance rationale:") : "";
-    if (status === "accepted" && !comment?.trim()) return;
+  async function submitBlockerStatus(blocker, status, comment = "") {
     setUpdatingBlocker(blocker.id);
     try {
       const res = await governance.updateBlocker(sessionId, blocker.id, { status, comment });
@@ -878,6 +938,15 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
     } finally {
       setUpdatingBlocker(null);
     }
+  }
+
+  function requestBlockerStatus(blocker, status) {
+    setReviewAction({
+      kind: status === "accepted" ? "accept_risk" : status === "resolved" ? "resolve" : "reopen",
+      label: blocker.title,
+      detail: blocker.reason,
+      onConfirm: (comment) => submitBlockerStatus(blocker, status, comment),
+    });
   }
 
   function updateIntegration(field, value) {
@@ -915,6 +984,17 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
 
   return (
     <div className="space-y-3.5">
+      <GovernanceActionModal
+        action={reviewAction}
+        saving={Boolean(signingRole || updatingBlocker)}
+        onCancel={() => setReviewAction(null)}
+        onConfirm={async (comment) => {
+          const action = reviewAction;
+          if (!action) return;
+          await action.onConfirm(comment);
+          setReviewAction(null);
+        }}
+      />
       <Card className="animate-fade-up">
         <Label>Production Decision</Label>
         <div className={`rounded-lg border p-3 ${releaseDecision === "GO" ? "border-accent-green/25 bg-accent-green/8" : "border-accent-orange/25 bg-accent-orange/8"}`}>
@@ -968,12 +1048,12 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
                 </div>
                 <div className="flex gap-2 lg:justify-end">
                   {!approved && (
-                    <Button variant="primary" size="xs" onClick={() => handleSignoff(role, "approved")} disabled={signingRole === `${role}:approved`}>
+                    <Button variant="primary" size="xs" onClick={() => requestSignoff(role, "approved")} disabled={signingRole === `${role}:approved`}>
                       {signingRole === `${role}:approved` ? "Approving..." : "Approve"}
                     </Button>
                   )}
                   {!rejected && (
-                    <Button variant="ghost" size="xs" onClick={() => handleSignoff(role, "rejected")} disabled={signingRole === `${role}:rejected`}>
+                    <Button variant="ghost" size="xs" onClick={() => requestSignoff(role, "rejected")} disabled={signingRole === `${role}:rejected`}>
                       {signingRole === `${role}:rejected` ? "Rejecting..." : "Reject"}
                     </Button>
                   )}
@@ -1003,12 +1083,12 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
                   <div className="flex shrink-0 gap-2">
                     {blocker.status === "open" && (
                       <>
-                        <Button variant="success" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => handleBlockerStatus(blocker, "resolved")}>Resolve</Button>
-                        <Button variant="ghost" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => handleBlockerStatus(blocker, "accepted")}>Accept risk</Button>
+                        <Button variant="success" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => requestBlockerStatus(blocker, "resolved")}>Resolve</Button>
+                        <Button variant="ghost" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => requestBlockerStatus(blocker, "accepted")}>Accept risk</Button>
                       </>
                     )}
                     {blocker.status === "accepted" && (
-                      <Button variant="ghost" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => handleBlockerStatus(blocker, "open")}>Reopen</Button>
+                      <Button variant="ghost" size="xs" disabled={updatingBlocker === blocker.id} onClick={() => requestBlockerStatus(blocker, "open")}>Reopen</Button>
                     )}
                   </div>
                 </div>
@@ -1089,7 +1169,7 @@ function GovernanceTab({ s, st, sessionId, signoffs, setSignoffs, gatesList, gat
         ]).slice(0, 12).map((e, i) => (
           <div key={i} className="flex justify-between py-1.5 border-b border-lg-bd text-sm">
             <span className="text-tx-2">{e.message || String(e.action || "").replaceAll("_", " ")}</span>
-            <span className="text-tx-4 font-mono">{e.email || "system"} · {e.created_at ? new Date(e.created_at).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}</span>
+            <span className="text-tx-4 font-mono">{e.email || "system"} / {e.created_at ? new Date(e.created_at).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}</span>
           </div>
         ))}
       </Card>

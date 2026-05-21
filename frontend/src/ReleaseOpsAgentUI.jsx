@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { SignIn, SignUp, UserButton, useAuth, useUser } from "@clerk/clerk-react";
-import { auth as authAPI, sessions as sessionsAPI, teams as teamsAPI, setAuthTokenProvider } from "./services/api";
+import { sessions as sessionsAPI, teams as teamsAPI, setAuthTokenProvider } from "./services/api";
 import { transformSessionList } from "./services/transform";
 import LegacyDashboard from "./pages/Dashboard";
 import LegacySessionsList from "./pages/SessionsList";
@@ -12,10 +12,6 @@ import LegacyNewCheck from "./pages/NewCheck";
 import LegacyGuidePanel from "./pages/GuidePanel";
 
 const PAGES = ["Landing", "Product", "Guide", "Dashboard", "New Release Review", "Review Detail", "Settings"];
-const SESSION_TABS = ["Overview", "Spec & Risks", "Tests & Guardrails", "Docs", "Regulation", "Governance"];
-const SETTINGS_TABS = ["Profile", "Team", "API Keys", "Integrations", "Gates"];
-const FRAMEWORKS = ["EU AI Act", "OWASP Top 10 LLM", "NIST AI RMF", "ISO 42001", "GDPR", "SOC 2", "HIPAA"];
-
 export const UI_TEST_CASES = [
   { page: "Landing", expected: "default page renders first" },
   { page: "Product", expected: "product explanation renders" },
@@ -36,71 +32,6 @@ export const INTERACTION_TEST_CASES = [
   { action: "click app header Settings", expected: "Settings page opens" },
   { action: "default initial render", expected: "Landing page is selected" },
 ];
-
-const SESSIONS = [
-  {
-    title: "AI customer support refund assistant",
-    score: 86,
-    risks: 5,
-    date: "29 Apr 2026",
-    status: "Complete",
-    description: "Customer support AI agent that inspects customer profile data, reviews transaction history, classifies complaints, recommends refunds, drafts responses, and escalates high-risk cases.",
-  },
-  {
-    title: "AI interviewer for PM Accelerator",
-    score: 82,
-    risks: 7,
-    date: "29 Apr 2026",
-    status: "Needs review",
-    description: "AI interviewer that screens applicants, summarizes answers, and recommends candidates for review.",
-  },
-  {
-    title: "Customer support reply assistant",
-    score: 91,
-    risks: 4,
-    date: "28 Apr 2026",
-    status: "Complete",
-    description: "Assistant that drafts customer replies from ticket history and product documentation.",
-  },
-];
-
-const ACTIVE_SESSION = {
-  ...SESSIONS[0],
-  industry: "Finance / Fintech",
-  releaseType: "Production",
-  decision: "Ship with controls",
-  euRisk: "Limited risk",
-  scoreBreakdown: [
-    ["Risk coverage", 100],
-    ["Spec completeness", 100],
-    ["Test coverage", 75],
-    ["Guardrails", 85],
-    ["Checklist", 70],
-  ],
-  risksDetailed: [
-    ["Refund Misuse", "High", "The assistant could recommend refunds outside policy or above approval thresholds."],
-    ["PII Exposure", "High", "Customer profile and transaction data could be exposed through logs, prompts, or responses."],
-    ["Missed Escalation", "Medium", "Vulnerable customer complaints or account closure requests may not reach a human reviewer."],
-  ],
-  checklist: [
-    "Require human approval for refunds above GBP 50.",
-    "Log every customer profile and transaction lookup.",
-    "Block account closure actions and escalate them to a human.",
-  ],
-  tests: [
-    ["Refund threshold test", "Verify refunds above GBP 50 cannot proceed without human approval.", "Finance"],
-    ["PII logging test", "Verify customer and transaction data access is logged with user and purpose.", "Privacy"],
-    ["Moderation test", "Ensure drafted customer replies pass moderation before sending.", "Safety"],
-  ],
-  guardrails: [
-    "Human approval for refunds above GBP 50.",
-    "Account closure is blocked and escalated.",
-    "Mask PII in logs and customer-facing drafts.",
-  ],
-  releaseNotes: "Adds controlled refund assistance with transaction review, approval thresholds, escalation routing, and audit logging.",
-  gtmPage: "A safer customer support refund workflow for financial teams that need automation without losing approval control.",
-  pitchDeck: ["Problem", "Workflow", "Risk controls", "Validation results", "Launch decision"],
-};
 
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -526,121 +457,7 @@ function GuidePage({ onNavigate }) {
   );
 }
 
-function AppDashboard({ onOpenNewCheck, onOpenSession }) {
-  const avgScore = useMemo(() => Math.round(SESSIONS.reduce((sum, session) => sum + session.score, 0) / SESSIONS.length), []);
-  const totalRisks = useMemo(() => SESSIONS.reduce((sum, session) => sum + session.risks, 0), []);
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><h1 className="text-4xl font-semibold tracking-tight text-white">Release Operations</h1><p className="mt-2 text-slate-400">Portfolio view of release decisions, controls, sign-offs, and governance status.</p></div><Button variant="violet" onClick={onOpenNewCheck}>+ New Release Review</Button></div>
-      <div className="grid gap-4 md:grid-cols-4">{[[SESSIONS.length, "Reviews"], [avgScore, "Avg score"], [totalRisks, "Total risks"], [FRAMEWORKS.length, "Frameworks"]].map(([value, label]) => <div key={label} className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center"><p className="text-3xl font-bold text-blue-400">{value}</p><p className="mt-1 text-sm text-slate-400">{label}</p></div>)}</div>
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]"><DarkCard title="Recent reviews">{SESSIONS.map((session) => <button key={session.title} type="button" onClick={onOpenSession} className="flex w-full items-center justify-between border-b border-slate-800 py-4 text-left last:border-b-0"><div><p className="font-semibold text-white">{session.title}</p><p className="text-sm text-slate-500">{session.date} · {session.risks} risks</p></div><span className="rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-bold text-emerald-400">{session.score}</span></button>)}</DarkCard><DarkCard title="Governance status"><div className="space-y-4"><StatusBlock color="blue" title="Production Release Gate" body="3 reviews analysed" /><StatusBlock color="green" title="Drift Monitor" body="0 regressions detected" /><StatusBlock color="amber" title="Pending sign-offs" body="PM, Legal, QA, Security" /></div></DarkCard></div>
-    </div>
-  );
-}
-
-function StatusBlock({ color, title, body }) {
-  const colors = { blue: "border-blue-500", green: "border-emerald-500", amber: "border-amber-500" };
-  return <div className={cn("rounded-xl border-l-4 bg-slate-800/70 p-4", colors[color])}><p className="font-semibold text-white">{title}</p><p className="mt-1 text-sm text-slate-400">{body}</p></div>;
-}
-
-function NewCheckPage({ onClose }) {
-  return (
-    <div className="mx-auto max-w-3xl">
-      <button type="button" onClick={onClose} className="mb-6 text-sm font-semibold text-slate-400 hover:text-white">← Back to release operations</button>
-      <DarkCard title="New Release Review">
-        <form className="space-y-6" onSubmit={(event) => event.preventDefault()}>
-          <div>
-            <label className="text-sm font-semibold text-white">Industry preset</label>
-            <select className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200">
-              <option>No preset</option>
-              <option>Finance / Fintech</option>
-              <option>Customer Support</option>
-              <option>HR</option>
-              <option>Healthcare</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-white">Title</label>
-            <input className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" placeholder="e.g. AI customer support refund assistant" />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-white">Feature description</label>
-            <textarea className="mt-2 min-h-40 w-full rounded-md border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" placeholder="What AI workflow is being released? What data, tools, roles, and actions can it access?" />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-white">Release type</label>
-            <div className="mt-3 flex flex-wrap gap-3">{["Prototype", "Beta", "Production"].map((type) => <span key={type} className={cn("rounded-md border px-3.5 py-2 text-sm font-semibold", type === "Production" ? "border-white bg-white text-slate-950" : "border-slate-700 text-slate-400")}>{type}</span>)}</div>
-          </div>
-          <Button variant="violet" type="submit">Run Release Review</Button>
-        </form>
-      </DarkCard>
-    </div>
-  );
-}
-
-function SessionDetailPage({ onBack }) {
-  const [activeTab, setActiveTab] = useState("Overview");
-  return <div className="space-y-6"><button type="button" onClick={onBack} className="text-sm font-semibold text-slate-400 hover:text-white">← Back to release operations</button><div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div><h1 className="text-4xl font-semibold tracking-tight text-white">{ACTIVE_SESSION.title}</h1><p className="mt-2 max-w-3xl text-slate-400">{ACTIVE_SESSION.description}</p><div className="mt-4 flex flex-wrap gap-2"><Pill tone="dark">{ACTIVE_SESSION.status}</Pill><Pill tone="dark">{ACTIVE_SESSION.date}</Pill><Pill tone="dark">{ACTIVE_SESSION.risks} risks</Pill><Pill tone="green">{ACTIVE_SESSION.score}/100</Pill></div></div><div className="flex flex-wrap gap-2">{["Re-analyze", "Package", "Certificate", "Share"].map((action) => <span key={action} className="rounded-md border border-slate-700 bg-transparent px-3.5 py-2 text-sm text-slate-200">{action}</span>)}</div></div><div className="flex gap-2 overflow-x-auto rounded-md border border-slate-800 bg-slate-900 p-2">{SESSION_TABS.map((tab) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={cn("shrink-0 rounded-md px-3.5 py-2 text-sm font-semibold", activeTab === tab ? "bg-white text-slate-950" : "text-slate-400 hover:text-white")}>{tab}</button>)}</div>{activeTab === "Overview" ? <OverviewTab /> : null}{activeTab === "Spec & Risks" ? <SpecRisksTab /> : null}{activeTab === "Tests & Guardrails" ? <TestsGuardrailsTab /> : null}{activeTab === "Docs" ? <DocsLaunchTab /> : null}{activeTab === "Regulation" ? <RegulationTab /> : null}{activeTab === "Governance" ? <GovernanceTab /> : null}</div>;
-}
-
-function OverviewTab() {
-  return <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]"><DarkCard title="Readiness score"><div className="flex flex-col gap-6 md:flex-row md:items-center"><div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full border-4 border-emerald-500 text-4xl font-bold text-emerald-400">{ACTIVE_SESSION.score}</div><div className="flex-1 space-y-3">{ACTIVE_SESSION.scoreBreakdown.map(([label, value]) => <ProgressRow key={label} label={label} value={value} />)}</div></div></DarkCard><DarkCard title="Required controls"><ul className="space-y-3 text-sm text-slate-300">{ACTIVE_SESSION.checklist.map((item) => <li key={item}>□ {item}</li>)}</ul></DarkCard><DarkCard title="Risk severity"><RiskList /></DarkCard><DarkCard title="Version history"><div className="space-y-3 text-sm text-slate-300"><p>v3 · Current analysis complete</p><p>v2 · Risk register updated</p><p>v1 · Initial release review created</p></div></DarkCard></div>;
-}
-
-function ProgressRow({ label, value }) {
-  return <div className="grid grid-cols-[150px_1fr_48px] items-center gap-3 text-sm"><span className="text-slate-400">{label}</span><span className="h-2 rounded-full bg-slate-800"><span className="block h-2 rounded-full bg-emerald-500" style={{ width: `${value}%` }} /></span><span className="text-right text-slate-300">{value}%</span></div>;
-}
-
-function RiskList() {
-  return <div className="space-y-4">{ACTIVE_SESSION.risksDetailed.map(([name, severity, detail]) => <div key={name} className="rounded-xl bg-slate-800 p-4"><div className="flex items-center justify-between gap-4"><p className="font-semibold text-white">{name}</p><Pill tone={severity === "High" ? "red" : "amber"}>{severity}</Pill></div><p className="mt-2 text-sm text-slate-400">{detail}</p></div>)}</div>;
-}
-
-function SpecRisksTab() {
-  return <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]"><DarkCard title="Compliance frameworks"><div className="flex flex-wrap gap-2">{FRAMEWORKS.map((framework) => <Pill key={framework} tone="dark">{framework}</Pill>)}</div></DarkCard><DarkCard title="Risk heatmap"><div className="grid grid-cols-2 gap-3 md:grid-cols-3">{["Safety", "Security", "Privacy", "Reliability", "Compliance", "Business"].map((item, index) => <div key={item} className={cn("rounded-xl p-4 text-sm font-semibold", index < 2 ? "bg-red-500/20 text-red-200" : index < 4 ? "bg-amber-500/20 text-amber-200" : "bg-emerald-500/20 text-emerald-200")}>{item}</div>)}</div></DarkCard><DarkCard title="Release spec"><dl className="space-y-4 text-sm">{[["Industry", ACTIVE_SESSION.industry], ["Release type", ACTIVE_SESSION.releaseType], ["Decision", ACTIVE_SESSION.decision], ["EU risk tier", ACTIVE_SESSION.euRisk]].map(([label, value]) => <div key={label} className="flex justify-between gap-4"><dt className="text-slate-400">{label}</dt><dd className="font-semibold text-white">{value}</dd></div>)}</dl></DarkCard><DarkCard title="Risk register"><RiskList /></DarkCard></div>;
-}
-
-function TestsGuardrailsTab() {
-  return <div className="space-y-6"><DarkCard title="Traceability chain"><div className="flex flex-wrap items-center gap-3 text-sm text-slate-300"><Pill tone="dark">Risk</Pill><span>/</span><Pill tone="dark">Test case</Pill><span>/</span><Pill tone="dark">Guardrail</Pill><span>/</span><Pill tone="dark">Implementation hook</Pill></div></DarkCard><div className="grid gap-6 lg:grid-cols-2"><DarkCard title="Test cases"><div className="space-y-4">{ACTIVE_SESSION.tests.map(([name, detail, type]) => <div key={name} className="rounded-xl bg-slate-800 p-4"><div className="flex items-center justify-between gap-4"><p className="font-semibold text-white">{name}</p><Pill tone="blue">{type}</Pill></div><p className="mt-2 text-sm text-slate-400">{detail}</p></div>)}</div></DarkCard><DarkCard title="Guardrails"><ul className="space-y-3 text-sm text-slate-300">{ACTIVE_SESSION.guardrails.map((item) => <li key={item}>{item}</li>)}</ul></DarkCard></div></div>;
-}
-
-function DocsLaunchTab() {
-  return <div className="grid gap-6 lg:grid-cols-3"><DarkCard title="Release notes"><p className="text-sm leading-7 text-slate-300">{ACTIVE_SESSION.releaseNotes}</p></DarkCard><DarkCard title="Market page"><p className="text-sm leading-7 text-slate-300">{ACTIVE_SESSION.gtmPage}</p></DarkCard><DarkCard title="Stakeholder brief outline"><ul className="space-y-3 text-sm text-slate-300">{ACTIVE_SESSION.pitchDeck.map((item) => <li key={item}>/ {item}</li>)}</ul></DarkCard></div>;
-}
-
-function RegulationTab() {
-  return <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]"><DarkCard title="EU AI Act classification"><div className="rounded-2xl border border-amber-700/50 bg-amber-500/5 p-5"><p className="text-2xl font-bold text-amber-300">{ACTIVE_SESSION.euRisk}</p><p className="mt-2 text-sm text-slate-400">Transparency obligations apply. Users must be informed they are interacting with AI.</p></div></DarkCard><DarkCard title="Framework crosswalk"><div className="space-y-3 text-sm">{FRAMEWORKS.map((framework, index) => <div key={framework} className="flex items-center justify-between rounded-xl bg-slate-800 p-3"><span className="font-semibold text-white">{framework}</span><span className={index < 3 ? "text-red-300" : "text-emerald-300"}>{index < 3 ? "Triggered" : "Mapped"}</span></div>)}</div></DarkCard></div>;
-}
-
-function GovernanceTab() {
-  return <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]"><DarkCard title="Sign-offs"><div className="grid gap-3 sm:grid-cols-2">{["Product Manager", "QA Lead", "Legal / Compliance", "Security"].map((role) => <div key={role} className="rounded-xl bg-slate-800 p-4"><div className="flex items-center justify-between"><p className="font-semibold text-white">{role}</p><span className="text-xs text-amber-300">Pending</span></div><button type="button" className="mt-4 w-full rounded-md border border-white bg-white px-3 py-2 text-sm font-bold text-slate-950">Sign off</button></div>)}</div></DarkCard><DarkCard title="Certificates and audit"><div className="space-y-4 text-sm text-slate-300"><p>Generate auditor-ready PDF with review evidence.</p><button type="button" className="rounded-md border border-white bg-white px-5 py-2 text-sm font-bold text-slate-950">Download certificate</button><div className="rounded-xl bg-slate-800 p-4"><p className="font-semibold text-white">Audit trail</p><p className="mt-1 text-slate-400">Created / Analysed / Reviewed / Certificate requested</p></div></div></DarkCard><DarkCard title="Quality gates"><div className="space-y-3 text-sm text-slate-300"><p>Release score threshold: 80</p><p>High risk blocker: enabled</p><p>Required sign-offs: PM, QA, Legal, Security</p></div></DarkCard><DarkCard title="Integrations"><div className="flex flex-wrap gap-2">{["Slack", "Jira", "GitHub PR", "Linear", "Webhook"].map((item) => <Pill key={item} tone="dark">{item}</Pill>)}</div></DarkCard></div>;
-}
-
-function SettingsPage() {
-  const [tab, setTab] = useState("Profile");
-  return <div className="space-y-6"><div><h1 className="text-4xl font-semibold text-white">Settings</h1><p className="mt-2 text-slate-400">Profile, team, API keys, integrations, and quality gates.</p></div><div className="flex gap-2 overflow-x-auto rounded-md border border-slate-800 bg-slate-900 p-2">{SETTINGS_TABS.map((item) => <button key={item} type="button" onClick={() => setTab(item)} className={cn("shrink-0 rounded-md px-3.5 py-2 text-sm font-semibold", tab === item ? "bg-white text-slate-950" : "text-slate-400")}>{item}</button>)}</div><DarkCard title={tab}>{tab === "Profile" ? <ProfileSettings /> : null}{tab === "Team" ? <TeamSettings /> : null}{tab === "API Keys" ? <ApiKeySettings /> : null}{tab === "Integrations" ? <IntegrationSettings /> : null}{tab === "Gates" ? <GateSettings /> : null}</DarkCard></div>;
-}
-
-function ProfileSettings() {
-  return <div className="grid gap-4 md:grid-cols-2"><input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="Othniel Simon" /><input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200" defaultValue="peprodev@gmail.com" /></div>;
-}
-
-function TeamSettings() {
-  return <div className="space-y-3 text-sm text-slate-300"><p>Workspace: ReleaseOps Demo</p><p>Members: Product, QA, Legal, Security</p><p>Invite flow: enabled</p></div>;
-}
-
-function ApiKeySettings() {
-  return <div className="space-y-3 text-sm text-slate-300"><p>releaseops_live_••••••••••••••</p><Button variant="violet">Create API key</Button></div>;
-}
-
-function IntegrationSettings() {
-  return <div className="grid gap-4 md:grid-cols-2">{["Slack", "Jira", "GitHub", "Linear"].map((item) => <div key={item} className="rounded-xl bg-slate-800 p-4"><p className="font-semibold text-white">{item}</p><p className="mt-1 text-sm text-slate-400">Configure connection</p></div>)}</div>;
-}
-
-function GateSettings() {
-  return <div className="space-y-3 text-sm text-slate-300"><p>Minimum readiness score: 80</p><p>Block high risk releases: enabled</p><p>Require all sign-offs: enabled</p></div>;
-}
-
-function AuthModal({ mode, form, error, loading, onClose, onSubmit, onFormChange, onModeChange }) {
+function AuthModal({ mode, onClose, onModeChange }) {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm" onClick={onClose}>
       <div onClick={(event) => event.stopPropagation()} className="relative w-full max-w-md">
@@ -690,6 +507,18 @@ function IntegratedAppHeader({ page, user, isAdmin, showGuide, onNavigate, onNew
           <button type="button" onClick={onLogout} className="rounded-md border border-transparent px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50">Sign out</button>
         </div>
       </div>
+      <nav className="mx-auto mt-3 flex max-w-7xl gap-2 overflow-x-auto lg:hidden">
+        {navItems.map(([label, key]) => {
+          const active = page === key || (key === "sessions" && (page === "detail" || page === "compare"));
+          return (
+            <button key={key} type="button" onClick={() => onNavigate(key)} className={cn("shrink-0 rounded-md px-3 py-2 text-sm font-semibold transition-colors", active ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-[#fbfaf7] hover:text-slate-950")}>
+              {label}
+            </button>
+          );
+        })}
+        <button type="button" onClick={onNewCheck} className="shrink-0 rounded-md border border-slate-950 bg-slate-950 px-3.5 py-2 text-sm font-bold text-white">New Review</button>
+        <button type="button" onClick={onToggleGuide} className={cn("shrink-0 rounded-md border px-3.5 py-2 text-sm font-semibold", showGuide ? "border-slate-950 bg-slate-950 text-white" : "border-transparent text-slate-600 hover:bg-[#fbfaf7]")}>Guide</button>
+      </nav>
     </header>
   );
 }
@@ -786,9 +615,6 @@ export default function ReleaseOpsAgentUI() {
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [authMode, setAuthMode] = useState(null);
-  const [authForm, setAuthForm] = useState({ name: "", email: "", password: "" });
-  const [authError, setAuthError] = useState("");
-  const [authLoading, setAuthLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
@@ -832,21 +658,8 @@ export default function ReleaseOpsAgentUI() {
     fetchSessions();
   }, [clerk?.isLoaded, clerk?.isSignedIn, clerkUser?.id, fetchSessions]);
 
-  useEffect(() => {
-    if (clerk?.isLoaded) return;
-    const token = localStorage.getItem("releaseops_token");
-    if (!token) return;
-    authAPI.me().then((nextUser) => {
-      setUser(nextUser);
-      setAuthenticated(true);
-      setPage("dash");
-      fetchSessions();
-    }).catch(() => localStorage.removeItem("releaseops_token"));
-  }, [fetchSessions, clerk?.isLoaded]);
-
   const beginAuth = (mode = "signup") => {
     setAuthMode(mode);
-    setAuthError("");
   };
 
   const navigate = (nextPage) => {
@@ -862,30 +675,7 @@ export default function ReleaseOpsAgentUI() {
     }
   };
 
-  const handleAuth = async (event) => {
-    event.preventDefault();
-    setAuthError("");
-    setAuthLoading(true);
-    try {
-      const res = authMode === "signup"
-        ? await authAPI.signup(authForm.name, authForm.email, authForm.password)
-        : await authAPI.login(authForm.email, authForm.password);
-      localStorage.setItem("releaseops_token", res.token);
-      setUser({ name: res.name, email: res.email, role: res.role });
-      setAuthenticated(true);
-      setAuthMode(null);
-      setAuthForm({ name: "", email: "", password: "" });
-      setPage("dash");
-      fetchSessions();
-    } catch (err) {
-      setAuthError(err.message || "Authentication failed");
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   const logout = () => {
-    localStorage.removeItem("releaseops_token");
     clerk?.signOut?.();
     setAuthenticated(false);
     setUser(null);
@@ -969,7 +759,7 @@ export default function ReleaseOpsAgentUI() {
       {showGuide ? <div className="releaseops-light-app"><LegacyGuidePanel onClose={() => setShowGuide(false)} /></div> : null}
       </>
       ) : null}
-      {authMode ? <AuthModal mode={authMode} form={authForm} error={authError} loading={authLoading} onClose={() => setAuthMode(null)} onSubmit={handleAuth} onFormChange={setAuthForm} onModeChange={(mode) => { setAuthMode(mode); setAuthError(""); }} /> : null}
+      {authMode ? <AuthModal mode={authMode} onClose={() => setAuthMode(null)} onModeChange={setAuthMode} /> : null}
     </div>
   );
 }

@@ -1,7 +1,7 @@
-/* ReleaseOps v3 — Settings Page (Tailwind) — wired to real API */
+/* ReleaseOps Settings - enterprise workspace */
 
-import { useState, useEffect } from "react";
-import { Badge, Card, Button } from "../components/ui";
+import { useEffect, useMemo, useState } from "react";
+import { Badge, Button, Label } from "../components/ui";
 import { teams as teamsAPI, keys as keysAPI, gates as gatesAPI, integrationSettings as integrationsAPI } from "../services/api";
 
 const EMPTY_INTEGRATIONS = {
@@ -28,54 +28,77 @@ const ORG_ROLES = [
   ["admin", "Admin"],
 ];
 
-/* ── IntegrationCard — expandable per-provider card ── */
-function IntegrationCard({ icon, title, subtitle, description, fields, values, onChange }) {
-  const [open, setOpen] = useState(false);
-  const configured = fields.some((f) => values[f.key] && String(values[f.key]).trim() !== "");
+const TABS = [
+  ["organizations", "Organizations"],
+  ["approvals", "Approval Gates"],
+  ["integrations", "Integrations"],
+  ["api", "API Keys"],
+  ["audit", "Audit"],
+];
+
+function Section({ title, description, children, action }) {
   return (
-    <div className="p-3 bg-lg-sf2 rounded-lg border border-lg-bd mb-2">
-      <div className="flex justify-between items-center cursor-pointer" onClick={() => setOpen(!open)}>
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{icon}</span>
-          <div>
-            <span className="text-sm font-bold text-tx">{title}</span>
-            <span className="text-xs text-tx-4 ml-2">{subtitle}</span>
-          </div>
+    <section className="workspace-section p-5">
+      <div className="mb-5 flex flex-col gap-3 border-b border-lg-bd pb-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-base font-extrabold text-tx">{title}</h2>
+          {description ? <p className="mt-1 max-w-3xl text-sm leading-6 text-tx-3">{description}</p> : null}
         </div>
-        <div className="flex items-center gap-1.5">
-          {configured && <Badge color="gn" size="xs">CONFIGURED</Badge>}
-          <button className="text-xs text-accent-purple2 bg-transparent border-none font-sans cursor-pointer hover:underline">
-            {open ? "Close" : "Configure"}
-          </button>
-        </div>
+        {action}
       </div>
-      {open && (
-        <div className="mt-2.5 pt-2 border-t border-lg-bd">
-          <div className="text-xs text-tx-4 mb-2">{description}</div>
-          <div className="grid grid-cols-1 gap-1.5">
-            {fields.map((f) => (
-              <div key={f.key}>
-                <label className="text-xs text-tx-3 mb-0.5 block">{f.label}</label>
-                <input
-                  type={f.type || "text"}
-                  value={values[f.key] ?? ""}
-                  onChange={(e) => onChange(f.key, e.target.value)}
-                  placeholder={f.placeholder}
-                  className="input-glass text-sm w-full"
-                />
-              </div>
-            ))}
+      {children}
+    </section>
+  );
+}
+
+function IntegrationRow({ title, subtitle, fields, values, onChange }) {
+  const [open, setOpen] = useState(false);
+  const configured = fields.some((field) => String(values[field.key] || "").trim());
+  return (
+    <div className="workspace-row py-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-extrabold text-tx">{title}</h3>
+            {configured ? <Badge color="gn" size="xs">Configured</Badge> : <Badge color="or" size="xs">Not configured</Badge>}
           </div>
+          <p className="mt-1 text-sm leading-6 text-tx-3">{subtitle}</p>
         </div>
-      )}
+        <Button variant="default" size="xs" onClick={() => setOpen((value) => !value)}>{open ? "Close" : "Configure"}</Button>
+      </div>
+      {open ? (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          {fields.map((field) => (
+            <label key={field.key} className={field.wide ? "lg:col-span-2" : ""}>
+              <span className="mb-1 block text-xs font-semibold text-tx-3">{field.label}</span>
+              <input
+                type={field.type || "text"}
+                value={values[field.key] ?? ""}
+                onChange={(event) => onChange(field.key, event.target.value)}
+                placeholder={field.placeholder}
+                className="input-glass text-sm"
+              />
+            </label>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
 
-export default function Settings() {
-  const [tab, setTab] = useState("teams");
+function parseList(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return String(value).split(",").map((item) => item.trim()).filter(Boolean);
+  }
+}
 
-  /* ── Teams state ── */
+export default function Settings() {
+  const [tab, setTab] = useState("organizations");
   const [teamsList, setTeamsList] = useState([]);
   const [teamsLoading, setTeamsLoading] = useState(true);
   const [newTeamName, setNewTeamName] = useState("");
@@ -84,40 +107,54 @@ export default function Settings() {
   const [memberForm, setMemberForm] = useState({ email: "", role: "member" });
   const [memberMsg, setMemberMsg] = useState("");
   const [inviteLink, setInviteLink] = useState("");
-
-  /* ── API Keys state ── */
   const [keysList, setKeysList] = useState([]);
   const [keysLoading, setKeysLoading] = useState(true);
   const [newKeyName, setNewKeyName] = useState("");
   const [createdKey, setCreatedKey] = useState(null);
-
-  /* ── Integration defaults state ── */
   const [integrationDefaults, setIntegrationDefaults] = useState(EMPTY_INTEGRATIONS);
   const [integrationsLoading, setIntegrationsLoading] = useState(true);
   const [integrationsSaving, setIntegrationsSaving] = useState(false);
   const [integrationsMsg, setIntegrationsMsg] = useState("");
-
-  /* ── Gates state ── */
   const [gatesList, setGatesList] = useState([]);
   const [gatesLoading, setGatesLoading] = useState(true);
   const [showGateForm, setShowGateForm] = useState(false);
-  const [gateForm, setGateForm] = useState({ name: "", gate_type: "ci_cd", min_score: 65, required_sign_offs: "PM,Legal,QA", required_frameworks: "EU AI Act,OWASP,NIST AI RMF,ISO 42001,GDPR,SOC 2,HIPAA" });
+  const [gateForm, setGateForm] = useState({
+    name: "",
+    gate_type: "ci_cd",
+    min_score: 80,
+    required_sign_offs: "pm,qa,legal,security",
+    required_frameworks: "EU AI Act,OWASP,NIST AI RMF,ISO 42001,GDPR,SOC 2,HIPAA",
+  });
 
-  /* ── Fetch helpers ── */
-  const loadTeams = () => { setTeamsLoading(true); teamsAPI.list().then(setTeamsList).catch(() => setTeamsList([])).finally(() => setTeamsLoading(false)); };
-  const loadKeys = () => { setKeysLoading(true); keysAPI.list().then(setKeysList).catch(() => setKeysList([])).finally(() => setKeysLoading(false)); };
-  const loadGates = () => { setGatesLoading(true); gatesAPI.list().then((r) => setGatesList(r.gates || [])).catch(() => setGatesList([])).finally(() => setGatesLoading(false)); };
+  const activeTeam = useMemo(() => teamsList.find((team) => team.id === expandedTeam), [teamsList, expandedTeam]);
+
+  const loadTeams = () => {
+    setTeamsLoading(true);
+    teamsAPI.list().then(setTeamsList).catch(() => setTeamsList([])).finally(() => setTeamsLoading(false));
+  };
+  const loadKeys = () => {
+    setKeysLoading(true);
+    keysAPI.list().then(setKeysList).catch(() => setKeysList([])).finally(() => setKeysLoading(false));
+  };
+  const loadGates = () => {
+    setGatesLoading(true);
+    gatesAPI.list().then((response) => setGatesList(response.gates || [])).catch(() => setGatesList([])).finally(() => setGatesLoading(false));
+  };
   const loadIntegrations = () => {
     setIntegrationsLoading(true);
     integrationsAPI.get()
-      .then((r) => setIntegrationDefaults({ ...EMPTY_INTEGRATIONS, ...(r.integrations || {}) }))
+      .then((response) => setIntegrationDefaults({ ...EMPTY_INTEGRATIONS, ...(response.integrations || {}) }))
       .catch(() => setIntegrationDefaults(EMPTY_INTEGRATIONS))
       .finally(() => setIntegrationsLoading(false));
   };
 
-  useEffect(() => { loadTeams(); loadKeys(); loadGates(); loadIntegrations(); }, []);
+  useEffect(() => {
+    loadTeams();
+    loadKeys();
+    loadGates();
+    loadIntegrations();
+  }, []);
 
-  /* ── Teams actions ── */
   const createTeam = async () => {
     if (!newTeamName.trim()) return;
     await teamsAPI.create(newTeamName.trim());
@@ -126,9 +163,18 @@ export default function Settings() {
   };
 
   const toggleMembers = async (teamId) => {
-    if (expandedTeam === teamId) { setExpandedTeam(null); return; }
+    if (expandedTeam === teamId) {
+      setExpandedTeam(null);
+      return;
+    }
     setExpandedTeam(teamId);
-    try { setMembers(await teamsAPI.members(teamId)); } catch { setMembers([]); }
+    setMemberMsg("");
+    setInviteLink("");
+    try {
+      setMembers(await teamsAPI.members(teamId));
+    } catch {
+      setMembers([]);
+    }
   };
 
   const inviteMember = async (teamId) => {
@@ -136,14 +182,16 @@ export default function Settings() {
     setMemberMsg("");
     setInviteLink("");
     try {
-      const res = await teamsAPI.invite(teamId, memberForm.email.trim(), memberForm.role);
-      setInviteLink(res.invite_url || "");
-      setMemberMsg(res.email_sent
+      const response = await teamsAPI.invite(teamId, memberForm.email.trim(), memberForm.role);
+      setInviteLink(response.invite_url || "");
+      setMemberMsg(response.email_sent
         ? `Invitation sent to ${memberForm.email.trim()}.`
-        : `Email was not sent${res.email_error ? `: ${res.email_error}` : ""}. Use the invite link below.`);
+        : `Email was not sent${response.email_error ? `: ${response.email_error}` : ""}. Use the invite link below.`);
       setMemberForm({ email: "", role: "member" });
       setMembers(await teamsAPI.members(teamId));
-    } catch (e) { setMemberMsg(e.message); }
+    } catch (error) {
+      setMemberMsg(error.message || "Could not send invitation.");
+    }
   };
 
   const copyInviteLink = async () => {
@@ -158,8 +206,8 @@ export default function Settings() {
       await teamsAPI.updateMemberRole(teamId, memberEmail, role);
       setMembers(await teamsAPI.members(teamId));
       setMemberMsg("Role updated.");
-    } catch (e) {
-      setMemberMsg(e.message);
+    } catch (error) {
+      setMemberMsg(error.message || "Could not update role.");
     }
   };
 
@@ -168,11 +216,10 @@ export default function Settings() {
     setMembers(await teamsAPI.members(teamId));
   };
 
-  /* ── API Key actions ── */
   const createKey = async () => {
     if (!newKeyName.trim()) return;
-    const res = await keysAPI.create(newKeyName.trim());
-    setCreatedKey(res.key);
+    const response = await keysAPI.create(newKeyName.trim());
+    setCreatedKey(response.key);
     setNewKeyName("");
     loadKeys();
   };
@@ -182,7 +229,6 @@ export default function Settings() {
     loadKeys();
   };
 
-  /* ── Integration actions ── */
   const updateIntegrationDefault = (field, value) => {
     setIntegrationDefaults((current) => ({ ...current, [field]: value }));
   };
@@ -190,310 +236,278 @@ export default function Settings() {
   const saveIntegrationDefaults = async () => {
     const payload = { ...integrationDefaults };
     payload.github_pr = payload.github_pr === "" ? null : Number(payload.github_pr);
-    if (Number.isNaN(payload.github_pr)) {
-      payload.github_pr = null;
-    }
+    if (Number.isNaN(payload.github_pr)) payload.github_pr = null;
     setIntegrationsSaving(true);
     setIntegrationsMsg("");
     try {
-      const res = await integrationsAPI.save(payload);
-      setIntegrationDefaults({ ...EMPTY_INTEGRATIONS, ...(res.integrations || {}) });
-      setIntegrationsMsg("Default integrations saved. New sessions will inherit these values.");
-    } catch (e) {
-      setIntegrationsMsg(e.message || "Failed to save integration defaults.");
+      const response = await integrationsAPI.save(payload);
+      setIntegrationDefaults({ ...EMPTY_INTEGRATIONS, ...(response.integrations || {}) });
+      setIntegrationsMsg("Default integrations saved.");
+    } catch (error) {
+      setIntegrationsMsg(error.message || "Failed to save integration defaults.");
     } finally {
       setIntegrationsSaving(false);
     }
   };
 
-  /* ── Gate actions ── */
   const createGate = async () => {
     if (!gateForm.name.trim()) return;
     await gatesAPI.create({
       name: gateForm.name.trim(),
       gate_type: gateForm.gate_type,
       min_score: Number(gateForm.min_score),
-      required_sign_offs: gateForm.required_sign_offs.split(",").map((s) => s.trim()).filter(Boolean),
-      required_frameworks: gateForm.required_frameworks.split(",").map((s) => s.trim()).filter(Boolean),
+      required_sign_offs: gateForm.required_sign_offs.split(",").map((item) => item.trim()).filter(Boolean),
+      required_frameworks: gateForm.required_frameworks.split(",").map((item) => item.trim()).filter(Boolean),
     });
     setShowGateForm(false);
-    setGateForm({ name: "", gate_type: "ci_cd", min_score: 65, required_sign_offs: "PM,Legal,QA", required_frameworks: "EU AI Act,OWASP,NIST AI RMF,ISO 42001,GDPR,SOC 2,HIPAA" });
+    setGateForm({
+      name: "",
+      gate_type: "ci_cd",
+      min_score: 80,
+      required_sign_offs: "pm,qa,legal,security",
+      required_frameworks: "EU AI Act,OWASP,NIST AI RMF,ISO 42001,GDPR,SOC 2,HIPAA",
+    });
     loadGates();
   };
 
   return (
-    <div className="max-w-[560px] mx-auto pt-6">
-      <h1 className="text-2xl font-extrabold text-tx mb-5 animate-fade-up">Settings</h1>
-      <Card className="animate-fade-up-1">
-        {/* Tabs */}
-        <div className="flex gap-0 mb-3.5 border-b border-lg-bd">
-          {[{ k: "teams", l: "Organizations" }, { k: "api", l: "API Keys" }, { k: "int", l: "Integrations" }, { k: "gates", l: "Gates" }].map((t) => (
-            <button key={t.k} onClick={() => setTab(t.k)} className={`bg-transparent border-none text-xs px-3 py-2 cursor-pointer font-sans border-b-2 transition-colors ${tab === t.k ? "text-tx font-semibold border-accent-purple2" : "text-tx-4 font-normal border-transparent hover:text-tx-2"}`}>
-              {t.l}
-            </button>
-          ))}
-        </div>
+    <div className="mx-auto max-w-6xl">
+      <div className="mb-6 pt-4">
+        <h1 className="text-3xl font-extrabold text-tx">Settings</h1>
+        <p className="mt-1 max-w-3xl text-sm leading-6 text-tx-3">
+          Configure organizations, approval authority, release gates, integrations, and API access for production AI release governance.
+        </p>
+      </div>
 
-        {/* ══════════ Teams ══════════ */}
-        {tab === "teams" && (
-          <div>
-            {teamsLoading ? (
-              <div className="text-xs text-tx-3 text-center py-4 animate-pulse">Loading organizations...</div>
-            ) : teamsList.length === 0 ? (
-              <div className="text-xs text-tx-3 text-center py-4">No organization yet. Create one before assigning approver roles.</div>
-            ) : (
-              teamsList.map((t) => (
-                <div key={t.id} className="p-3 bg-lg-sf2 rounded-lg mb-2">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-[7px] h-[7px] rounded-full" style={{ background: t.brand_color || "#6366f1" }} />
-                      <span className="text-base font-bold text-tx">{t.name}</span>
+      <div className="mb-5 flex gap-2 overflow-x-auto border-b border-lg-bd">
+        {TABS.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={`shrink-0 border-b-2 px-3 py-3 text-sm font-semibold transition-colors ${tab === key ? "border-slate-950 text-tx" : "border-transparent text-tx-3 hover:text-tx"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "organizations" ? (
+        <Section
+          title="Organizations and roles"
+          description="Create tenant organizations, invite users, and assign the roles that control release approvals."
+          action={
+            <div className="flex w-full gap-2 lg:w-auto">
+              <input
+                type="text"
+                placeholder="Organization name"
+                value={newTeamName}
+                onChange={(event) => setNewTeamName(event.target.value)}
+                onKeyDown={(event) => event.key === "Enter" && createTeam()}
+                className="input-glass text-sm lg:w-72"
+              />
+              <Button variant="primary" size="sm" onClick={createTeam}>Create</Button>
+            </div>
+          }
+        >
+          {teamsLoading ? <div className="py-8 text-sm text-tx-3">Loading organizations...</div> : null}
+          {!teamsLoading && teamsList.length === 0 ? <div className="py-8 text-sm text-tx-3">No organization yet. Create one before assigning approver roles.</div> : null}
+          <div className="grid gap-4">
+            {teamsList.map((team) => (
+              <div key={team.id} className="rounded-lg border border-lg-bd bg-white">
+                <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: team.brand_color || "#111827" }} />
+                      <h3 className="text-base font-extrabold text-tx">{team.name}</h3>
+                      <Badge color={team.role === "owner" ? "pr" : "bl"} size="xs">{team.role || "member"}</Badge>
                     </div>
-                    <Badge color={t.role === "owner" ? "pr" : "bl"} size="xs">{t.role?.toUpperCase()}</Badge>
+                    <p className="mt-1 text-xs text-tx-4">Owner: {team.owner_email || "Not recorded"}</p>
                   </div>
-                  <div className="text-xs text-tx-4 mt-0.5">{t.owner_email}</div>
-                  <div className="flex gap-1 mt-2">
-                    <Button variant="ghost" size="xs" onClick={() => toggleMembers(t.id)}>
-                      {expandedTeam === t.id ? "Close" : "👥 Members"}
-                    </Button>
-                  </div>
-
-                  {/* Expanded members */}
-                  {expandedTeam === t.id && (
-                    <div className="mt-2 border-t border-lg-bd pt-2">
-                      {members.length === 0 ? (
-                        <div className="text-xs text-tx-4">No members yet.</div>
-                      ) : (
-                        members.map((m) => (
-                          <div key={m.email} className="flex justify-between items-center py-1">
-                            <div>
-                              <span className="text-sm text-tx">{m.name || m.email}</span>
-                              <span className="text-xs text-tx-4 ml-1.5">{m.email}</span>
+                  <Button variant="default" size="sm" onClick={() => toggleMembers(team.id)}>
+                    {expandedTeam === team.id ? "Close members" : "Manage members"}
+                  </Button>
+                </div>
+                {expandedTeam === team.id ? (
+                  <div className="border-t border-lg-bd p-4">
+                    <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_340px]">
+                      <div>
+                        <Label>Members</Label>
+                        <div className="overflow-hidden rounded-lg border border-lg-bd">
+                          {members.length === 0 ? <div className="p-4 text-sm text-tx-3">No members yet.</div> : null}
+                          {members.map((member) => (
+                            <div key={member.email} className="workspace-row grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_180px_80px] lg:items-center">
+                              <div className="min-w-0">
+                                <div className="truncate text-sm font-semibold text-tx">{member.name || member.email}</div>
+                                <div className="truncate text-xs text-tx-4">{member.email}</div>
+                              </div>
+                              {["owner", "admin"].includes(team.role) && member.role !== "owner" ? (
+                                <select value={member.role} onChange={(event) => updateMemberRole(team.id, member.email, event.target.value)} className="input-glass text-xs">
+                                  {ORG_ROLES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                                </select>
+                              ) : (
+                                <Badge color="bl" size="xs">{member.role}</Badge>
+                              )}
+                              {team.role === "owner" && member.role !== "owner" ? (
+                                <Button variant="danger" size="xs" onClick={() => removeMember(team.id, member.email)}>Remove</Button>
+                              ) : null}
                             </div>
-                            {["owner", "admin"].includes(t.role) && m.role !== "owner" ? (
-                              <select value={m.role} onChange={(e) => updateMemberRole(t.id, m.email, e.target.value)} className="input-glass text-xs max-w-[150px]">
-                                {ORG_ROLES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                              </select>
-                            ) : (
-                              <span className="text-xs text-tx-4">{m.role}</span>
-                            )}
-                            {t.role === "owner" && m.role !== "owner" && (
-                              <button onClick={() => removeMember(t.id, m.email)} className="text-xs text-accent-red cursor-pointer bg-transparent border-none font-sans hover:underline">Remove</button>
-                            )}
+                          ))}
+                        </div>
+                      </div>
+                      {["owner", "admin"].includes(team.role) ? (
+                        <div className="rounded-lg border border-lg-bd bg-[#fbfaf7] p-4">
+                          <Label>Invite user</Label>
+                          <div className="grid gap-2">
+                            <input type="email" placeholder="Email address" value={memberForm.email} onChange={(event) => setMemberForm({ ...memberForm, email: event.target.value })} className="input-glass text-sm" />
+                            <select value={memberForm.role} onChange={(event) => setMemberForm({ ...memberForm, role: event.target.value })} className="input-glass text-sm">
+                              {ORG_ROLES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                            </select>
+                            <Button variant="primary" size="sm" onClick={() => inviteMember(team.id)}>Send invitation</Button>
                           </div>
-                        ))
-                      )}
-                      {["owner", "admin"].includes(t.role) && (
-                        <div className="mt-3 rounded-lg border border-lg-bd bg-white p-3">
-                          <div className="text-sm font-bold text-tx mb-2">Invite organization user</div>
-                          <div className="grid grid-cols-1 gap-2">
-                            <input type="email" placeholder="Email address" value={memberForm.email} onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })} className="input-glass text-sm" />
-                            <div className="grid grid-cols-[1fr_auto] gap-2">
-                              <select value={memberForm.role} onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value })} className="input-glass text-sm">
-                                {ORG_ROLES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                              </select>
-                              <Button variant="primary" size="xs" onClick={() => inviteMember(t.id)}>Invite</Button>
-                            </div>
-                          </div>
-                          {memberMsg && <div className="text-xs text-tx-3 mt-2 break-all">{memberMsg}</div>}
-                          {inviteLink && (
-                            <div className="mt-2 rounded-md border border-lg-bd bg-[#fbfaf7] p-2">
-                              <div className="text-xs text-tx-4 mb-1">Invite link</div>
-                              <div className="break-all text-xs font-mono text-tx">{inviteLink}</div>
+                          {memberMsg ? <div className="mt-3 text-xs leading-5 text-tx-3">{memberMsg}</div> : null}
+                          {inviteLink ? (
+                            <div className="mt-3 rounded-md border border-lg-bd bg-white p-3">
+                              <div className="mb-1 text-xs font-semibold text-tx-4">Invite link</div>
+                              <div className="break-all font-mono text-xs text-tx">{inviteLink}</div>
                               <Button variant="ghost" size="xs" className="mt-2" onClick={copyInviteLink}>Copy link</Button>
                             </div>
-                          )}
+                          ) : null}
                         </div>
-                      )}
+                      ) : null}
                     </div>
-                  )}
-                </div>
-              ))
-            )}
-
-            {/* Create team */}
-            <div className="flex gap-1 mt-2">
-              <input
-                type="text" placeholder="Organization name" value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createTeam()}
-                className="input-glass text-sm flex-1"
-              />
-              <Button variant="primary" size="sm" onClick={createTeam}>Create Organization</Button>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════ API Keys ══════════ */}
-        {tab === "api" && (
-          <div>
-            {keysLoading ? (
-              <div className="text-xs text-tx-3 text-center py-4 animate-pulse">Loading keys...</div>
-            ) : keysList.length === 0 ? (
-              <div className="text-xs text-tx-3 text-center py-4 mb-2">No API keys yet. Create one for CI/CD integration.</div>
-            ) : (
-              <div className="mb-3">
-                {keysList.map((k) => (
-                  <div key={k.id} className="flex justify-between items-center py-2 border-b border-lg-bd">
-                    <div>
-                      <div className="text-sm text-tx font-medium">{k.name}</div>
-                      <div className="text-xs text-tx-4 font-mono">
-                        Created {new Date(k.created_at).toLocaleDateString()}
-                        {k.last_used && ` · Last used ${new Date(k.last_used).toLocaleDateString()}`}
-                      </div>
-                    </div>
-                    <Button variant="danger" size="xs" onClick={() => revokeKey(k.id)}>Revoke</Button>
                   </div>
-                ))}
+                ) : null}
               </div>
-            )}
+            ))}
+          </div>
+          {activeTeam ? <div className="mt-4 text-xs text-tx-4">Editing organization: {activeTeam.name}</div> : null}
+        </Section>
+      ) : null}
 
-            {/* Show newly created key */}
-            {createdKey && (
-              <div className="p-3 bg-accent-green/10 border border-accent-green/25 rounded-lg mb-3">
-                <div className="text-sm text-tx font-semibold mb-1">Your new API key (copy now — shown only once):</div>
-                <code className="text-sm text-accent-purple2 font-mono break-all select-all">{createdKey}</code>
-                <Button variant="ghost" size="xs" className="mt-1.5" onClick={() => setCreatedKey(null)}>Dismiss</Button>
+      {tab === "approvals" ? (
+        <Section title="Approval gates" description="Define the score, role approvals, and framework coverage required before a release can be marked production-ready.">
+          {gatesLoading ? <div className="py-6 text-sm text-tx-3">Loading gates...</div> : null}
+          <div className="grid gap-3">
+            {gatesList.map((gate) => (
+              <div key={gate.id} className="rounded-lg border border-lg-bd bg-white p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-extrabold text-tx">{gate.name}</h3>
+                      <Badge color={gate.active ? "gn" : "or"} size="xs">{gate.active ? "Active" : "Disabled"}</Badge>
+                    </div>
+                    <p className="mt-1 text-sm text-tx-3">Type: {gate.gate_type} / Minimum score: {gate.min_score}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {parseList(gate.required_signoffs).map((role) => <Badge key={role} color="pr" size="xs">{role}</Badge>)}
+                  </div>
+                </div>
+                {parseList(gate.required_frameworks).length ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {parseList(gate.required_frameworks).map((framework) => <Badge key={framework} color="bl" size="xs">{framework}</Badge>)}
+                  </div>
+                ) : null}
               </div>
-            )}
-
-            <div className="flex gap-1">
-              <input
-                type="text" placeholder="Key name (e.g. CI/CD Pipeline)" value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createKey()}
-                className="input-glass text-sm flex-1"
-              />
-              <Button variant="primary" size="sm" onClick={createKey}>+ Create Key</Button>
-            </div>
-            <div className="text-xs text-tx-4 mt-2">Keys are prefixed <code className="text-accent-purple2 font-mono">ro_</code> for easy identification in CI/CD configs.</div>
+            ))}
+            {!gatesLoading && gatesList.length === 0 ? <div className="rounded-lg border border-lg-bd bg-white p-5 text-sm text-tx-3">No approval gates configured.</div> : null}
           </div>
-        )}
 
-        {/* ══════════ Integrations ══════════ */}
-        {tab === "int" && (
-          <div>
-            {integrationsLoading ? (
-              <div className="text-xs text-tx-3 text-center py-4 animate-pulse">Loading integration defaults...</div>
-            ) : (
-              <>
-                <IntegrationCard
-                  icon="SL" title="Slack" subtitle="Webhook on complete"
-                  description="Post a rich summary to a Slack channel when analysis completes."
-                  fields={[
-                    { key: "slack_webhook", label: "Webhook URL", placeholder: "https://hooks.slack.com/services/...", type: "url" },
-                  ]}
-                  values={integrationDefaults}
-                  onChange={updateIntegrationDefault}
-                />
-                <IntegrationCard
-                  icon="JI" title="Jira" subtitle="Auto-create Must-Do issues"
-                  description="Create Jira tasks for each Must-priority checklist item."
-                  fields={[
-                    { key: "jira_url", label: "Jira Base URL", placeholder: "https://your-org.atlassian.net" },
-                    { key: "jira_project", label: "Project Key", placeholder: "PROJ" },
-                    { key: "jira_token", label: "API Token", placeholder: "Base64-encoded email:token", type: "password" },
-                  ]}
-                  values={integrationDefaults}
-                  onChange={updateIntegrationDefault}
-                />
-                <IntegrationCard
-                  icon="GH" title="GitHub" subtitle="PR risk comment"
-                  description="Post a risk summary comment on a GitHub pull request."
-                  fields={[
-                    { key: "github_repo", label: "Repository", placeholder: "owner/repo" },
-                    { key: "github_pr", label: "PR Number", placeholder: "42", type: "number" },
-                    { key: "github_token", label: "Personal Access Token", placeholder: "ghp_...", type: "password" },
-                  ]}
-                  values={integrationDefaults}
-                  onChange={updateIntegrationDefault}
-                />
-                <IntegrationCard
-                  icon="LN" title="Linear" subtitle="GraphQL checklist issues"
-                  description="Create Linear issues for Must-priority checklist items."
-                  fields={[
-                    { key: "linear_team_id", label: "Team ID", placeholder: "your-team-uuid" },
-                    { key: "linear_token", label: "API Key", placeholder: "lin_api_...", type: "password" },
-                  ]}
-                  values={integrationDefaults}
-                  onChange={updateIntegrationDefault}
-                />
-                <IntegrationCard
-                  icon="WH" title="Webhook" subtitle="Custom HMAC-signed payload"
-                  description="POST analysis results to any URL with an HMAC-SHA256 signature header."
-                  fields={[
-                    { key: "webhook_url", label: "Endpoint URL", placeholder: "https://your-api.com/hooks/ReleaseOps" },
-                    { key: "webhook_secret", label: "HMAC Secret", placeholder: "your-signing-secret", type: "password" },
-                  ]}
-                  values={integrationDefaults}
-                  onChange={updateIntegrationDefault}
-                />
-
-                <div className="flex items-center justify-between mt-3 gap-2">
-                  <div className="text-xs text-tx-4">These defaults are applied to new sessions. Override per-session in the session detail view.</div>
-                  <Button variant="primary" size="sm" onClick={saveIntegrationDefaults} disabled={integrationsSaving}>{integrationsSaving ? "Saving..." : "Save Defaults"}</Button>
-                </div>
-                {integrationsMsg && <div className="text-xs text-tx-3 mt-2">{integrationsMsg}</div>}
-              </>
-            )}
-          </div>
-        )}
-
-        {/* ══════════ Gates ══════════ */}
-        {tab === "gates" && (
-          <div>
-            {gatesLoading ? (
-              <div className="text-xs text-tx-3 text-center py-4 animate-pulse">Loading gates...</div>
-            ) : gatesList.length === 0 ? (
-              <div className="text-xs text-tx-3 text-center py-4">No release gates configured.</div>
-            ) : (
-              gatesList.map((g) => (
-                <div key={g.id} className="p-3 bg-lg-sf2 rounded-lg border border-accent-purple/10 mb-2">
-                  <div className="flex justify-between items-center">
-                    <div className="text-base font-bold text-tx">🚦 {g.name}</div>
-                    <Badge color={g.active ? "gn" : "or"} size="xs">{g.active ? "ACTIVE" : "DISABLED"}</Badge>
-                  </div>
-                  <div className="text-sm text-tx-3 mt-1">
-                    Type: {g.gate_type} · Min Score: {g.min_score}
-                  </div>
-                  {g.required_signoffs && (
-                    <div className="text-sm text-tx-3 mt-0.5">
-                      Sign-offs: {(typeof g.required_signoffs === "string" ? JSON.parse(g.required_signoffs) : g.required_signoffs).join(", ")}
-                    </div>
-                  )}
-                  {g.required_frameworks && (
-                    <div className="text-sm text-tx-3 mt-0.5">
-                      Frameworks: {(typeof g.required_frameworks === "string" ? JSON.parse(g.required_frameworks) : g.required_frameworks).join(", ")}
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-
-            {/* Create gate form */}
-            {showGateForm ? (
-              <div className="p-3 bg-lg-sf2 rounded-lg border border-lg-bd mt-2">
-                <div className="text-sm font-bold text-tx mb-2">New Release Gate</div>
-                <input type="text" placeholder="Gate name" value={gateForm.name} onChange={(e) => setGateForm({ ...gateForm, name: e.target.value })} className="input-glass text-sm mb-1.5" />
-                <select value={gateForm.gate_type} onChange={(e) => setGateForm({ ...gateForm, gate_type: e.target.value })} className="input-glass text-sm mb-1.5">
+          {showGateForm ? (
+            <div className="mt-5 rounded-lg border border-lg-bd bg-[#fbfaf7] p-4">
+              <Label>New release gate</Label>
+              <div className="grid gap-3 lg:grid-cols-2">
+                <input type="text" placeholder="Gate name" value={gateForm.name} onChange={(event) => setGateForm({ ...gateForm, name: event.target.value })} className="input-glass text-sm" />
+                <select value={gateForm.gate_type} onChange={(event) => setGateForm({ ...gateForm, gate_type: event.target.value })} className="input-glass text-sm">
                   <option value="ci_cd">CI/CD</option>
                   <option value="pr_check">PR Check</option>
                   <option value="manual">Manual</option>
                 </select>
-                <input type="number" placeholder="Min score" value={gateForm.min_score} onChange={(e) => setGateForm({ ...gateForm, min_score: e.target.value })} className="input-glass text-sm mb-1.5" />
-                <input type="text" placeholder="Sign-offs (comma-separated)" value={gateForm.required_sign_offs} onChange={(e) => setGateForm({ ...gateForm, required_sign_offs: e.target.value })} className="input-glass text-sm mb-1.5" />
-                <input type="text" placeholder="Frameworks (comma-separated)" value={gateForm.required_frameworks} onChange={(e) => setGateForm({ ...gateForm, required_frameworks: e.target.value })} className="input-glass text-sm mb-2" />
-                <div className="flex gap-1">
-                  <Button variant="primary" size="sm" onClick={createGate}>Create</Button>
-                  <Button variant="ghost" size="sm" onClick={() => setShowGateForm(false)}>Cancel</Button>
-                </div>
+                <input type="number" placeholder="Minimum score" value={gateForm.min_score} onChange={(event) => setGateForm({ ...gateForm, min_score: event.target.value })} className="input-glass text-sm" />
+                <input type="text" placeholder="Required sign-offs" value={gateForm.required_sign_offs} onChange={(event) => setGateForm({ ...gateForm, required_sign_offs: event.target.value })} className="input-glass text-sm" />
+                <input type="text" placeholder="Required frameworks" value={gateForm.required_frameworks} onChange={(event) => setGateForm({ ...gateForm, required_frameworks: event.target.value })} className="input-glass text-sm lg:col-span-2" />
               </div>
-            ) : (
-              <Button variant="primary" size="sm" className="w-full mt-2" onClick={() => setShowGateForm(true)}>+ Create Gate</Button>
-            )}
+              <div className="mt-3 flex gap-2">
+                <Button variant="primary" size="sm" onClick={createGate}>Create gate</Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowGateForm(false)}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <Button variant="primary" size="sm" className="mt-5" onClick={() => setShowGateForm(true)}>Create approval gate</Button>
+          )}
+        </Section>
+      ) : null}
+
+      {tab === "integrations" ? (
+        <Section
+          title="Integration defaults"
+          description="Configure default destinations for release evidence, tickets, PR comments, and webhooks. New reviews inherit these settings."
+          action={<Button variant="primary" size="sm" onClick={saveIntegrationDefaults} disabled={integrationsSaving}>{integrationsSaving ? "Saving..." : "Save defaults"}</Button>}
+        >
+          {integrationsLoading ? <div className="py-6 text-sm text-tx-3">Loading integration defaults...</div> : (
+            <>
+              <IntegrationRow title="Slack" subtitle="Post a release summary when analysis completes." fields={[{ key: "slack_webhook", label: "Webhook URL", placeholder: "https://hooks.slack.com/services/...", type: "url", wide: true }]} values={integrationDefaults} onChange={updateIntegrationDefault} />
+              <IntegrationRow title="Jira" subtitle="Create Jira tasks for required controls and blockers." fields={[{ key: "jira_url", label: "Jira base URL", placeholder: "https://your-org.atlassian.net" }, { key: "jira_project", label: "Project key", placeholder: "PROJ" }, { key: "jira_token", label: "API token", placeholder: "Base64 email:token", type: "password", wide: true }]} values={integrationDefaults} onChange={updateIntegrationDefault} />
+              <IntegrationRow title="GitHub" subtitle="Post a release risk summary on a pull request." fields={[{ key: "github_repo", label: "Repository", placeholder: "owner/repo" }, { key: "github_pr", label: "PR number", placeholder: "42", type: "number" }, { key: "github_token", label: "Token", placeholder: "ghp_...", type: "password", wide: true }]} values={integrationDefaults} onChange={updateIntegrationDefault} />
+              <IntegrationRow title="Linear" subtitle="Create checklist issues for release controls." fields={[{ key: "linear_team_id", label: "Team ID", placeholder: "team uuid" }, { key: "linear_token", label: "API key", placeholder: "lin_api_...", type: "password" }]} values={integrationDefaults} onChange={updateIntegrationDefault} />
+              <IntegrationRow title="Webhook" subtitle="POST a signed payload to your internal release system." fields={[{ key: "webhook_url", label: "Endpoint URL", placeholder: "https://your-api.com/hooks/releaseops" }, { key: "webhook_secret", label: "HMAC secret", placeholder: "Signing secret", type: "password" }]} values={integrationDefaults} onChange={updateIntegrationDefault} />
+            </>
+          )}
+          {integrationsMsg ? <div className="mt-3 text-sm text-tx-3">{integrationsMsg}</div> : null}
+        </Section>
+      ) : null}
+
+      {tab === "api" ? (
+        <Section title="API keys" description="Create scoped keys for CI/CD, release automation, and internal workflow integration. New keys are shown once.">
+          {createdKey ? (
+            <div className="mb-4 rounded-lg border border-accent-green/25 bg-accent-green/10 p-4">
+              <div className="mb-1 text-sm font-semibold text-tx">New API key, shown once</div>
+              <code className="break-all font-mono text-sm text-accent-purple2">{createdKey}</code>
+              <Button variant="ghost" size="xs" className="mt-2" onClick={() => setCreatedKey(null)}>Dismiss</Button>
+            </div>
+          ) : null}
+          {keysLoading ? <div className="py-6 text-sm text-tx-3">Loading keys...</div> : null}
+          <div className="overflow-hidden rounded-lg border border-lg-bd">
+            {keysList.length === 0 && !keysLoading ? <div className="p-4 text-sm text-tx-3">No API keys yet.</div> : null}
+            {keysList.map((key) => (
+              <div key={key.id} className="workspace-row grid gap-3 p-3 lg:grid-cols-[1fr_220px_80px] lg:items-center">
+                <div>
+                  <div className="text-sm font-semibold text-tx">{key.name}</div>
+                  <div className="font-mono text-xs text-tx-4">Created {new Date(key.created_at).toLocaleDateString()}</div>
+                </div>
+                <div className="text-xs text-tx-4">{key.last_used ? `Last used ${new Date(key.last_used).toLocaleDateString()}` : "Never used"}</div>
+                <Button variant="danger" size="xs" onClick={() => revokeKey(key.id)}>Revoke</Button>
+              </div>
+            ))}
           </div>
-        )}
-      </Card>
+          <div className="mt-4 flex gap-2">
+            <input type="text" placeholder="Key name, e.g. CI/CD Pipeline" value={newKeyName} onChange={(event) => setNewKeyName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && createKey()} className="input-glass text-sm" />
+            <Button variant="primary" size="sm" onClick={createKey}>Create key</Button>
+          </div>
+        </Section>
+      ) : null}
+
+      {tab === "audit" ? (
+        <Section title="Audit posture" description="Operational history for organization and policy changes will appear here as the audit model expands.">
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-lg border border-lg-bd bg-white p-4">
+              <div className="text-2xl font-extrabold text-tx">{teamsList.length}</div>
+              <div className="text-sm text-tx-3">Organizations</div>
+            </div>
+            <div className="rounded-lg border border-lg-bd bg-white p-4">
+              <div className="text-2xl font-extrabold text-tx">{gatesList.length}</div>
+              <div className="text-sm text-tx-3">Approval gates</div>
+            </div>
+            <div className="rounded-lg border border-lg-bd bg-white p-4">
+              <div className="text-2xl font-extrabold text-tx">{keysList.length}</div>
+              <div className="text-sm text-tx-3">API keys</div>
+            </div>
+          </div>
+          <div className="mt-4 rounded-lg border border-lg-bd bg-[#fbfaf7] p-4 text-sm leading-6 text-tx-3">
+            Release-level audit history is available inside each review under Governance. Organization-level audit history should be backed by immutable server events before broad enterprise rollout.
+          </div>
+        </Section>
+      ) : null}
     </div>
   );
 }
