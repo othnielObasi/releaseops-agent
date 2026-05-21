@@ -197,7 +197,7 @@ function PublicHeader({ onNavigate }) {
           <Logo />
         </button>
         <nav className="hidden items-center gap-8 md:flex">
-          {[["Product", "Product"], ["Guide", "Guide"]].map(([label, page]) => (
+          {[["Solution", "Product"], ["Guide", "Guide"]].map(([label, page]) => (
             <button key={label} type="button" onClick={() => onNavigate(page)} className="text-sm font-medium text-slate-600 hover:text-slate-950">
               {label}
             </button>
@@ -382,20 +382,68 @@ function ProductPage({ onNavigate }) {
     ["Shallow test coverage", "Teams often ship with happy-path tests while edge cases, adversarial prompts, and approval failures remain unchecked."],
     ["Evidence written late", "Approvals, release notes, controls, and audit records are often assembled after decisions have already been made."],
   ];
+  const useCases = [
+    ["Customer-facing AI agents", "Refund assistants, support reply agents, onboarding copilots, and customer service automations that touch private data or take business actions.", "Controls: approval thresholds, PII logging, moderation, escalation."],
+    ["Internal workflow agents", "Operations, sales, HR, finance, or support agents that call tools, update records, summarize sensitive information, or trigger downstream processes.", "Controls: tool permissions, audit trail, role approvals, rollback plan."],
+    ["AI product releases", "New AI features moving from prototype to beta or production, where product, QA, security, and legal need one shared decision record.", "Controls: release gates, test coverage, framework mapping, evidence pack."],
+    ["Regulated AI workflows", "Fintech, health, legal, HR, and enterprise SaaS workflows that need traceability from risk to control before launch.", "Controls: GDPR, SOC 2, ISO 42001, NIST AI RMF, EU AI Act mapping."],
+  ];
+  const operatingModel = [
+    ["Product", "Submits the proposed AI workflow, business goal, users, and launch context."],
+    ["ReleaseOps Agent", "Builds the release spec, risk register, tests, guardrails, compliance mapping, and decision recommendation."],
+    ["QA / Security / Legal", "Review assigned controls, approve, reject with reason, or accept risk with rationale."],
+    ["Leadership / Ops", "Uses the evidence pack, audit history, and final decision to allow, delay, or block launch."],
+  ];
+  const adoptionSteps = [
+    ["Start with one AI workflow", "Run the release review on a customer-facing or internal agent before it reaches production."],
+    ["Assign governance roles", "Invite organization members and map PM, QA, Legal, Security, Admin, and member permissions."],
+    ["Turn controls into gates", "Use required sign-offs, score thresholds, unresolved blockers, and evidence checks as launch conditions."],
+    ["Keep the record alive", "Compare versions, re-run reviews, export certificates, and keep decisions inspectable after launch."],
+  ];
+
   return (
     <main className="min-h-screen bg-white text-slate-950">
       <PublicHeader onNavigate={onNavigate} />
       <section className="px-6 py-20 md:py-28 lg:px-8">
-        <div className="mx-auto max-w-6xl"><SectionTitle eyebrow="Product" title="The release layer between an AI idea and production." subtitle="ReleaseOps Agent turns a proposed AI workflow into a structured release decision: what can ship, what needs controls, and what should not ship yet." /></div>
+        <div className="mx-auto max-w-6xl"><SectionTitle eyebrow="Solution" title="A release governance layer for teams shipping AI into production." subtitle="Use ReleaseOps when an AI workflow touches customer data, triggers business actions, needs cross-functional approval, or must leave an auditable launch record." /></div>
       </section>
       <section className="px-6 py-20 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]">
-          <SectionTitle eyebrow="Why this exists" title="Single-prompt reviews miss the work that happens before launch." subtitle="The problem is not that teams lack AI. The problem is that release readiness is fragmented, informal, and hard to prove." />
+          <SectionTitle eyebrow="Problem" title="Single-prompt reviews miss the work that happens before launch." subtitle="The problem is not that teams lack AI. The problem is that release readiness is fragmented, informal, and hard to prove." />
           <dl className="divide-y divide-slate-200 border-y border-slate-200">
             {failureModes.map(([label, text]) => (
               <div key={label} className="grid gap-3 py-6 md:grid-cols-[190px_1fr]"><dt className="text-sm font-semibold">{label}</dt><dd className="text-sm leading-7 text-slate-600">{text}</dd></div>
             ))}
           </dl>
+        </div>
+      </section>
+      <section className="bg-slate-50 px-6 py-20 lg:px-8">
+        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]">
+          <SectionTitle eyebrow="Use cases" title="Where ReleaseOps becomes operational." subtitle="The best fit is not generic brainstorming. It is the final review layer before an AI workflow is allowed to affect users, records, money, policy, or regulated data." />
+          <div className="divide-y divide-slate-200 border-y border-slate-200 bg-white">
+            {useCases.map(([title, body, controls]) => (
+              <div key={title} className="grid gap-3 p-5 md:grid-cols-[220px_1fr]">
+                <h3 className="text-sm font-bold text-slate-950">{title}</h3>
+                <div>
+                  <p className="text-sm leading-7 text-slate-600">{body}</p>
+                  <p className="mt-2 text-xs font-semibold text-slate-500">{controls}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="px-6 py-20 lg:px-8">
+        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]">
+          <SectionTitle eyebrow="Operating model" title="Designed for cross-functional approval, not solo prompting." />
+          <ol className="divide-y divide-slate-200 border-y border-slate-200">
+            {operatingModel.map(([owner, body]) => (
+              <li key={owner} className="grid gap-3 py-6 md:grid-cols-[180px_1fr]">
+                <h3 className="text-sm font-bold text-slate-950">{owner}</h3>
+                <p className="text-sm leading-7 text-slate-600">{body}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
       <section className="bg-slate-950 px-6 py-20 text-white lg:px-8">
@@ -408,19 +456,35 @@ function ProductPage({ onNavigate }) {
           </dl>
         </div>
       </section>
+      <section className="px-6 py-20 lg:px-8">
+        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]">
+          <SectionTitle eyebrow="Adoption path" title="How an enterprise team starts using it." />
+          <ol className="divide-y divide-slate-200 border-y border-slate-200">
+            {adoptionSteps.map(([title, body], index) => (
+              <li key={title} className="grid gap-4 py-6 md:grid-cols-[56px_220px_1fr]">
+                <span className="text-sm font-bold text-blue-600">{String(index + 1).padStart(2, "0")}</span>
+                <h3 className="text-lg font-semibold">{title}</h3>
+                <p className="text-sm leading-7 text-slate-600">{body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
     </main>
   );
 }
 
 function GuidePage({ onNavigate }) {
-  const quickStart = [["1", "Click + New Release Review", "Start from anywhere in the app."], ["2", "Describe your feature", "Add a title, description, and industry preset."], ["3", "Watch the pipeline", "Follow the live Release Analysis, Validation Planning, and Decision Packaging logs."], ["4", "Explore results", "Overview, Spec & Risks, Tests, Docs, Regulation, and Governance."]];
+  const quickStart = [["1", "Click + New Release Review", "Start from the global app header."], ["2", "Describe your feature", "Add a title, description, and industry preset."], ["3", "Watch the pipeline", "Follow the live Release Analysis, Validation Planning, and Decision Packaging logs."], ["4", "Work the decision", "Resolve blockers, collect sign-offs, export evidence, or accept risk with rationale."]];
   const agents = [["Release Analysis", ["Release spec", "Risk register", "Readiness checklist"]], ["Validation Planning", ["Test strategy", "Test cases", "Guardrails"]], ["Decision Packaging", ["Release notes", "Market page", "Stakeholder brief"]]];
+  const governance = [["Organizations", "Create an organization, invite members, and assign approval roles."], ["Approvals", "PM, QA, Legal, and Security sign-offs are role-gated and logged."], ["Blockers", "Open blockers prevent a clean launch decision until resolved or accepted with rationale."], ["Evidence", "Export decision evidence and certificates for review or audit."]];
   return (
     <main className="min-h-screen bg-white text-slate-950">
       <PublicHeader onNavigate={onNavigate} />
-      <section className="px-6 py-20 md:py-28 lg:px-8"><div className="mx-auto max-w-6xl"><SectionTitle eyebrow="Guide" title="How to run a release review." subtitle="Use this guide to understand the release review flow, the decision pipeline, the regulation engine, and the governance tools available after a run." /></div></section>
+      <section className="px-6 py-20 md:py-28 lg:px-8"><div className="mx-auto max-w-6xl"><SectionTitle eyebrow="Guide" title="How to operate ReleaseOps." subtitle="Use this page as the working guide: create a review, inspect the pipeline output, assign governance work, and close the decision record." /></div></section>
       <section className="px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Quick start" title="Run a review in four steps." /><ol className="divide-y divide-slate-200 border-y border-slate-200">{quickStart.map(([number, title, body]) => <li key={title} className="grid gap-4 py-6 md:grid-cols-[56px_220px_1fr]"><span className="text-sm font-bold text-blue-600">{number}</span><h3 className="text-lg font-semibold">{title}</h3><p className="text-sm leading-7 text-slate-600">{body}</p></li>)}</ol></div></section>
       <section className="bg-slate-50 px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Review Stages" title="Each stage owns a different part of the release decision." /><div className="grid gap-4 md:grid-cols-3">{agents.map(([name, items]) => <div key={name} className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm"><h3 className="text-lg font-semibold">{name}</h3><ul className="mt-5 space-y-3">{items.map((item) => <li key={item} className="text-sm text-slate-600">/ {item}</li>)}</ul></div>)}</div></div></section>
+      <section className="px-6 py-20 lg:px-8"><div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.85fr_1.15fr]"><SectionTitle eyebrow="Governance workflow" title="What to do after the review completes." /><dl className="divide-y divide-slate-200 border-y border-slate-200">{governance.map(([title, body]) => <div key={title} className="grid gap-3 py-6 md:grid-cols-[180px_1fr]"><dt className="text-sm font-semibold">{title}</dt><dd className="text-sm leading-7 text-slate-600">{body}</dd></div>)}</dl></div></section>
     </main>
   );
 }
